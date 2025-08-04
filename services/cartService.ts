@@ -34,16 +34,16 @@ export interface CartItemRequest {
  * Lấy thông tin giỏ hàng của người dùng hiện tại
  * @returns Thông tin giỏ hàng
  */
-export const getCurrentCart = async (): Promise<CartDto | null> => {
-    try {
-        // Sử dụng thông tin người dùng từ authContext
-        const response: AxiosResponse<ApiResponse<CartDto>> = await apiClient.get('/cart/current');
-        return response.data.data;
-    } catch (error) {
-        console.error('Error fetching current cart:', error);
-        return null;
-    }
-};
+// export const getCurrentCart = async (): Promise<CartDto | null> => {
+//     try {
+//         // Sử dụng thông tin người dùng từ authContext
+//         const response: AxiosResponse<ApiResponse<CartDto>> = await apiClient.get('/cart/current');
+//         return response.data.data;
+//     } catch (error) {
+//         console.error('Error fetching current cart:', error);
+//         return null;
+//     }
+// };
 
 /**
  * Lấy thông tin giỏ hàng theo userId
@@ -52,7 +52,7 @@ export const getCurrentCart = async (): Promise<CartDto | null> => {
  */
 export const getCart = async (userId: string): Promise<CartDto | null> => {
     try {
-        const response: AxiosResponse<ApiResponse<CartDto>> = await apiClient.get(`/cart/${userId}`);
+        const response: AxiosResponse<ApiResponse<CartDto>> = await apiClient.get(`/cart`);
         return response.data.data;
     } catch (error) {
         console.error(`Error fetching cart for user ${userId}:`, error);
@@ -65,18 +65,18 @@ export const getCart = async (userId: string): Promise<CartDto | null> => {
  * @param userId ID của người dùng
  * @returns Thông tin giỏ hàng mới tạo
  */
-export const createCart = async (userId: string): Promise<CartDto | null> => {
-    try {
-        const request: CartRequest = {
-            user_id: userId
-        };
-        const response: AxiosResponse<ApiResponse<CartDto>> = await apiClient.post('/cart', request);
-        return response.data.data;
-    } catch (error) {
-        console.error('Error creating cart:', error);
-        return null;
-    }
-};
+// export const createCart = async (userId: string): Promise<CartDto | null> => {
+//     try {
+//         const request: CartRequest = {
+//             user_id: userId
+//         };
+//         const response: AxiosResponse<ApiResponse<CartDto>> = await apiClient.post('/cart', request);
+//         return response.data.data;
+//     } catch (error) {
+//         console.error('Error creating cart:', error);
+//         return null;
+//     }
+// };
 
 /**
  * Cập nhật thông tin giỏ hàng (ví dụ: áp dụng mã giảm giá)
