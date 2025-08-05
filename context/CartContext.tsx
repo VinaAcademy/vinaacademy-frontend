@@ -180,18 +180,19 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
             if (!cartData) {
                 // Nếu không có giỏ hàng, tạo mới
-                try {
-                    const newCart = await cartService.createCart(user.id);
-                    if (newCart) {
-                        setCartId(newCart.id);
-                    }
-                } catch (createError) {
-                    console.error('Error creating cart:', createError);
-                }
-                setCartItems([]);
-                // Lưu lại userId hiện tại và đánh dấu đã khởi tạo
-                lastUserIdRef.current = user.id;
-                isInitializedRef.current = true;
+                // try {
+                //     const newCart = await cartService.createCart(user.id);
+                //     if (newCart) {
+                //         setCartId(newCart.id);
+                //     }
+                // } catch (createError) {
+                //     console.error('Error creating cart:', createError);
+                // }
+                // setCartItems([]);
+                // // Lưu lại userId hiện tại và đánh dấu đã khởi tạo
+                // lastUserIdRef.current = user.id;
+                // isInitializedRef.current = true;
+                console.error('No cart data found! Check again when create new account');
                 return;
             }
 

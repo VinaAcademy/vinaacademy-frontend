@@ -8,7 +8,7 @@ export default function ProfileLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <div className="pb-28">
+        <div className="pb-8">
         {children}
     </div>
     )
