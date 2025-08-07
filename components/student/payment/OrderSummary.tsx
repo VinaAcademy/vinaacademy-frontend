@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { CouponDto, OrderCouponRequest, OrderDto, OrderItemDto, DiscountType } from '@/types/payment-type';
 import { applyCouponToOrder } from '@/services/paymentService';
 import { getImageUrl } from '@/utils/imageUtils';
+import { createErrorToast } from '@/components/ui/toast-cus';
 
 type OrderSummaryProps = {
   orderItems: OrderItemDto[] | null;
@@ -74,8 +75,8 @@ const OrderSummary = ({ orderItems, coupons, orderDto }: OrderSummaryProps) => {
         setOrderData(result);
         setSelectedCoupon(coupon);
       } else {
-        // Handle error - maybe revert coupon selection
-        console.error("Failed to apply coupon");
+        createErrorToast("Không thể áp dụng mã giảm giá, vui lòng thử lại");
+        setSelectedCoupon(null);
       }
     } catch (error) {
       console.error("Error applying coupon:", error);
@@ -118,7 +119,8 @@ const OrderSummary = ({ orderItems, coupons, orderDto }: OrderSummaryProps) => {
                 alt={item.course_id}
                 width={60}
                 height={60}
-                objectFit='center'
+                objectFit='cover'
+                className='rounded'
                 />
             {/* <div className="w-12 h-12 bg-blue-50 rounded-md mr-4 flex items-center justify-center flex-shrink-0 text-blue-500 border border-blue-100">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -127,10 +129,10 @@ const OrderSummary = ({ orderItems, coupons, orderDto }: OrderSummaryProps) => {
             </div> */}
             
             <div className="flex-1">
-              <h3 className="font-medium text-gray-800 group-hover:text-blue-600 transition-colors">
+              <h3 className="font-medium text-gray-800 group-hover:text-blue-600 transition-colors ps-3">
                 {item.course_name}
               </h3>
-              <div className="flex justify-between items-center mt-1">
+              <div className="flex justify-between items-center mt-1 ps-3">
                 <span className="line-through text-xs text-gray-400">
                   {formatPrice(totalOriginalPrice)}
                 </span>

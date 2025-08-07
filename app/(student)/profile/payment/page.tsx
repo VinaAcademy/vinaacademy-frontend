@@ -327,11 +327,18 @@ export default function OrderTable() {
                     {formatDate(order.createdDate)}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-center">
-                    {isWithin15Minutes(order.createdDate) && order.paymentDto.paymentStatus==="PENDING" && (
+                    {order.paymentDto &&
+                    order.paymentDto.paymentStatus === "PENDING" &&
+                    isWithin15Minutes(order.createdDate) ? (
                       <button
                         onClick={() => handleContinuePayment(order.id)}
                         className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded transition-colors flex items-center mx-auto"
                       >
+                        <CreditCard className="h-4 w-4 mr-1" />
+                        Thanh toán
+                      </button>
+                    ) : (
+                      <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded transition-colors flex items-center mx-auto hover:shadow-md opacity-50 cursor-not-allowed">
                         <CreditCard className="h-4 w-4 mr-1" />
                         Thanh toán
                       </button>
