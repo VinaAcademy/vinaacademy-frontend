@@ -111,7 +111,7 @@ const CouponSelectDialog = ({
         <DialogHeader>
           <DialogTitle>Chọn mã giảm giá</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+        <div className="space-y-4 max-h-[61vh] overflow-y-auto">
           {coupons.length > 0 ? (
             coupons.map((coupon) => {
               const minOrder = Number(coupon.minOrderValue);
@@ -123,7 +123,7 @@ const CouponSelectDialog = ({
                     selectedCouponId === coupon.id
                       ? 'border-blue-500 bg-blue-50 shadow-sm'
                       : 'border-gray-200'
-                  } ${
+                  } ${  
                     isValid 
                       ? 'cursor-pointer' 
                       : 'opacity-50 cursor-not-allowed'
