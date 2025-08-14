@@ -74,10 +74,6 @@ export default async function CoursePage({
             return notFound();
         }
 
-        // You would normally get this from your API based on the current user
-        // For now, we'll set it to false as a default since this is a public page
-        const userEnrolled = false; // This should come from your API
-
         // Create structured data for the course
         const structuredData = {
             '@context': 'https://schema.org',
@@ -136,7 +132,6 @@ export default async function CoursePage({
                                         <ReviewsArea
                                             courseId={course.id}
                                             mainPage={true}
-                                            userEnrolled={userEnrolled} // Pass the enrollment status
                                         />
                                     </section>
                                 </article>

@@ -38,14 +38,12 @@ interface ReviewsAreaProps {
     courseId: string;
     currentUserId?: string;
     mainPage?: boolean;
-    userEnrolled?: boolean; // Add new prop for user enrollment status
 }
 
 const ReviewsArea: React.FC<ReviewsAreaProps> = ({
     courseId,
     mainPage = false,
     currentUserId = '1',
-    userEnrolled = false // Default to false if not provided
 }) => {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
@@ -62,7 +60,6 @@ const ReviewsArea: React.FC<ReviewsAreaProps> = ({
         review: '',
     });
     const [canReview, setCanReview] = useState(false);
-    const [userEnrolledState, setUserEnrolledState] = useState(userEnrolled); // Local state for user enrollment
     const [ratingDistribution, setRatingDistribution] = useState({
         counts: [0, 0, 0, 0, 0], // 5, 4, 3, 2, 1 stars
         percentages: [0, 0, 0, 0, 0]
@@ -89,33 +86,16 @@ const ReviewsArea: React.FC<ReviewsAreaProps> = ({
 
             // check enrollment status
             try {
-                const enrolled: boolean = await checkEnrollment(courseId);
-                setUserEnrolledState(enrolled);
-                console.log("User enrolled:", enrolled);
-
                 // Kiểm tra khả năng đánh giá
                 const canReview = await canUserReviewCourse(courseId);
                 console.log("Can user review course:", canReview);
 
-                setCanReview(canReview && enrolled);
+                setCanReview(canReview);
             } catch (error) {
                 console.error('Error checking enrollment:', error);
                 setCanReview(false);
             }
-
-            try {
-                // Kiểm tra người dùng đã đánh giá chưa
-                const hasReviewed = await hasUserReviewedCourse(courseId);
-                console.log("Has user reviewed course:", hasReviewed);
-
-                // Mặc định cho phép đánh giá nếu chưa đánh giá
-                setCanReview(!hasReviewed);
-            } catch (error) {
-                console.error('Error checking review eligibility:', error);
-                setCanReview(false);
-            }
         };
-
 
         if (isAuthenticated) {
             checkReviewEligibility();
@@ -478,13 +458,10 @@ const ReviewsArea: React.FC<ReviewsAreaProps> = ({
             </DialogContent>
         </Dialog>
     );
-    console.log("Can review:", canReview, "User enrolled:", userEnrolled);
     return (
         <div className={`${mainPage ? 'p-0' : 'p-6'}`}>
 
             <div className="flex justify-between items-center mb-6">
-                {canReview} {userEnrolled}
-
                 <h2 className="text-xl font-bold">Đánh giá từ học viên</h2>
 
                 {canReview && (

@@ -95,7 +95,7 @@ export const getCourseReviewStatistics = async (courseId: string): Promise<Revie
 export const hasUserReviewedCourse = async (courseId: string): Promise<boolean> => {
     try {
         const response = await apiClient.get(`/course-reviews/check/course/${courseId}`);
-        return response.data.data;
+        return response.data;
     } catch (error) {
         console.error('Error checking if user reviewed course:', error);
         return false;
@@ -130,7 +130,9 @@ export const canUserReviewCourse = async (courseId: string): Promise<boolean> =>
 
         // Kiểm tra người dùng đã đánh giá khóa học chưa
         const hasReviewed = await hasUserReviewedCourse(courseId);
-        return !hasReviewed; // Chỉ có thể đánh giá nếu chưa đánh giá trước đó
+        if (hasReviewed) return true; // Chỉ có thể đánh giá nếu chưa đánh giá trước đó
+
+        return false; // Người dùng có thể đánh giá khóa học
     } catch (error) {
         console.error('Error checking if user can review course:', error);
         return false;
