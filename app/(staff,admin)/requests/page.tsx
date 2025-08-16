@@ -27,6 +27,7 @@ import { CourseDetailsResponse } from "@/types/course";
 import RejectCourseDialog from "@/components/staff/ui/RejectCourse";
 import { NotificationType } from "@/types/notification-type";
 import LessonDialogPreview from "@/components/staff/ui/LessonPreview";
+import { CourseStatus } from "@/types/new-course";
 
 const CourseApprovalPage = () => {
   const { toast } = useToast();
@@ -151,10 +152,18 @@ const CourseApprovalPage = () => {
     setIsLoading(true);
 
     try {
-      const check = await updateStatusCourse({
-        slug: slug,
-        status: "PUBLISHED",
-      });
+      // Find the course by slug to get its ID
+      const course = mappedCourses.find((c) => c.slug === slug);
+      if (!course) {
+        toast({
+          title: "Lỗi",
+          description: "Không tìm thấy khóa học.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const check = await updateStatusCourse(course.id, CourseStatus.PUBLISHED);
 
       if (check) {
         toast({
@@ -223,10 +232,23 @@ const CourseApprovalPage = () => {
     setIsLoading(true);
 
     try {
-      const check = await updateStatusCourse({
-        slug: slug,
-        status: "REJECTED",
-      });
+      const check = await updateStatusCourse(id,CourseStatus.PUBLISHED);
+
+      if (check) {
+        toast({
+          title: "Khóa học đã bị từ chối",
+          description: `Khóa học #${slug} đã được từ chối.`,
+          className: "bg-red-500 text-white",
+        });
+      } else {
+        toast({
+          title: "Lỗi",
+          description: `Có lỗi xảy ra khi từ chối khóa học #${slug}. Vui lòng thử lại.`,
+          variant: "destructive",
+          className: "bg-red-500 text-white",
+        });
+      }
+
       // Refresh counts and course data
       const data = await getStatusCourse();
       setCoursesCount(data);

@@ -2,14 +2,27 @@
 
 import apiClient from "@/lib/apiClient";
 import { ApiResponse, PaginatedResponse } from "@/types/api-response";
-import { CourseDetailsResponse, CourseDto, CourseRequest, CourseSearchRequest, CourseStatusCountDto, CourseStatusRequest } from "@/types/course";
+import {
+    CourseDetailsResponse,
+    CourseDto,
+    CourseRequest,
+    CourseSearchRequest,
+    CourseStatusCountDto,
+} from "@/types/course";
 import { CourseData, CourseLevel, CourseStatus } from "@/types/new-course";
 import { AxiosResponse } from "axios";
 import { UserDto } from "@/types/course";
 import { uploadImage } from "./imageService";
 import { CourseInstructorDto, CourseInstructorDtoRequest } from "@/types/instructor-course";
 
-// 📌 GET /courses/pagination
+/** Helper to build Spring-style sort param */
+const buildSort = (sortBy: string, sortDirection: 'asc' | 'desc') => `${sortBy},${sortDirection}`;
+
+/* =========================
+   PUBLISHED COURSE QUERIES
+   ========================= */
+
+// GET /api/v1/courses  (public search with pagination)
 export async function getCoursesPaginated(
     page = 0,
     size = 5,
@@ -19,12 +32,11 @@ export async function getCoursesPaginated(
     minRating = 0
 ): Promise<PaginatedResponse<CourseDto> | null> {
     try {
-        const response: AxiosResponse = await apiClient.get('/courses/pagination', {
+        const response: AxiosResponse = await apiClient.get('/courses', {
             params: {
                 page,
                 size,
-                sortBy,
-                sortDirection,
+                sort: buildSort(sortBy, sortDirection),
                 categorySlug,
                 minRating
             }
@@ -36,10 +48,10 @@ export async function getCoursesPaginated(
     }
 }
 
-// 🔍 GET /courses/{slug} - Get course by slug
+// GET /api/v1/courses/by-slug/{slug}
 export async function getCourseBySlug(slug: string): Promise<CourseDetailsResponse | null> {
     try {
-        const response: AxiosResponse = await apiClient.get(`/courses/${slug}`);
+        const response: AxiosResponse = await apiClient.get(`/courses/by-slug/${slug}`);
         return response.data.data;
     } catch (error) {
         console.error(`getCourseBySlug error for slug ${slug}:`, error);
@@ -47,22 +59,17 @@ export async function getCourseBySlug(slug: string): Promise<CourseDetailsRespon
     }
 }
 
-export async function existCourseBySlug(slug: string): Promise<Boolean> {
+/** Existence check by trying details-by-slug (spec doesn't expose a dedicated /check) */
+export async function existCourseBySlug(slug: string): Promise<boolean> {
     try {
-        const response: AxiosResponse = await apiClient.get(`/courses/check/${slug}`);
-        if (response.status === 200) {
-            console.log(`Course with slug ${slug} data=` + response.data.data);
-            return response.data.data;
-        }
-    } catch (error) {
-        console.error(`getCourseBySlug error for slug ${slug}:`, error);
+        const res: AxiosResponse = await apiClient.get(`/courses/by-slug/${slug}`);
+        return !!res?.data?.data?.id;
+    } catch {
         return false;
-    } finally {
     }
-    return false;
 }
 
-// 🔍 GET /courses/search
+// GET /api/v1/courses (public search) — generic search wrapper
 export async function searchCourses(
     search: CourseSearchRequest,
     page = 0,
@@ -71,13 +78,12 @@ export async function searchCourses(
     sortDirection: 'asc' | 'desc' = 'asc'
 ): Promise<PaginatedResponse<CourseDto> | null> {
     try {
-        const response: AxiosResponse = await apiClient.get('/courses/search', {
+        const response: AxiosResponse = await apiClient.get('/courses', {
             params: {
                 ...search,
                 page,
                 size,
-                sortBy,
-                sortDirection
+                sort: buildSort(sortBy, sortDirection)
             }
         });
         return response.data.data;
@@ -87,6 +93,7 @@ export async function searchCourses(
     }
 }
 
+// GET /api/v1/courses/details (admin/staff)
 export async function searchCoursesDetail(
     search: CourseSearchRequest,
     page = 0,
@@ -95,13 +102,12 @@ export async function searchCoursesDetail(
     sortDirection: 'asc' | 'desc' = 'asc'
 ): Promise<PaginatedResponse<CourseDetailsResponse> | null> {
     try {
-        const response: AxiosResponse = await apiClient.get('/courses/searchdetails', {
+        const response: AxiosResponse = await apiClient.get('/courses/details', {
             params: {
                 ...search,
                 page,
                 size,
-                sortBy,
-                sortDirection
+                sort: buildSort(sortBy, sortDirection)
             }
         });
         return response.data.data;
@@ -111,7 +117,11 @@ export async function searchCoursesDetail(
     }
 }
 
-// ➕ POST /courses
+/* =========================
+   COURSE CRUD
+   ========================= */
+
+// POST /api/v1/courses
 export async function createCourse(course: CourseRequest): Promise<CourseDto | null> {
     try {
         const response: AxiosResponse = await apiClient.post('/courses', course);
@@ -122,10 +132,10 @@ export async function createCourse(course: CourseRequest): Promise<CourseDto | n
     }
 }
 
-// 📝 PUT /courses/crud/{slug}
-export async function updateCourse(slug: string, course: CourseRequest): Promise<CourseDto | null> {
+// PUT /api/v1/courses/by-id/{id}
+export async function updateCourse(id: string, course: CourseRequest): Promise<CourseDto | null> {
     try {
-        const response: AxiosResponse = await apiClient.put(`/courses/crud/${slug}`, course);
+        const response: AxiosResponse = await apiClient.put(`/courses/by-id/${id}`, course);
         return response.data.data;
     } catch (error) {
         console.error("updateCourse error:", error);
@@ -133,10 +143,10 @@ export async function updateCourse(slug: string, course: CourseRequest): Promise
     }
 }
 
-// ❌ DELETE /courses/crud/{slug}
-export async function deleteCourse(slug: string): Promise<boolean> {
+// DELETE /api/v1/courses/by-id/{id}
+export async function deleteCourse(id: string): Promise<boolean> {
     try {
-        await apiClient.delete(`/courses/crud/${slug}`);
+        await apiClient.delete(`/courses/by-id/${id}`);
         return true;
     } catch (error) {
         console.error("deleteCourse error:", error);
@@ -144,27 +154,31 @@ export async function deleteCourse(slug: string): Promise<boolean> {
     }
 }
 
+/* =========================
+   LEARNING CONTEXT
+   ========================= */
 
+// GET /api/v1/courses/by-slug/{slug}/learning
 export const getCourseLearning = async (slug: string): Promise<CourseDto | null> => {
     try {
         const response: AxiosResponse<ApiResponse<CourseDto>> = await apiClient.get(
-            `/courses/${slug}/learning`
+            `/courses/by-slug/${slug}/learning`
         );
         return response.data.data;
     } catch (error) {
         console.error("getCourseLearning error:", error);
         return null;
     }
-}
+};
 
-/**
- * Lấy thông tin về khóa học bằng ID
- * @param id ID của khóa học
- * @returns Thông tin chi tiết của khóa học
- */
+/* =========================
+   LOOKUPS BY ID
+   ========================= */
+
+// GET /api/v1/courses/by-id/{id}  (basic CourseDto)
 export const getCourseById = async (id: string): Promise<CourseDto | null> => {
     try {
-        const response: AxiosResponse = await apiClient.get(`/courses/id/${id}`);
+        const response: AxiosResponse = await apiClient.get(`/courses/by-id/${id}`);
         return response.data.data;
     } catch (error) {
         console.error(`Error fetching course by ID ${id}:`, error);
@@ -172,51 +186,57 @@ export const getCourseById = async (id: string): Promise<CourseDto | null> => {
     }
 };
 
-/**
- * Lấy slug của khóa học từ ID khóa học
- * @param id ID của khóa học cần lấy slug
- * @returns Slug của khóa học
- */
+// GET /api/v1/courses/details/by-id/{id} (full details)
+export const getCourseDetailsById = async (id: string): Promise<CourseDetailsResponse | null> => {
+    try {
+        const response: AxiosResponse = await apiClient.get(`/courses/details/by-id/${id}`);
+        return response.data.data;
+    } catch (error) {
+        console.error(`Error fetching course details by ID ${id}:`, error);
+        return null;
+    }
+};
+
+// derive slug from /by-id/{id}
 export const getCourseSlugById = async (id: string): Promise<string | null> => {
     try {
-        const response: AxiosResponse = await apiClient.get(`/courses/slug/${id}`);
-        return response.data.data.slug;
+        const dto = await getCourseById(id);
+        return dto?.slug ?? null;
     } catch (error) {
         console.error(`Error fetching course slug for ID ${id}:`, error);
         return null;
     }
 };
 
+// derive id from /by-slug/{slug}
+export const getCourseIdBySlug = async (slug: string): Promise<string | null> => {
+    try {
+        const details = await getCourseBySlug(slug);
+        return details?.id ?? null;
+    } catch (error) {
+        console.error('Error getting course ID by slug:', error);
+        return null;
+    }
+};
 
-/**
- * Giao diện mở rộng từ CourseDto để bao gồm thông tin instructor
- * Sử dụng cho các tính năng cần thông tin instructor mà không muốn lấy toàn bộ CourseDetailsResponse
- */
+/* =========================
+   INSTRUCTOR HELPERS
+   ========================= */
+
+// Prefer getting owner instructor from details
 export interface CourseWithInstructorDto extends CourseDto {
     instructorName?: string;
     instructorId?: string;
     instructorAvatar?: string;
 }
 
-/**
- * Lấy thông tin khóa học kèm thông tin giảng viên
- * @param courseId ID của khóa học
- * @returns Thông tin khóa học kèm theo thông tin giảng viên
- */
 export const getCourseWithInstructor = async (courseId: string): Promise<CourseWithInstructorDto | null> => {
     try {
-        // Trước tiên, lấy thông tin cơ bản của khóa học
         const courseBasicInfo = await getCourseById(courseId);
-        if (!courseBasicInfo) {
-            return null;
-        }
+        if (!courseBasicInfo) return null;
 
-        // Sau đó, lấy thông tin chi tiết (có instructor) bằng slug
-        // Điều này hiệu quả hơn vì chúng ta đã biết slug từ thông tin cơ bản
-        const courseDetailInfo = await getCourseBySlug(courseBasicInfo.slug);
-
+        const courseDetailInfo = await getCourseDetailsById(courseId);
         if (courseDetailInfo) {
-            // Kết hợp thông tin từ cả hai nguồn
             return {
                 ...courseBasicInfo,
                 instructorName: courseDetailInfo.ownerInstructor?.fullName,
@@ -225,20 +245,7 @@ export const getCourseWithInstructor = async (courseId: string): Promise<CourseW
             };
         }
 
-        // Nếu không lấy được thông tin chi tiết, thử gọi API riêng
-        const response: AxiosResponse<ApiResponse<UserDto[]>> = await apiClient.get(`/courses/${courseId}/instructors`);
-        const instructors = response.data.data;
-
-        if (instructors && instructors.length > 0) {
-            return {
-                ...courseBasicInfo,
-                instructorName: instructors[0].fullName,
-                instructorId: instructors[0].id,
-                instructorAvatar: instructors[0].avatarUrl
-            };
-        }
-
-        // Nếu không có thông tin instructor, trả về thông tin cơ bản
+        // Fallback (spec doesn’t list a dedicated instructors endpoint)
         return courseBasicInfo;
     } catch (error) {
         console.error(`Error fetching course with instructor for ID ${courseId}:`, error);
@@ -246,39 +253,27 @@ export const getCourseWithInstructor = async (courseId: string): Promise<CourseW
     }
 };
 
-/**
- * Lấy danh sách giảng viên của một khóa học
- * @param courseId ID của khóa học
- * @returns Danh sách các giảng viên của khóa học
- */
+// Get instructors (via details since it includes instructors[])
 export const getCourseInstructors = async (courseId: string): Promise<UserDto[] | null> => {
     try {
-        const response: AxiosResponse<ApiResponse<UserDto[]>> = await apiClient.get(`/courses/${courseId}/instructors`);
-        return response.data.data;
+        const details = await getCourseDetailsById(courseId);
+        return details?.instructors ?? [];
     } catch (error) {
         console.error(`Error fetching instructors for course ID ${courseId}:`, error);
         return null;
     }
 };
 
+/* =========================
+   CREATE + UPLOAD
+   ========================= */
+
 export const uploadImageAndCreateCourse = async (courseData: CourseData): Promise<CourseDto | null> => {
-    // Upload image first
-    if (!courseData.thumbnail) {
-        //   toast({
-        //     title: 'Lỗi',
-        //     description: 'Vui lòng chọn hình ảnh thumbnail cho khóa học',
-        //     variant: 'destructive',
-        //   });
-        return null;
-    }
+    if (!courseData.thumbnail) return null;
 
     const uploadedImage = await uploadImage(courseData.thumbnail);
+    if (!uploadedImage) return null;
 
-    if (!uploadedImage) {
-
-        return null;
-    }
-    // Prepare course request with the uploaded image
     const courseRequest: CourseRequest = {
         name: courseData.title,
         description: courseData.description,
@@ -286,51 +281,20 @@ export const uploadImageAndCreateCourse = async (courseData: CourseData): Promis
         price: courseData.price,
         level: courseData.level as CourseLevel,
         language: courseData.language,
-        categorySlug: courseData.category, // Convert string to number if needed
-        image: uploadedImage.id, // Use the image ID from the upload response
-        status: CourseStatus.DRAFT, // Set initial status as DRAFT
+        categorySlug: courseData.category,
+        image: uploadedImage.id,
+        status: CourseStatus.DRAFT,
     };
 
-    // Create the course
     const createdCourse = await createCourse(courseRequest);
-
-    if (!createdCourse) {
-
-        return null;
-    }
-
-    return createdCourse;
-}
-
-
-/**
- * Lấy ID khóa học từ slug
- * @param slug Slug của khóa học
- * @returns ID của khóa học hoặc null nếu không tìm thấy
- */
-export const getCourseIdBySlug = async (slug: string): Promise<string | null> => {
-    try {
-        const response = await apiClient.get(`/courses/id-by-slug/${slug}`);
-        if (response.data && response.data.data && response.data.data.id) {
-            return response.data.data.id;
-        }
-        return null;
-    } catch (error) {
-        console.error('Error getting course ID by slug:', error);
-        return null;
-    }
+    return createdCourse ?? null;
 };
 
-// Thêm vào courseService.ts
+/* =========================
+   INSTRUCTOR OPERATIONS
+   ========================= */
 
-/**
- * Lấy danh sách khóa học của giảng viên đăng nhập
- * @param page Số trang (bắt đầu từ 0)
- * @param size Số lượng bản ghi mỗi trang
- * @param sortBy Trường để sắp xếp
- * @param sortDirection Hướng sắp xếp (asc/desc)
- * @returns Danh sách khóa học của giảng viên theo trang
- */
+// GET /api/v1/courses/instructor/courses
 export async function getInstructorCourses(
     page = 0,
     size = 10,
@@ -338,20 +302,13 @@ export async function getInstructorCourses(
     sortDirection: 'asc' | 'desc' = 'desc'
 ): Promise<PaginatedResponse<CourseDto> | null> {
     try {
-        console.log(`Gửi request lấy khóa học của giảng viên với params:`, {
-            page, size, sortBy, sortDirection
-        });
-
         const response: AxiosResponse = await apiClient.get('/courses/instructor/courses', {
             params: {
                 page,
                 size,
-                sortBy,
-                sortDirection
+                sort: buildSort(sortBy, sortDirection)
             }
         });
-
-        console.log('Kết quả từ API:', response.data);
         return response.data.data;
     } catch (error) {
         console.error("getInstructorCourses error:", error);
@@ -359,6 +316,7 @@ export async function getInstructorCourses(
     }
 }
 
+// (Unchanged - external service, not part of Course API v2.0)
 export async function createInstructorCourse(course: CourseInstructorDtoRequest): Promise<CourseInstructorDto | null> {
     try {
         const response: AxiosResponse = await apiClient.post('/courseinstructor', course);
@@ -369,41 +327,50 @@ export async function createInstructorCourse(course: CourseInstructorDtoRequest)
     }
 }
 
-export async function getStatusCourse(): Promise<CourseStatusCountDto | null> {
-    try {
-        const response: AxiosResponse = await apiClient.get('/courses/statuscount');
-        console.log("getCountStatus of course complete:", response.data.data);
-        return response.data.data;
-    } catch (error) {
-        console.error("getCountStatus of course error:", error);
-        return null;
-    }
-}
+/* =========================
+   STATUS & WORKFLOW
+   ========================= */
 
-export async function updateStatusCourse(statusRequest: CourseStatusRequest): Promise<Boolean | null> {
-    try {
-        const response: AxiosResponse = await apiClient.put('/courses/statuschange', statusRequest);
-        console.log("update course Status of course complete:", response.data.data);
-        return response.data.data;
-    } catch (error) {
-        console.error("update course Status of course error:", error);
-        return null;
-    }
-}
-
-/**
- * Gửi khóa học đi duyệt (chuyển sang trạng thái PENDING)
- * @param courseId ID của khóa học
- * @returns true nếu thành công, false nếu thất bại
- */
+// POST /api/v1/courses/by-id/{id}/submit-for-review
 export async function submitCourseForReview(courseId: string): Promise<boolean> {
     try {
-        const response: AxiosResponse<ApiResponse<boolean>> = await apiClient.put(
-            `/courses/submit-for-review/${courseId}`
+        const response: AxiosResponse<ApiResponse<boolean>> = await apiClient.post(
+            `/courses/by-id/${courseId}/submit-for-review`
         );
         return response.data.data;
     } catch (error) {
         console.error("Lỗi khi gửi khóa học đi duyệt:", error);
         return false;
+    }
+}
+
+// PATCH /api/v1/courses/by-id/{id}/status
+export async function updateStatusCourse(id: string, status: CourseStatus): Promise<boolean> {
+    try {
+        const response: AxiosResponse<ApiResponse<boolean>> = await apiClient.patch(
+            `/courses/by-id/${id}/status`,
+            { status }
+        );
+        // Some backends return {data:true}, others return updated object; normalize to boolean
+        return !!response.data?.data || response.status === 200;
+    } catch (error) {
+        console.error("updateStatusCourse error:", error);
+        return false;
+    }
+}
+
+/* =========================
+   STATS / COUNTS
+   ========================= */
+
+// TODO: Your spec doesn’t list a status-count endpoint. Keep if your backend exposes it.
+// If not, remove or replace with an admin stats endpoint.
+export async function getStatusCourse(): Promise<CourseStatusCountDto | null> {
+    try {
+        const response: AxiosResponse = await apiClient.get('/courses/statuscount');
+        return response.data.data;
+    } catch (error) {
+        console.error("getCountStatus of course error:", error);
+        return null;
     }
 }

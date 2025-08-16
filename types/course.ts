@@ -1,7 +1,6 @@
 import { BaseDto } from "./api-response";
 import { EnrollmentProgressDto, LessonProgress } from "./learning";
 import { VideoStatus } from "./video";
-
 export type CourseLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
 export type CourseStatus = 'DRAFT' | 'PENDING' | 'PUBLISHED' | 'REJECTED';
 export type LessonType = 'VIDEO' | 'READING' | 'QUIZ';
@@ -12,13 +11,16 @@ export interface CourseStatusCountDto {
     totalRejected: number;
 }
 
+/**
+ * Backend PATCH /api/v1/courses/by-id/{id}/status
+ * Path carries the ID, body carries only the status.
+ */
 export interface CourseStatusRequest {
-    slug: string;
     status: CourseStatus;
 }
 
 export interface CourseDto extends BaseDto {
-    id: string;
+    id: string;               // UUID as string
     image: string;
     name: string;
     description: string;
@@ -33,8 +35,8 @@ export interface CourseDto extends BaseDto {
     totalStudent: number;
     totalSection: number;
     totalLesson: number;
-    sections?: SectionDto[];
-    progress?: EnrollmentProgressDto; // Progress of the current user in this course
+    sections?: SectionDto[];                 // only in some contexts
+    progress?: EnrollmentProgressDto;        // only for current user
 }
 
 export interface Role {
@@ -70,21 +72,19 @@ export interface LessonDto extends BaseDto {
     courseId: string;
     courseName: string;
 
-    // Fields specific to lesson types
-
-    // progress
+    // current user
     currentUserProgress?: LessonProgress;
 
-    // For Video lessons
+    // video
     thumbnailUrl?: string;
     status?: VideoStatus;
     videoUrl?: string;
     videoDuration?: number;
 
-    // For Reading lessons
+    // reading
     content?: string;
 
-    // For Quiz lessons
+    // quiz
     passPoint?: number;
     totalPoint?: number;
     duration?: number;
@@ -112,6 +112,10 @@ export interface CourseReviewDto {
     updatedDate: string;
 }
 
+/**
+ * Backend CourseDetailsResponse merges CourseDto fields + extras.
+ * Note: backend includes categorySlug explicitly.
+ */
 export interface CourseDetailsResponse extends BaseDto {
     id: string;
     image: string;
@@ -122,7 +126,7 @@ export interface CourseDetailsResponse extends BaseDto {
     level: CourseLevel;
     status: CourseStatus;
     language: string;
-    categorySlug: string;
+    categorySlug: string;      // ensure present
     categoryName: string;
     rating: number;
     totalRating: number;
@@ -130,38 +134,56 @@ export interface CourseDetailsResponse extends BaseDto {
     totalSection: number;
     totalLesson: number;
 
-    // Additional fields for detailed view
     instructors: UserDto[];
     ownerInstructor: UserDto;
     sections: SectionDto[];
     reviews: CourseReviewDto[];
 }
 
-export interface CourseRequest {
+/**
+ * Split create vs update to match backend rules.
+ * - Create: required fields per spec
+ * - Update: partial, same shape but all optional
+ */
+export interface CreateCourseRequest {
+    name: string;               // required
+    description?: string;
+    slug?: string;              // auto-generated if omitted
+    price: number;              // required
+    level: CourseLevel;         // required
+    language: string;           // required
+    categorySlug: string;       // required
     image?: string;
-    name: string;
+    status?: CourseStatus;      // admin/staff only
+}
+
+export interface UpdateCourseRequest {
+    name?: string;
     description?: string;
     slug?: string;
     price?: number;
     level?: CourseLevel;
-    status?: CourseStatus;
     language?: string;
     categorySlug?: string;
-    rating?: number;
-    totalRating?: number;
-    totalStudent?: number;
-    totalSection?: number;
-    totalLesson?: number;
+    image?: string;
+    status?: CourseStatus;      // admin/staff only
 }
+
+/**
+ * If you prefer a single type:
+ * export type CourseRequest = CreateCourseRequest | UpdateCourseRequest;
+ * But keeping both makes intent clearer.
+ */
+export type CourseRequest = CreateCourseRequest | UpdateCourseRequest;
 
 export interface CourseSearchRequest {
     keyword?: string;
     categorySlug?: string;
+    instructorId?: string;      // added to match backend filter
     level?: CourseLevel;
     language?: string;
     minPrice?: number;
     maxPrice?: number;
     minRating?: number;
-    status?: CourseStatus;
+    status?: CourseStatus;      // admin/staff-only use
 }
-
