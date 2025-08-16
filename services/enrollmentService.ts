@@ -137,18 +137,3 @@ export const getEnrollmentDetail = async (enrollmentId: number): Promise<Enrollm
         throw error;
     }
 };
-
-/**
- * Lấy slug của khóa học từ ID khóa học
- * @param courseId ID của khóa học
- * @returns Slug của khóa học
- */
-export const getCourseSlugById = async (courseId: string): Promise<string | null> => {
-    try {
-        const response = await apiClient.get(`/courses/slug/${courseId}`);
-        return response.data.data.slug;
-    } catch (error) {
-        console.error('Error getting course slug:', error);
-        return null;
-    }
-};
