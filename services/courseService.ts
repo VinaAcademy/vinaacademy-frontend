@@ -287,7 +287,7 @@ export const uploadImageAndCreateCourse = async (courseData: CourseData): Promis
     };
 
     const createdCourse = await createCourse(courseRequest);
-    return createdCourse ?? null;
+    return createdCourse;
 };
 
 /* =========================
