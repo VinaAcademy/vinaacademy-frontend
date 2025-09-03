@@ -77,31 +77,6 @@ export const getUserEnrollments = async (
 
         // Thêm dữ liệu slug vào mỗi enrollment nếu chưa có
         const data = response.data.data;
-        if (data && data.content) {
-            // Đảm bảo mỗi enrollment có courseSlug
-            const enrichedContent = await Promise.all(data.content.map(async (enrollment: EnrollmentResponse) => {
-                if (!enrollment.courseSlug && enrollment.courseId) {
-                    try {
-                        // Lấy slug từ API nếu chưa có
-                        const courseResponse = await apiClient.get(`/courses/slug/${enrollment.courseId}`);
-                        return {
-                            ...enrollment,
-                            courseSlug: courseResponse.data.data.slug
-                        };
-                    } catch (error) {
-                        console.error(`Error fetching course slug for course ID ${enrollment.courseId}:`, error);
-                        return enrollment;
-                    }
-                }
-                return enrollment;
-            }));
-
-            return {
-                ...data,
-                content: enrichedContent
-            };
-        }
-
         return data;
     } catch (error) {
         console.error('Error getting user enrollments:', error);
