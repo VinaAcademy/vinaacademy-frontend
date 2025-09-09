@@ -106,7 +106,7 @@ export default function Cart() {
     // Show loading state
     if (isLoading || localLoading || authLoading) {
         return (
-            <div className="container mx-auto py-6 px-4 flex justify-center items-center min-h-[60vh]">
+            <div className="container mx-auto py-6 px-4 flex justify-center items-center min-h-[61vh]">
                 <div className="inline-block animate-spin rounded-full border-4 border-solid border-current border-r-transparent w-6 h-6" role="status">
                     <span className="sr-only">Loading...</span>
                 </div>
@@ -116,7 +116,7 @@ export default function Cart() {
     }
 
     return (
-        <div className="container mx-auto py-6 px-4">
+        <div className="min-h-screen container mx-auto py-6 px-4">
             <h1 className="text-2xl font-bold mb-6">Giỏ hàng</h1>
 
             {cartItems.length > 0 ? (
