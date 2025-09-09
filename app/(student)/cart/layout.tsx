@@ -3,13 +3,9 @@ import { SidebarProvider } from "@/components/ui/sidebar-shadcn";
 import { Divide } from "lucide-react";
 
 export default function ProfileLayout({
-    children,
+  children,
 }: Readonly<{
-    children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-    return (
-        <div className="pb-8">
-        {children}
-    </div>
-    )
+  return <div className="">{children}</div>;
 }
