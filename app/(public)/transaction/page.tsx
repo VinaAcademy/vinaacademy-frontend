@@ -5,12 +5,12 @@ import { Suspense } from 'react';
 import { PaymentResultLoading } from '@/components/student/payment/transaction/TransactionLoading';
 import PaymentResult from '@/components/student/payment/transaction/TransactionResult';
 
-// Main page component with Suspense boundary
-export default function PaymentResultPage() {
+// result page
+export default async function PaymentResultPage()  {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
       <Suspense fallback={<PaymentResultLoading />}>
-        <PaymentResult />
+        <PaymentResult/>
       </Suspense>
     </div>
   );
