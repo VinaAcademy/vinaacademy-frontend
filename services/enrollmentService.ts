@@ -83,7 +83,7 @@ export const getUserEnrollments = async (
                 if (!enrollment.courseSlug && enrollment.courseId) {
                     try {
                         // Lấy slug từ API nếu chưa có
-                        const courseResponse = await apiClient.get(`/courses/slug/${enrollment.courseId}`);
+                        const courseResponse = await apiClient.get(`/courses/by-id/${enrollment.courseId}`);
                         return {
                             ...enrollment,
                             courseSlug: courseResponse.data.data.slug
