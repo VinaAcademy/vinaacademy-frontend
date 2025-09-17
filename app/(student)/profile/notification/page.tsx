@@ -83,7 +83,7 @@ const NotificationsPage = () => {
       }
     };
     loadNotifications();
-  }, [pagination.currentPage, filters]);
+  }, [pagination.currentPage, filters, pagination.size]);
 
   
 

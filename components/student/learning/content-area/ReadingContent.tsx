@@ -158,7 +158,7 @@ const ReadingContent: FC<ReadingContentProps> = ({
     }
 
     return (
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+        <div className="w-full px-4 sm:px-6">
             {/* Điều khiển đọc */}
             <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 pt-4">
                 <h1 className="text-xl sm:text-2xl font-bold">{readingContent.title}</h1>
@@ -222,14 +222,14 @@ const ReadingContent: FC<ReadingContentProps> = ({
 
             {/* Điều hướng */}
             <div className="mt-8 mb-6 pt-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <button className="flex items-center text-blue-600 hover:text-blue-800 order-2 sm:order-1">
+                {/* <button className="flex items-center text-blue-600 hover:text-blue-800 order-2 sm:order-1">
                     <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd"
                             d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
                             clipRule="evenodd" />
                     </svg>
                     Bài học trước
-                </button>
+                </button> */}
 
                 {/* Mark as complete button - moved to bottom */}
                 <div className="flex-grow flex justify-center order-1 sm:order-2 w-full sm:w-auto">
@@ -257,14 +257,14 @@ const ReadingContent: FC<ReadingContentProps> = ({
                     )}
                 </div>
 
-                <button className="flex items-center text-blue-600 hover:text-blue-800 order-3">
+                {/* <button className="flex items-center text-blue-600 hover:text-blue-800 order-3">
                     Bài học tiếp theo
                     <svg className="w-5 h-5 ml-1" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd"
                             d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
                             clipRule="evenodd" />
                     </svg>
-                </button>
+                </button> */}
             </div>
         </div>
     );

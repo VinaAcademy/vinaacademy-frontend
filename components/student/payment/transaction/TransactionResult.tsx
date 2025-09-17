@@ -4,11 +4,8 @@ import Link from "next/link";
 import { validateUrlReturn } from "@/services/paymentService";
 import { createErrorToast } from "@/components/ui/toast-cus";
 
-interface paymentResultProp {
-  slug?: string;
-}
 
-export default function PaymentResult({ slug }: paymentResultProp) {
+export default function PaymentResult() {
   const { useSearchParams } = require("next/navigation");
   const searchParams = useSearchParams();
   const router = useRouter();

@@ -83,7 +83,7 @@ const CheckoutPage = () => {
         setIsProcessingPayment(true);
         
         try {
-            const result = await createPayment(order.id);
+            const result = await createPayment(order.id, );
             
             if (result && result.urlPayment) {
                 createSuccessToast("Đang chuyển hướng đến trang thanh toán, vui lòng đợi...");
