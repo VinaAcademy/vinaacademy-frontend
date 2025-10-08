@@ -7,7 +7,8 @@ This is a **Next.js 14+ App Router** e-learning platform with role-based access 
 - **Route Groups**: Uses Next.js route groups `(admin)`, `(instructor)`, `(student)`, `(auth)`, `(public)` for role-based layouts without affecting URLs
 - **API Proxy**: All backend calls proxy through `/api/*` → `${NEXT_PUBLIC_API_URL}/api/v1/*` via `next.config.ts` rewrites
 - **JWT + Cookie Auth**: Access/refresh tokens stored in httpOnly cookies, managed by `lib/apiClient.ts` with automatic refresh
-- **Context Providers**: Nested providers in `app/layout.tsx` → ReactQuery → Toast → Auth → Category → Cart → LayoutWrapper
+- **Context Providers**: Nested providers in `app/layout.tsx` → ReactQuery → Toast → Auth → **WebSocket** → Category → Cart → LayoutWrapper
+- **Real-time Communications**: WebSocket notifications via SockJS + STOMP, globally available through `WebSocketContext`
 
 ## Authentication & Authorization
 
@@ -39,8 +40,11 @@ export const useCourses = ({ page = 0, size = 8, status = "PUBLISHED" }) => {
 
 ### Context Providers (Global State)
 - `AuthContext`: User session, login/logout, role checks
+- `WebSocketContext`: Real-time notifications via SockJS + STOMP (auto-connect on login)
 - `CartContext`: Shopping cart state across sessions
 - `CategoryContext`: Category tree for navigation
+
+**Provider Order Matters**: WebSocket must be after Auth (requires token), before feature contexts.
 
 ## Service Layer Architecture
 
@@ -58,13 +62,19 @@ export async function getCourseBySlug(slug: string): Promise<CourseDetailsRespon
 }
 ```
 
+### Adapter Pattern
+- `adapters/` directory contains transformation logic between frontend and backend models
+- Used for complex data mapping scenarios (e.g., `quizAdapter.ts`)
+- Keeps services focused on API communication
+
 ### Backend Response Structure
 ```typescript
 // All API responses follow this pattern:
 interface ApiResponse<T> {
   data: T;
-  success: boolean;
+  status: string;
   message: string;
+  timestamp: string;
 }
 
 // Paginated responses wrap data in additional structure:
@@ -72,7 +82,10 @@ interface PaginatedResponse<T> {
   content: T[];
   totalElements: number;
   totalPages: number;
-  // ... Spring Page metadata
+  size: number;
+  number: number; // current page
+  first: boolean;
+  last: boolean;
 }
 ```
 
@@ -115,18 +128,29 @@ components/
 ```bash
 npm run dev     # Development server (port 3000)
 npm run build   # Production build
+npm run start   # Production server
 npm run lint    # ESLint checking
 ```
 
 ### Environment Setup
-- `NEXT_PUBLIC_API_URL` points to backend (default: http://localhost:8080)
+- `NEXT_PUBLIC_API_URL` points to backend (default: http://localhost:8080/api/v1)
+- `NEXT_PUBLIC_WS_URL` points to WebSocket endpoint (default: http://localhost:8080/ws/notification)
 - Cookies require secure flag in production
 - API rewrites handle CORS automatically
+- Docker deployment with `output: "standalone"` in next.config.ts
+
+### Real-Time Notifications
+- WebSocket connects automatically when user logs in (has JWT token)
+- Subscribes to `/user/queue/notifications` for user-specific messages
+- Auto-reconnects every 5s if connection drops
+- Access via `useNotification()` hook from any component
+- Backend sends `NotificationDTO` matching `types/notification.ts`
 
 ### Testing Patterns
 - Services return `null` on error for graceful degradation
 - React Query handles loading/error states
 - Use mock data from `data/mock*.ts` for development
+- `<NotificationDemo />` component for WebSocket testing
 
 ## Clean Architecture Structure
 
@@ -166,6 +190,10 @@ hooks/
 ├── use[Entity].ts   # Entity-specific hooks (useCourses, useAuth)
 ├── [feature]/       # Feature-specific hooks directory
 └── use[Utility].ts  # Utility hooks (useDebounce, useMobile)
+
+utils/
+├── courseMapper.ts  # Data transformation utilities
+└── [feature]Mapper.ts # Feature-specific mappers
 ```
 
 ### Separation of Concerns
@@ -212,6 +240,7 @@ UI Component → Custom Hook → Service Layer → API Client → Backend
 - **Axios**: HTTP client with interceptors
 - **js-cookie**: Cookie management
 - **NextAuth.js**: Authentication framework
+- **SockJS + STOMP**: WebSocket real-time communication
 
 ### Development Tools
 - **ESLint**: Code linting with Next.js rules
@@ -322,6 +351,35 @@ export type EntityStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING';
 - **Rich Text**: TipTap editor with extensions
 - **DnD**: @dnd-kit for course section reordering
 - **Tables**: @tanstack/react-table for admin interfaces
+- **WebSocket**: sockjs-client + @stomp/stompjs for real-time notifications
+
+## Real-Time Notifications System
+
+### WebSocket Integration
+```typescript
+// Access notifications from any component
+import { useNotification } from '@/hooks/useNotification';
+
+const { notifications, unreadCount, isConnected, markAsRead } = useNotification();
+```
+
+### Key Files
+- `lib/websocket.ts` - WebSocket client factory with auto-reconnect
+- `context/WebSocketContext.tsx` - Global notification state management
+- `components/notifications/NotificationBell.tsx` - UI component with dropdown
+- `types/notification.ts` - NotificationDTO types (9 notification types)
+
+### Backend Integration
+- Endpoint: `${NEXT_PUBLIC_WS_URL}` (default: http://localhost:8080/ws/notification)
+- Subscription: `/user/queue/notifications` (user-specific queue)
+- Protocol: SockJS + STOMP with JWT authentication
+- Auto-reconnect: 5 second delay, 4 second heartbeat
+
+### Notification Types
+```typescript
+SYSTEM, PAYMENT_SUCCESS, COURSE_REVIEW, COURSE_APPROVAL, 
+SUPPORT_REPLY, PROMOTION, FINANCIAL_ALERT, STAFF_REQUEST, INSTRUCTOR_REQUEST
+```
 
 ## Common Pitfalls
 
@@ -330,3 +388,66 @@ export type EntityStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING';
 3. **Middleware**: JWT parsing happens in middleware, not components - use context for user data
 4. **TypeScript**: Backend uses UUIDs as strings - don't assume numeric IDs
 5. **Pagination**: Spring Boot pagination is 0-indexed, match this in frontend calls
+6. **WebSocket**: Only connects after user login - check `isConnected` before assuming live connection
+7. **Provider Order**: WebSocket must be nested inside AuthProvider (requires token) but before feature contexts
+8. **Toast Notifications**: Use `createSuccessToast()` / `createErrorToast()` from `components/ui/toast-cus`, not raw toast library
+
+## Critical Implementation Patterns
+
+### Adding New API Service
+```typescript
+// services/newService.ts
+import apiClient from '@/lib/apiClient';
+
+export async function getEntity(id: string): Promise<EntityDto | null> {
+  try {
+    const response = await apiClient.get(`/entities/${id}`);
+    return response.data.data; // Always unwrap ApiResponse<T>
+  } catch (error) {
+    console.error(`getEntity error for id ${id}:`, error);
+    return null; // Return null, not throw - let UI handle gracefully
+  }
+}
+```
+
+### Creating Custom Hook
+```typescript
+// hooks/useEntity.ts
+import { useQuery } from '@tanstack/react-query';
+import { getEntity } from '@/services/entityService';
+
+export const useEntity = (id: string) => {
+  return useQuery({
+    queryKey: ['entity', id],
+    queryFn: () => getEntity(id),
+    enabled: !!id, // Only fetch if id exists
+  });
+};
+```
+
+### Role-Based Access
+```typescript
+// middleware.ts already handles route protection
+// In components, use AuthContext:
+import { useAuth } from '@/context/AuthContext';
+
+const { user } = useAuth();
+const isAdmin = user?.roles?.includes('ROLE_admin');
+```
+
+### File Upload Pattern
+```typescript
+// Use imageService.ts for images, chunkUploadService.ts for videos
+import { uploadImage } from '@/services/imageService';
+
+const formData = new FormData();
+formData.append('file', file);
+const imageUrl = await uploadImage(formData);
+```
+
+## Documentation Resources
+
+- **WebSocket Setup**: See `WEBSOCKET_SETUP.md` for quick start
+- **Full WebSocket Docs**: See `docs/WEBSOCKET_NOTIFICATION.md`
+- **Architecture**: This file
+- **Mock Data**: Check `data/mock*.ts` files for development examples

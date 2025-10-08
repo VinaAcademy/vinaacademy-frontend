@@ -8,11 +8,7 @@ import MobileSearchBar from "./mobile/MobileSearchBar";
 import { useAuth } from "@/context/AuthContext";
 import { useCategories } from "@/context/CategoryContext";
 import { useCart } from "@/context/CartContext";
-import {
-  fetchUserNotifications,
-  markAllNotificationsAsRead,
-} from "@/services/notificationService";
-import { NotificationDTO } from "@/types/notification-type";
+import { useNotification } from "@/hooks/useNotification";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Search, Menu, X } from "lucide-react";
@@ -27,10 +23,9 @@ const Navbar = ({ onNavigateHome }: NavbarProps) => {
   const { categories, isLoading } = useCategories();
   const { isAuthenticated, user, logout } = useAuth();
   const { cartItems, removeFromCart, totalPrice } = useCart();
+  const { notifications, unreadCount, markAsRead, isConnected } = useNotification();
   const { toast } = useToast();
   const router = useRouter();
-  const [notifications, setNotifications] = useState<NotificationDTO[]>([]);
-  const [totalUnread, setTotalUnread] = useState<number>(0);
   const [formattedCartItems, setFormattedCartItems] = useState<CartItem[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -90,30 +85,6 @@ const Navbar = ({ onNavigateHome }: NavbarProps) => {
     }
   };
 
-  const handleMarkAllAsRead = () => {
-    markAllNotificationsAsRead();
-    load2notifications();
-  };
-
-  const load2notifications = async () => {
-    const result = await fetchUserNotifications({
-      type: null,
-      isRead: false,
-      page: 0,
-      size: 2,
-      sortBy: "createdAt",
-      direction: "desc",
-    });
-    setTotalUnread(result.totalElements);
-    setNotifications(result.content);
-  };
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      load2notifications();
-    }
-  }, [isAuthenticated]);
-
   // Close mobile menu when screen resizes to larger size
   useEffect(() => {
     const handleResize = () => {
@@ -148,10 +119,9 @@ const Navbar = ({ onNavigateHome }: NavbarProps) => {
             isAuthenticated={isAuthenticated}
             roleStaffAdmin={roleStaffAdmin}
             notifications={notifications}
-            totalUnread={totalUnread}
+            totalUnread={unreadCount}
             cartItems={formattedCartItems}
             onRemoveFromCart={handleRemoveFromCart}
-            onMarkAllAsRead={handleMarkAllAsRead}
             totalPrice={totalPrice}
           />
 
@@ -190,7 +160,7 @@ const Navbar = ({ onNavigateHome }: NavbarProps) => {
         isAuthenticated={isAuthenticated}
         roleStaffAdmin={roleStaffAdmin}
         cartItems={formattedCartItems}
-        totalUnread={totalUnread}
+        totalUnread={unreadCount}
         onClose={() => setMobileMenuOpen(false)}
         onLogout={handleLogout}
       />

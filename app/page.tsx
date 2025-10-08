@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { NotificationType } from "@/types/notification-type";
+import { NotificationDemo } from "@/components/notifications/NotificationDemo";
 
 const userAvatar = "";
 
@@ -70,6 +71,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 px-2 sm:px-4 py-4 sm:py-6">
+      <NotificationDemo />
       <div className="w-full max-w-6xl">
         {authLoading ? (
           <div className="w-full">

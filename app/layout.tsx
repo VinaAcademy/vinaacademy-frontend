@@ -6,6 +6,7 @@ import Script from 'next/script';
 import { AuthProvider } from "@/context/AuthContext";
 import { CategoryProvider } from '@/context/CategoryContext';
 import { CartProvider } from '@/context/CartContext';
+import { WebSocketProvider } from '@/context/WebSocketContext';
 import { Toaster } from "@/components/ui/sonner";
 import ToastProvider from '@/providers/ToastProvider';
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
@@ -37,14 +38,16 @@ export default function RootLayout({
         <ReactQueryProvider>
           <ToastProvider>
             <AuthProvider>
-              <CategoryProvider>
-                <CartProvider>
-                  <LayoutWrapper>
-                    {children}
-                  </LayoutWrapper>
-                  <Toaster />
-                </CartProvider>
-              </CategoryProvider>
+              <WebSocketProvider debug={true}>
+                <CategoryProvider>
+                  <CartProvider>
+                    <LayoutWrapper>
+                      {children}
+                    </LayoutWrapper>
+                    <Toaster />
+                  </CartProvider>
+                </CategoryProvider>
+              </WebSocketProvider>
             </AuthProvider>
           </ToastProvider>
         </ReactQueryProvider>

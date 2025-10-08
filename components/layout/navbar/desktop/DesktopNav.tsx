@@ -1,6 +1,6 @@
 import { CategoryDto } from "@/types/category";
 import { CartItem } from "@/types/navbar";
-import { NotificationDTO } from "@/types/notification-type";
+import { NotificationDTO } from "@/types/notification";
 import SearchBar from "../search-bar/SearchBar";
 import UserLearning from "../user-learning/UserLearning";
 import UserMenu from "../user-dropdown/UserMenu";
@@ -19,7 +19,6 @@ interface DesktopNavProps {
   totalUnread: number;
   cartItems: CartItem[];
   onRemoveFromCart: (id: number) => Promise<void>;
-  onMarkAllAsRead: () => void;
   totalPrice: number;
 }
 
@@ -32,7 +31,6 @@ const DesktopNav = ({
   totalUnread,
   cartItems,
   onRemoveFromCart,
-  onMarkAllAsRead,
   totalPrice,
 }: DesktopNavProps) => {
   return (
@@ -58,7 +56,6 @@ const DesktopNav = ({
             )}
             <UserLearning />
             <NotificationDropdown
-              onMarkAllAsRead={onMarkAllAsRead}
               notifications={notifications}
               totalUnread={totalUnread}
             />
