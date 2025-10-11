@@ -1,5 +1,9 @@
 # VinaAcademy Frontend - AI Coding Instructions
 
+## General Guidelines
+
+**IMPORTANT**: Do NOT create markdown documentation files (e.g., README.md, SETUP.md, GUIDE.md, CHANGES.md) after completing tasks unless explicitly requested by the user. Focus on implementing the actual code changes requested. Provide a brief summary in the chat instead.
+
 ## Architecture Overview
 
 This is a **Next.js 14+ App Router** e-learning platform with role-based access and microservices integration. Key architectural patterns:
@@ -42,12 +46,24 @@ export const useCourses = ({ page = 0, size = 8, status = "PUBLISHED" }) => {
 ```
 
 ### Context Providers (Global State)
-- `AuthContext`: User session, login/logout, role checks
-- `NotificationContext`: Real-time notifications via SockJS + STOMP (auto-connect on login)
-- `CartContext`: Shopping cart state across sessions
-- `CategoryContext`: Category tree for navigation
+- `AuthContext`: User session, login/logout, role checks - accessed via `useAuth()` hook
+- `NotificationContext`: Real-time notifications via SockJS + STOMP (auto-connect on login) - accessed via `useWebSocketNotification()` hook
+- `CartContext`: Shopping cart state across sessions - accessed via `useCart()` hook  
+- `CategoryContext`: Category tree for navigation - accessed via `useCategories()` hook
 
 **Provider Order Matters**: WebSocket must be after Auth (requires token), before feature contexts.
+
+**ComposerProvider Pattern**: `AppProvider.tsx` uses `ComposerProvider` utility for clean provider nesting without "provider hell". Providers can be passed as plain components or as tuples with props:
+```typescript
+// Plain component
+ReactQueryProvider
+
+// Component with props
+[NotificationProvider, { debug: true, wsUrl: 'ws://localhost:8080' }]
+
+// Conditional provider (null providers are skipped)
+wsUrl ? [NotificationProvider, { debug, wsUrl }] : null
+```
 
 ## Service Layer Architecture
 
@@ -135,21 +151,40 @@ npm run start   # Production server
 npm run lint    # ESLint checking
 ```
 
+**Windows/PowerShell Specific**:
+- Join commands with `;` separator: `npm install; npm run dev`
+- Use forward slashes in paths when passing to Node tools
+- If encountering execution policy errors, run: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
+
 ### Environment Setup
-- `NEXT_PUBLIC_API_URL` points to backend (default: http://localhost:8080/api/v1)
-- `NEXT_PUBLIC_WS_URL` points to WebSocket endpoint (default: http://localhost:8080/ws/notification)
-- `NEXT_PUBLIC_SITE_URL` for canonical URLs (default: http://localhost:3000)
-- Cookies require secure flag in production
-- API rewrites handle CORS automatically via `next.config.ts`
-- Docker deployment with `output: "standalone"` in next.config.ts
-- All remote images allowed via wildcard `remotePatterns` in `next.config.ts` - backend serves user uploads
+Required environment variables (create `.env.local` file):
+```bash
+# Backend API base URL (proxied through /api/*)
+NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+
+# Frontend base URL (used for absolute URLs, SSR)
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+# WebSocket endpoint for real-time notifications (optional - has default)
+NEXT_PUBLIC_NOTIFICATION_WS_URL=http://localhost:8080/ws/notification
+
+# Optional: Application base URL (for SEO/metadata)
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+Configuration details:
+- **API Proxy**: All `/api/*` requests automatically proxy to `NEXT_PUBLIC_API_URL` via `next.config.ts` rewrites - this handles CORS automatically
+- **Cookies**: `secure: true` in production only, `sameSite: 'strict'` always (see `lib/apiClient.ts`)
+- **Docker**: Uses `output: "standalone"` in `next.config.ts` for optimized container builds
+- **Images**: Wildcard `remotePatterns` in `next.config.ts` allows all remote images (backend serves user uploads)
 
 ### Real-Time Notifications
 - WebSocket connects automatically when user logs in (has JWT token)
 - Subscribes to `/user/queue/notifications` for user-specific messages
 - Auto-reconnects every 5s if connection drops
-- Access via `useNotification()` hook from any component
+- Access via `useWebSocketNotification()` hook from any component (exported from `context/NotificationContext.tsx`)
 - Backend sends `NotificationDTO` matching `types/notification.ts`
+- Notification sound plays on new notifications (see `utils/notificationSound.ts`)
 
 ### Testing Patterns
 - Services return `null` on error for graceful degradation
@@ -219,9 +254,9 @@ UI Component → Custom Hook → Service Layer → API Client → Backend
 ## Libraries and Frameworks
 
 ### Core Framework
-- **Next.js 14+**: App Router, Server Components, Route Groups
-- **React 18+**: Hooks, Context, Suspense
-- **TypeScript**: Strict mode enabled, path aliases configured
+- **Next.js 15.2.4**: App Router, Server Components, Route Groups, optimized bundling
+- **React 19**: Latest React with improved hooks, Context, and Suspense
+- **TypeScript 5**: Strict mode enabled, path aliases configured (`@/*` → `./`)
 
 ### UI & Styling
 - **Tailwind CSS**: Utility-first styling with custom design system
@@ -365,9 +400,9 @@ export type EntityStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING';
 ### WebSocket Integration
 ```typescript
 // Access notifications from any component
-import { useNotification } from '@/hooks/useNotification';
+import { useWebSocketNotification } from '@/context/NotificationContext';
 
-const { notifications, unreadCount, isConnected, markAsRead } = useNotification();
+const { notifications, unreadCount, isConnected, markAsRead } = useWebSocketNotification();
 ```
 
 ### Key Files
@@ -377,7 +412,7 @@ const { notifications, unreadCount, isConnected, markAsRead } = useNotification(
 - `types/notification.ts` - NotificationDTO types (9 notification types)
 
 ### Backend Integration
-- Endpoint: `${NEXT_PUBLIC_WS_URL}` (default: http://localhost:8080/ws/notification)
+- Endpoint: `${NEXT_PUBLIC_NOTIFICATION_WS_URL}` (default: http://localhost:8080/ws/notification)
 - Subscription: `/user/queue/notifications` (user-specific queue)
 - Protocol: SockJS + STOMP with JWT authentication
 - Auto-reconnect: 5 second delay, 4 second heartbeat
@@ -419,7 +454,7 @@ SUPPORT_REPLY, PROMOTION, FINANCIAL_ALERT, STAFF_REQUEST, INSTRUCTOR_REQUEST
 ### Development Debugging Tools
 - React Query DevTools enabled in development (from `@tanstack/react-query-devtools`)
 - Check browser console for API request/response logs
-- WebSocket connection status available via `useNotification().isConnected`
+- WebSocket connection status available via `useWebSocketNotification().isConnected`
 - Inspect cookies in DevTools → Application → Cookies for `access_token` and `refresh_token`
 
 ## Critical Implementation Patterns

@@ -1,7 +1,6 @@
 import { NotificationDTO } from "@/types/notification";
 import { useNotification } from "@/hooks/useNotification";
 import { useRouter } from "next/navigation";
-import { on } from "events";
 
 interface NotificationListProps {
   notifications: NotificationDTO[];
@@ -13,7 +12,7 @@ const NotificationList = ({
   totalUnread = 0,
 }: NotificationListProps) => {
   const router = useRouter();
-  const { markAsRead, markAllAsRead } = useNotification();
+  const { markAsRead} = useNotification();
 
   const viewAllNotifications = () => {
     router.push("/profile/notification");

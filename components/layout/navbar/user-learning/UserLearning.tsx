@@ -1,13 +1,13 @@
 import Link from "next/link";
-import { LearningCourse } from "@/types/navbar";
 import { CourseList } from "@/components/layout/navbar/user-learning/CourseList";
 import { ViewAllButton } from "@/components/layout/navbar/user-learning/ViewAllButton";
 import { useContinueLearning } from "@/hooks/course/useContinueLearning";
+import {APP_CONFIG} from "@/config/app.config";
 
 const UserLearning = () => {
     // Use our custom hook to fetch courses in progress
     const { courses, isLoading, error } = useContinueLearning({ 
-        limit: 5, // Show up to 5 courses in the dropdown
+        limit: APP_CONFIG.COURSES.USER_LEARNING_LIMIT,
         enabled: true 
     });
 

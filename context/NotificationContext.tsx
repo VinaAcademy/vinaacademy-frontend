@@ -36,7 +36,7 @@ interface WebSocketProviderProps {
 
 export function NotificationProvider({
                                          children,
-                                         wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080/ws/notification',
+                                         wsUrl = process.env.NEXT_PUBLIC_NOTIFICATION_WS_URL || 'http://localhost:8080/ws/notification',
                                          debug = false
                                      }: WebSocketProviderProps) {
     const [isConnected, setIsConnected] = useState(false);

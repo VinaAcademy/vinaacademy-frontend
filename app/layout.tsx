@@ -4,15 +4,16 @@ import './globals.css';
 import LayoutWrapper from '@/components/layout/LayoutWrapper';
 import Script from 'next/script';
 import AppProvider from '@/providers/AppProvider';
-import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import FullPageLoadingOverlay from '@/components/shared/FullPageLoadingOverlay';
+import React from "react";
+import {APP_CONFIG} from "@/config/app.config";
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'VinaAcademy - Nền tảng học trực tuyến',
-  description: 'Học mọi lúc, mọi nơi với VinaAcademy',
+  title: APP_CONFIG.APP_TITLE,
+  description: APP_CONFIG.APP_DESCRIPTION,
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
@@ -26,9 +27,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi">
-      <head>
-        <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml" />
-      </head>
       <body className={inter.className}>
         <AppProvider>
           <FullPageLoadingOverlay>

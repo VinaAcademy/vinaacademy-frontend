@@ -58,7 +58,7 @@ export const AuthProvider = ({children}: { children: React.ReactNode }) => {
             }
         }
         checkAuthentication().then(r => r);
-    }, [getAccessToken()]);
+    }, []);
 
     // Login function
     const login = async (credentials: LoginCredentials): Promise<boolean> => {

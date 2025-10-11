@@ -53,8 +53,6 @@ export function useContinueLearning({ limit = 3, enabled = true }: UseContinueLe
     queryKey: ['continue-learning', limit],
     queryFn: async () => {
       try {
-        // Tải tất cả khóa học đang học (không giới hạn trong API call)
-        // để chúng ta có thể sắp xếp theo thời gian truy cập và lấy 3 khóa học mới nhất
         return await getUserEnrollments(0, limit, 'IN_PROGRESS');
       } catch (err) {
         console.error("Lỗi khi tải khóa học đang học:", err);

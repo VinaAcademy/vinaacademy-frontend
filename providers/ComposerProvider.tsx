@@ -26,7 +26,7 @@ import React from "react";
 type ProviderComponent = React.ComponentType<{ children: React.ReactNode }>;
 
 interface ComposerProviderProps {
-  providers: Array<ProviderComponent | [ProviderComponent, Record<string, any>]>;
+  providers: Array<ProviderComponent | [ProviderComponent, Record<string, any>] | null>;
   children: React.ReactNode;
 }
 
@@ -38,6 +38,8 @@ export default function ComposerProvider({
   // Working from right to left to maintain correct order
   return providers.reduceRight<React.ReactNode>(
     (acc, provider) => {
+        if (!provider) return acc; // Skip null/undefined providers
+
       // Handle both plain provider components and [Provider, props] tuples
       if (Array.isArray(provider)) {
         const [Component, props] = provider;

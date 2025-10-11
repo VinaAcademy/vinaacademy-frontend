@@ -25,6 +25,6 @@ export interface NotificationDTO {
   readAt: string | null; // ISO date string or null
   targetUrl: string | null;
   type: NotificationType;
-  email: string;
-  userId: string;
+  email?: string;
+  userId?: string;
 }
