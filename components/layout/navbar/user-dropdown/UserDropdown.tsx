@@ -1,9 +1,5 @@
 import {useAuth} from "@/context/AuthContext";
-import { getCurrentUser } from "@/services/authService";
-import { User } from "@/types/auth";
-import { set } from "date-fns";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
 interface UserDropdownProps {
     onClose?: () => void;
@@ -11,15 +7,7 @@ interface UserDropdownProps {
 }
 
 const UserDropdown = ({isVisible}: UserDropdownProps) => {
-    const { logout } = useAuth();
-    const [user, setUser] = useState<User | null>(null);
-    const handleUser = async ()=> {
-        const user = await getCurrentUser();
-        setUser(user);
-    }
-    useEffect(() => {
-        handleUser();
-    }, []);
+    const { logout, user } = useAuth();
     return (
         <div
             className={`absolute right-0 top-12 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 transition-all duration-200 ${isVisible

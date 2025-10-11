@@ -196,7 +196,7 @@ export function NotificationProvider({
         }
     }, [addNotification, debug]);
 
-    const {isAuthenticated} = useAuth();
+    const {isAuthenticated, isLoading} = useAuth();
 
     // Initialize WebSocket connection
     useEffect(() => {
@@ -299,7 +299,7 @@ export function NotificationProvider({
                 }
             }
         };
-    }, [wsUrl, debug, handleNotificationMessage, refreshNotifications, isAuthenticated]);
+    }, [wsUrl, debug, handleNotificationMessage, refreshNotifications, isAuthenticated, isLoading]);
 
     const value: NotificationContextType = {
         isConnected,

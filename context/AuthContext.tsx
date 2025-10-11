@@ -1,13 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { AuthContextType, LoginCredentials, RegisterRequest, User } from "@/types/auth";
-import { usePathname, useRouter } from "next/navigation";
+import React, {createContext, useContext, useEffect, useState} from "react";
+import {AuthContextType, LoginCredentials, RegisterRequest, User} from "@/types/auth";
+import {usePathname, useRouter} from "next/navigation";
 import * as authService from "@/services/authService";
-import { toast } from "react-toastify";
-import { getAccessToken } from "@/lib/apiClient";
-import createToast, { createErrorToast, createSuccessToast } from "@/components/ui/toast-cus";
-import { useQueryClient } from "@tanstack/react-query";
+import {getAccessToken} from "@/lib/apiClient";
+import {createErrorToast, createSuccessToast} from "@/components/ui/toast-cus";
+import {useQueryClient} from "@tanstack/react-query";
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
@@ -24,7 +23,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({children}: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -35,7 +34,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             try {
                 // Clear any previous errors
                 setError(null);
-                
+
                 // Skip check if no user and no token
                 if (!user && !getAccessToken()) {
                     return;
@@ -58,8 +57,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 setIsLoading(false);
             }
         }
-        checkAuthentication();
-    }, []);
+        checkAuthentication().then(r => r);
+    }, [getAccessToken()]);
 
     // Login function
     const login = async (credentials: LoginCredentials): Promise<boolean> => {

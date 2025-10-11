@@ -17,7 +17,7 @@ const RecentCoursesSection = () => {
 
     // Sử dụng hook đã cập nhật - luôn lấy 3 khóa học truy cập gần nhất
     const { courses, isLoading } = useContinueLearning({
-        limit: 3,
+        limit: 5,
         enabled: isAuthenticated
     });
 
