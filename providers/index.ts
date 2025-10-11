@@ -95,6 +95,6 @@ export { default as SessionProvider } from './SessionProvider';
 
 // Re-export context providers for convenience
 export { AuthProvider, useAuth } from '@/context/AuthContext';
-export { WebSocketProvider, useWebSocketNotification } from '@/context/WebSocketContext';
+export { NotificationProvider, useWebSocketNotification } from '@/context/NotificationContext';
 export { CategoryProvider, useCategories } from '@/context/CategoryContext';
 export { CartProvider, useCart } from '@/context/CartContext';

@@ -8,7 +8,7 @@ This is a **Next.js 14+ App Router** e-learning platform with role-based access 
 - **API Proxy**: All backend calls proxy through `/api/*` → `${NEXT_PUBLIC_API_URL}/api/v1/*` via `next.config.ts` rewrites
 - **JWT + Cookie Auth**: Access/refresh tokens stored in httpOnly cookies (`access_token`, `refresh_token`), managed by `lib/apiClient.ts` with automatic refresh on 401
 - **Context Providers**: Nested via `providers/AppProvider.tsx` → ReactQuery → Toast → Auth → **WebSocket** → Category → Cart → LayoutWrapper
-- **Real-time Communications**: WebSocket notifications via SockJS + STOMP, globally available through `WebSocketContext`
+- **Real-time Communications**: WebSocket notifications via SockJS + STOMP, globally available through `NotificationContext`
 - **Centralized Provider Composition**: `AppProvider.tsx` uses `ComposerProvider` for clean provider nesting
 
 ## Authentication & Authorization
@@ -43,7 +43,7 @@ export const useCourses = ({ page = 0, size = 8, status = "PUBLISHED" }) => {
 
 ### Context Providers (Global State)
 - `AuthContext`: User session, login/logout, role checks
-- `WebSocketContext`: Real-time notifications via SockJS + STOMP (auto-connect on login)
+- `NotificationContext`: Real-time notifications via SockJS + STOMP (auto-connect on login)
 - `CartContext`: Shopping cart state across sessions
 - `CategoryContext`: Category tree for navigation
 
@@ -372,7 +372,7 @@ const { notifications, unreadCount, isConnected, markAsRead } = useNotification(
 
 ### Key Files
 - `lib/websocket.ts` - WebSocket client factory with auto-reconnect
-- `context/WebSocketContext.tsx` - Global notification state management
+- `context/NotificationContext.tsx` - Global notification state management
 - `components/notifications/NotificationBell.tsx` - UI component with dropdown
 - `types/notification.ts` - NotificationDTO types (9 notification types)
 

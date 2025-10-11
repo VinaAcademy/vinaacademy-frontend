@@ -1,7 +1,7 @@
 // WebSocket Notification System - Main Exports
 
 // Context and Provider
-export { WebSocketProvider, useWebSocketNotification } from './WebSocketContext';
+export { NotificationProvider, useWebSocketNotification } from './NotificationContext';
 
 // Types
 export type { NotificationDTO } from '@/types/notification';

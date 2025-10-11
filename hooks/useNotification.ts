@@ -1,6 +1,6 @@
 'use client';
 
-import { useWebSocketNotification } from '@/context/WebSocketContext';
+import { useWebSocketNotification } from '@/context/NotificationContext';
 
 /**
  * Custom hook to access notification functionality

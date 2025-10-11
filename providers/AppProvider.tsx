@@ -5,7 +5,7 @@ import ComposerProvider from "./ComposerProvider";
 import ReactQueryProvider from "./ReactQueryProvider";
 import ToastProvider from "./ToastProvider";
 import { AuthProvider } from "@/context/AuthContext";
-import { WebSocketProvider } from "@/context/WebSocketContext";
+import { NotificationProvider } from "@/context/NotificationContext";
 import { CategoryProvider } from "@/context/CategoryContext";
 import { CartProvider } from "@/context/CartContext";
 import { Toaster } from "@/components/ui/sonner";
@@ -39,7 +39,7 @@ export default function AppProvider({ children }: AppProviderProps) {
         ReactQueryProvider,
         ToastProvider,
         AuthProvider,
-        [WebSocketProvider, { debug: true }],
+        [NotificationProvider, { debug: true, wsUrl: process.env.NEXT_PUBLIC_WS_URL! }],
         CategoryProvider,
         CartProvider,
       ]}

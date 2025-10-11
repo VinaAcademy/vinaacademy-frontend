@@ -1,14 +1,13 @@
 import apiClient from "@/lib/apiClient";
-import { ApiResponse } from "@/types/api-response";
 import { User, ViewUser } from "@/types/auth";
-import { UserDto } from "@/types/course";
 import { ChangePasswordRequest, UpdateUserInfoRequest } from "@/types/profile-type";
 import { AxiosResponse } from "axios";
+import { API_ENDPOINTS } from "@/config/api.endpoint";
 
 
 export const changePassword = async (changePasswordRequest : ChangePasswordRequest ): Promise<Boolean | null> => {
     try {
-        const response: AxiosResponse = await apiClient.put(`/auth/change-password`, changePasswordRequest);
+        const response: AxiosResponse = await apiClient.put(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, changePasswordRequest);
         return response.data.data;
     } catch (error) {
         console.error("changePassword error:", error);
@@ -18,7 +17,7 @@ export const changePassword = async (changePasswordRequest : ChangePasswordReque
 
 export const updateUserInfo = async (updateUserInfoRequest: UpdateUserInfoRequest ): Promise<User | null> => {
     try {
-        const response: AxiosResponse = await apiClient.put(`/users/update-info`, updateUserInfoRequest);
+        const response: AxiosResponse = await apiClient.put(API_ENDPOINTS.USER.UPDATE_INFO, updateUserInfoRequest);
         
         return response.data.data;
     } catch (error) {
@@ -29,7 +28,7 @@ export const updateUserInfo = async (updateUserInfoRequest: UpdateUserInfoReques
 
 export const getViewUserInfo = async (userId: string ): Promise<ViewUser | null> => {
     try {
-        const response: AxiosResponse = await apiClient.get(`/users/view/${userId}`);
+        const response: AxiosResponse = await apiClient.get(API_ENDPOINTS.USER.VIEW(userId));
         
         return response.data.data;
     } catch (error) {
