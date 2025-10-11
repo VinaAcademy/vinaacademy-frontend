@@ -1,9 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Bell, Check } from "lucide-react";
+import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Pagination,
   PaginationContent,
@@ -25,7 +24,7 @@ import {
   NotificationDTO,
   NotificationFilters as NotificationFiltersType,
   PaginationState,
-  NotificationType,
+
 } from "@/types/notification-type";
 import { toast } from "@/hooks/use-toast";
 
@@ -82,7 +81,7 @@ const NotificationsPage = () => {
         setLoading(false);
       }
     };
-    loadNotifications();
+    loadNotifications().then(r => r);
   }, [pagination.currentPage, filters, pagination.size]);
 
   
