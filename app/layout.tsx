@@ -3,15 +3,10 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import LayoutWrapper from '@/components/layout/LayoutWrapper';
 import Script from 'next/script';
-import { AuthProvider } from "@/context/AuthContext";
-import { CategoryProvider } from '@/context/CategoryContext';
-import { CartProvider } from '@/context/CartContext';
-import { WebSocketProvider } from '@/context/WebSocketContext';
-import { Toaster } from "@/components/ui/sonner";
-import ToastProvider from '@/providers/ToastProvider';
-import ReactQueryProvider from "@/providers/ReactQueryProvider";
+import AppProvider from '@/providers/AppProvider';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import FullPageLoadingOverlay from '@/components/shared/FullPageLoadingOverlay';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -35,22 +30,13 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml" />
       </head>
       <body className={inter.className}>
-        <ReactQueryProvider>
-          <ToastProvider>
-            <AuthProvider>
-              <WebSocketProvider debug={true}>
-                <CategoryProvider>
-                  <CartProvider>
-                    <LayoutWrapper>
-                      {children}
-                    </LayoutWrapper>
-                    <Toaster />
-                  </CartProvider>
-                </CategoryProvider>
-              </WebSocketProvider>
-            </AuthProvider>
-          </ToastProvider>
-        </ReactQueryProvider>
+        <AppProvider>
+          <FullPageLoadingOverlay>
+            <LayoutWrapper>
+              {children}
+            </LayoutWrapper>
+          </FullPageLoadingOverlay>
+        </AppProvider>
 
         {/* Use Next.js Script component for client-side scripts */}
         {typeof window !== 'undefined' && (

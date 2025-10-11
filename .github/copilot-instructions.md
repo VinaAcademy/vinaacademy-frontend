@@ -4,11 +4,12 @@
 
 This is a **Next.js 14+ App Router** e-learning platform with role-based access and microservices integration. Key architectural patterns:
 
-- **Route Groups**: Uses Next.js route groups `(admin)`, `(instructor)`, `(student)`, `(auth)`, `(public)` for role-based layouts without affecting URLs
+- **Route Groups**: Uses Next.js route groups `(admin)`, `(instructor)`, `(student)`, `(auth)`, `(public)`, `(staff,admin)` for role-based layouts without affecting URLs
 - **API Proxy**: All backend calls proxy through `/api/*` → `${NEXT_PUBLIC_API_URL}/api/v1/*` via `next.config.ts` rewrites
-- **JWT + Cookie Auth**: Access/refresh tokens stored in httpOnly cookies, managed by `lib/apiClient.ts` with automatic refresh
-- **Context Providers**: Nested providers in `app/layout.tsx` → ReactQuery → Toast → Auth → **WebSocket** → Category → Cart → LayoutWrapper
+- **JWT + Cookie Auth**: Access/refresh tokens stored in httpOnly cookies (`access_token`, `refresh_token`), managed by `lib/apiClient.ts` with automatic refresh on 401
+- **Context Providers**: Nested via `providers/AppProvider.tsx` → ReactQuery → Toast → Auth → **WebSocket** → Category → Cart → LayoutWrapper
 - **Real-time Communications**: WebSocket notifications via SockJS + STOMP, globally available through `WebSocketContext`
+- **Centralized Provider Composition**: `AppProvider.tsx` uses `ComposerProvider` for clean provider nesting
 
 ## Authentication & Authorization
 
@@ -21,9 +22,11 @@ This is a **Next.js 14+ App Router** e-learning platform with role-based access 
 ```
 
 ### Token Management
-- Access tokens auto-refresh via `apiClient.ts` interceptors
-- Use `getAccessToken()` to check auth state, not direct cookie access
-- JWT payload contains `scope: string[]` for role checking
+- Access tokens auto-refresh via `apiClient.ts` interceptors on 401 responses
+- Use `getAccessToken()` from `lib/apiClient.ts` to check auth state, not direct cookie access
+- JWT payload contains `scope: string[]` for role checking (e.g., `ROLE_admin`, `ROLE_instructor`, `ROLE_staff`)
+- Refresh flow: On 401 → POST `/api/auth/refresh` with refresh_token → update both tokens → retry original request with `X-Retry: true` header
+- Cookie security: `secure: true` in production, `sameSite: 'strict'` always
 
 ## State Management Patterns
 
@@ -135,9 +138,11 @@ npm run lint    # ESLint checking
 ### Environment Setup
 - `NEXT_PUBLIC_API_URL` points to backend (default: http://localhost:8080/api/v1)
 - `NEXT_PUBLIC_WS_URL` points to WebSocket endpoint (default: http://localhost:8080/ws/notification)
+- `NEXT_PUBLIC_SITE_URL` for canonical URLs (default: http://localhost:3000)
 - Cookies require secure flag in production
-- API rewrites handle CORS automatically
+- API rewrites handle CORS automatically via `next.config.ts`
 - Docker deployment with `output: "standalone"` in next.config.ts
+- All remote images allowed via wildcard `remotePatterns` in `next.config.ts` - backend serves user uploads
 
 ### Real-Time Notifications
 - WebSocket connects automatically when user logs in (has JWT token)
@@ -151,6 +156,8 @@ npm run lint    # ESLint checking
 - React Query handles loading/error states
 - Use mock data from `data/mock*.ts` for development
 - `<NotificationDemo />` component for WebSocket testing
+- Mock data includes: `mockCourses.ts`, `mockCourseData.ts`, `mockCartData.ts`, `mockInstructorCourse.ts`
+- Test WebSocket by enabling debug mode in `AppProvider.tsx`: `[WebSocketProvider, { debug: true }]`
 
 ## Clean Architecture Structure
 
@@ -391,6 +398,29 @@ SUPPORT_REPLY, PROMOTION, FINANCIAL_ALERT, STAFF_REQUEST, INSTRUCTOR_REQUEST
 6. **WebSocket**: Only connects after user login - check `isConnected` before assuming live connection
 7. **Provider Order**: WebSocket must be nested inside AuthProvider (requires token) but before feature contexts
 8. **Toast Notifications**: Use `createSuccessToast()` / `createErrorToast()` from `components/ui/toast-cus`, not raw toast library
+9. **Auth Redirects**: Middleware redirects to `/login?redirect={pathname}` on 401, and redirects away from `/login` if already authenticated
+10. **API Response Unwrapping**: Backend wraps all responses in `ApiResponse<T>`, always access `response.data.data` not `response.data`
+
+## Debugging & Troubleshooting
+
+### API Request Tracing
+- `apiClient.ts` logs all requests: `🔄 Request: ${method} ${url}`
+- Token refresh attempts logged: `🔄 Token expired, attempting to refresh...`
+- Successful refresh: `✅ Token refreshed successfully`
+- Enable WebSocket debug mode via `[WebSocketProvider, { debug: true }]` in `AppProvider.tsx`
+
+### Common Error Scenarios
+1. **Infinite 401 loops**: Check if refresh token exists and is valid in cookies
+2. **WebSocket not connecting**: Verify user is logged in and `access_token` cookie exists
+3. **CORS errors**: Ensure API calls go through `/api/*` proxy, not directly to `NEXT_PUBLIC_API_URL`
+4. **Route protection failing**: Check `middleware.ts` path matchers and JWT scope parsing
+5. **Provider errors**: Verify provider nesting order in `AppProvider.tsx` - Auth → WebSocket → Features
+
+### Development Debugging Tools
+- React Query DevTools enabled in development (from `@tanstack/react-query-devtools`)
+- Check browser console for API request/response logs
+- WebSocket connection status available via `useNotification().isConnected`
+- Inspect cookies in DevTools → Application → Cookies for `access_token` and `refresh_token`
 
 ## Critical Implementation Patterns
 

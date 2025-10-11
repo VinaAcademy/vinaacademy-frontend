@@ -13,6 +13,7 @@ const AuthContext = createContext<AuthContextType>({
     user: null,
     isAuthenticated: false,
     isLoading: true,
+    error: null,
     login: async () => false,
     logout: async () => {
     },
@@ -26,11 +27,15 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
     useEffect(() => {
         const checkAuthentication = async () => {
             try {
+                // Clear any previous errors
+                setError(null);
+                
                 // Skip check if no user and no token
                 if (!user && !getAccessToken()) {
                     return;
@@ -48,6 +53,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 setUser(refreshUser);
             } catch (error) {
                 console.error("Error checking authentication:", error);
+                setError("Không thể xác thực. Vui lòng thử lại.");
             } finally {
                 setIsLoading(false);
             }
@@ -153,6 +159,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             user,
             isAuthenticated: !!user,
             isLoading,
+            error,
             login,
             logout,
             refreshAuth,
