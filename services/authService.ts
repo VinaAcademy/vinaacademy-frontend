@@ -3,10 +3,11 @@
 import {LoginCredentials, RegisterRequest, User, ResetPasswordRequest} from "@/types/auth";
 import apiClient, {getRefreshToken, removeTokens, setTokens} from "@/lib/apiClient";
 import {AxiosResponse} from "axios";
+import {API_ENDPOINTS} from "@/config/api.endpoint";
 
 export async function login(credentials: LoginCredentials): Promise<User | null> {
     try {
-        const response: AxiosResponse = await apiClient.post('/auth/login', credentials);
+        const response: AxiosResponse = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
         const {access_token, refresh_token} = response.data['data'];
         setTokens(access_token, refresh_token);
 
@@ -19,7 +20,7 @@ export async function login(credentials: LoginCredentials): Promise<User | null>
 
 export async function register(registerData: RegisterRequest): Promise<boolean> {
     try {
-        const response: AxiosResponse = await apiClient.post('/auth/register', registerData);
+        const response: AxiosResponse = await apiClient.post(API_ENDPOINTS.AUTH.REGISTER, registerData);
         return response.status === 201;
     } catch (error) {
         console.error('Registration error:', error);
@@ -29,7 +30,7 @@ export async function register(registerData: RegisterRequest): Promise<boolean> 
 
 export async function verifyAccount(token: string, signature: string): Promise<boolean> {
     try {
-        const response: AxiosResponse = await apiClient.post('/auth/verify', {
+        const response: AxiosResponse = await apiClient.post(API_ENDPOINTS.AUTH.VERIFY, {
             token,
             signature
         });
@@ -42,7 +43,7 @@ export async function verifyAccount(token: string, signature: string): Promise<b
 
 export async function resendVerificationEmail(email: string): Promise<boolean> {
     try {
-        const response: AxiosResponse = await apiClient.post('/auth/resend-verification-email', {
+        const response: AxiosResponse = await apiClient.post(API_ENDPOINTS.AUTH.RESEND_VERIFICATION, {
             email
         });
         return response.status === 200;
@@ -54,7 +55,7 @@ export async function resendVerificationEmail(email: string): Promise<boolean> {
 
 export async function getCurrentUser(): Promise<User | null> {
     try {
-        const response: AxiosResponse = await apiClient.get('/users/me');
+        const response: AxiosResponse = await apiClient.get(API_ENDPOINTS.USER.ME);
         return response.data['data'];
     } catch (error) {
         console.error('Error fetching current user:', error);
@@ -68,7 +69,7 @@ export async function logout(): Promise<void> {
         if (!refreshToken) {
             return;
         }
-        await apiClient.post('/auth/logout', {refreshToken});
+        await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT, {refreshToken});
     } catch (error) {
         console.error('Logout error:', error);
     } finally {
@@ -82,7 +83,7 @@ export async function refreshToken(): Promise<User | null> {
         if (!refreshToken) {
             return null;
         }
-        const response: AxiosResponse = await apiClient.post('/auth/refresh', {refreshToken});
+        const response: AxiosResponse = await apiClient.post(API_ENDPOINTS.AUTH.REFRESH, {refreshToken});
         const {access_token, refresh_token} = response.data['data'];
         setTokens(access_token, refresh_token);
 
@@ -96,7 +97,7 @@ export async function refreshToken(): Promise<User | null> {
 
 export async function forgotPassword(email: string): Promise<boolean> {
     try {
-        const response: AxiosResponse = await apiClient.post('/auth/forgot-password', {
+        const response: AxiosResponse = await apiClient.post(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, {
             email
         });
         return response.status === 200;
@@ -108,7 +109,7 @@ export async function forgotPassword(email: string): Promise<boolean> {
 
 export async function checkResetPasswordToken(token: string, signature: string): Promise<boolean> {
     try {
-        const response: AxiosResponse = await apiClient.post('/auth/check-reset-password-token', {
+        const response: AxiosResponse = await apiClient.post(API_ENDPOINTS.AUTH.CHECK_RESET_TOKEN, {
             token,
             signature
         });
@@ -121,7 +122,7 @@ export async function checkResetPasswordToken(token: string, signature: string):
 
 export async function resetPassword(data: ResetPasswordRequest): Promise<boolean> {
     try {
-        const response: AxiosResponse = await apiClient.post('/auth/reset-password', data);
+        const response: AxiosResponse = await apiClient.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, data);
         return response.status === 200;
     } catch (error) {
         console.error('Reset password error:', error);

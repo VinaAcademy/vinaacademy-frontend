@@ -1,15 +1,11 @@
 // services/notificationService.ts
-import axios, { AxiosResponse } from "axios";
+import { AxiosResponse } from "axios";
 import {
-  NotificationCreateDTO,
-  NotificationDTO,
-  NotificationType,
   NotificationFetchParams,
   NotificationPageResponse,
 } from "@/types/notification-type";
 import apiClient from "@/lib/apiClient";
-import { ApiResponse } from "@/types/api-response";
-import { createSignature } from "@/lib/notificationC";
+import { API_ENDPOINTS } from "@/config/api.endpoint";
 
 export const fetchUserNotifications = async ({
   type = null,
@@ -30,7 +26,7 @@ export const fetchUserNotifications = async ({
     params.append("sortBy", sortBy);
     params.append("direction", direction);
     const response = await apiClient.get<AxiosResponse<NotificationPageResponse>>(
-      `/notifications/paginated?${params.toString()}`
+      `${API_ENDPOINTS.NOTIFICATION.PAGINATED}?${params.toString()}`
     );
     // const response = await axios.get<NotificationPageResponse>(
     //   `${API_URL}/notifications/user/${userId}/paginated?${params.toString()}`
@@ -47,7 +43,7 @@ export const markNotificationAsRead = async (
   notificationId: string
 ): Promise<boolean> => {
   try {
-    await apiClient.put(`/notifications/${notificationId}/read`);
+    await apiClient.put(API_ENDPOINTS.NOTIFICATION.MARK_AS_READ(notificationId));
     // await axios.put(`${API_URL}/notifications/${notificationId}/read`);
     return true;
   } catch (error) {
@@ -60,7 +56,7 @@ export const deleteNotification = async (
   notificationId: string
 ): Promise<boolean> => {
   try {
-    await apiClient.delete(`/notifications/${notificationId}`);
+    await apiClient.delete(API_ENDPOINTS.NOTIFICATION.DELETE(notificationId));
     // await axios.delete(`${API_URL}/notifications/${notificationId}`);
 
     return true;
@@ -72,7 +68,7 @@ export const deleteNotification = async (
 
 export const markAllNotificationsAsRead = async (): Promise<boolean> => {
   try {
-    await apiClient.post(`/notifications/readall`);
+    await apiClient.post(API_ENDPOINTS.NOTIFICATION.MARK_ALL_AS_READ);
     // await axios.put(`${API_URL}/notifications/user/${userId}/read-all`);
 
     return true;

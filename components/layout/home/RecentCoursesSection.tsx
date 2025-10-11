@@ -9,15 +9,15 @@ import { useContinueLearning } from "@/hooks/course/useContinueLearning";
 import { LearningCourse } from "@/types/navbar";
 import Image from "next/image";
 import { getImageUrl } from "@/utils/imageUtils";
+import {APP_CONFIG} from "@/config/app.config";
 
 const RecentCoursesSection = () => {
     const { isAuthenticated } = useAuth();
     const sectionRef = useRef(null);
     const isInView = useInView(sectionRef, { once: true, amount: 0.3 });
 
-    // Sử dụng hook đã cập nhật - luôn lấy 3 khóa học truy cập gần nhất
     const { courses, isLoading } = useContinueLearning({
-        limit: 3,
+        limit: APP_CONFIG.COURSES.RECENT_COURSES_LIMIT,
         enabled: isAuthenticated
     });
 

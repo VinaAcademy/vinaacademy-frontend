@@ -1,7 +1,7 @@
-import { LearningCourse } from "@/types/navbar";
-import { getUserEnrollments, EnrollmentResponse } from "@/services/enrollmentService";
-import { mockEnrolledCourses } from "@/data/mockCourseData";
-import { useQuery } from "@tanstack/react-query";
+import {LearningCourse} from "@/types/navbar";
+import {EnrollmentResponse, getUserEnrollments} from "@/services/enrollmentService";
+import {mockEnrolledCourses} from "@/data/mockCourseData";
+import {useQuery} from "@tanstack/react-query";
 
 interface UseContinueLearningOptions {
   limit?: number;
@@ -53,10 +53,7 @@ export function useContinueLearning({ limit = 3, enabled = true }: UseContinueLe
     queryKey: ['continue-learning', limit],
     queryFn: async () => {
       try {
-        // Tải tất cả khóa học đang học (không giới hạn trong API call)
-        // để chúng ta có thể sắp xếp theo thời gian truy cập và lấy 3 khóa học mới nhất
-        const response = await getUserEnrollments(0, 100, 'IN_PROGRESS');
-        return response;
+        return await getUserEnrollments(0, limit, 'IN_PROGRESS');
       } catch (err) {
         console.error("Lỗi khi tải khóa học đang học:", err);
         // Sử dụng dữ liệu giả nếu API bị lỗi

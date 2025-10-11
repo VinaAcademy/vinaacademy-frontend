@@ -1,5 +1,6 @@
 import apiClient from "@/lib/apiClient";
 import { ApiResponse } from "@/types/api-response";
+import { API_ENDPOINTS } from "@/config/api.endpoint";
 
 // Types cho chunk upload
 export interface InitiateUploadRequest {
@@ -41,7 +42,7 @@ export const initiateChunkUpload = async (
 ): Promise<ChunkUploadResult> => {
   try {
     const response = await apiClient.post<ApiResponse<UploadSessionDto>>(
-      '/storage/chunk-upload/initiate',
+      API_ENDPOINTS.CHUNK_UPLOAD.INITIATE,
       request,
       { signal }
     );
@@ -69,7 +70,7 @@ export const uploadChunk = async (
     }
 
     const response = await apiClient.post<ApiResponse<UploadSessionDto>>(
-      '/storage/chunk-upload',
+      API_ENDPOINTS.CHUNK_UPLOAD.UPLOAD,
       formData,
       {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -88,7 +89,7 @@ export const uploadChunk = async (
 export const getUploadStatus = async (sessionId: string): Promise<ChunkUploadResult> => {
   try {
     const response = await apiClient.get<ApiResponse<UploadSessionDto>>(
-      `/storage/chunk-upload/status/${sessionId}`
+      API_ENDPOINTS.CHUNK_UPLOAD.STATUS(sessionId)
     );
     return { success: true, data: response.data.data };
   } catch (error) {

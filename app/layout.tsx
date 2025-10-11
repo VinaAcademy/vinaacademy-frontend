@@ -3,20 +3,17 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import LayoutWrapper from '@/components/layout/LayoutWrapper';
 import Script from 'next/script';
-import { AuthProvider } from "@/context/AuthContext";
-import { CategoryProvider } from '@/context/CategoryContext';
-import { CartProvider } from '@/context/CartContext';
-import { Toaster } from "@/components/ui/sonner";
-import ToastProvider from '@/providers/ToastProvider';
-import ReactQueryProvider from "@/providers/ReactQueryProvider";
-import { ToastContainer } from "react-toastify";
+import AppProvider from '@/providers/AppProvider';
 import "react-toastify/dist/ReactToastify.css";
+import FullPageLoadingOverlay from '@/components/shared/FullPageLoadingOverlay';
+import React from "react";
+import {APP_CONFIG} from "@/config/app.config";
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'VinaAcademy - Nền tảng học trực tuyến',
-  description: 'Học mọi lúc, mọi nơi với VinaAcademy',
+  title: APP_CONFIG.APP_TITLE,
+  description: APP_CONFIG.APP_DESCRIPTION,
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
@@ -30,24 +27,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi">
-      <head>
-        <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml" />
-      </head>
       <body className={inter.className}>
-        <ReactQueryProvider>
-          <ToastProvider>
-            <AuthProvider>
-              <CategoryProvider>
-                <CartProvider>
-                  <LayoutWrapper>
-                    {children}
-                  </LayoutWrapper>
-                  <Toaster />
-                </CartProvider>
-              </CategoryProvider>
-            </AuthProvider>
-          </ToastProvider>
-        </ReactQueryProvider>
+        <AppProvider>
+          <FullPageLoadingOverlay>
+            <LayoutWrapper>
+              {children}
+            </LayoutWrapper>
+          </FullPageLoadingOverlay>
+        </AppProvider>
 
         {/* Use Next.js Script component for client-side scripts */}
         {typeof window !== 'undefined' && (

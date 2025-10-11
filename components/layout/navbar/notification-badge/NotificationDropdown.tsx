@@ -1,21 +1,16 @@
 "use client";
-import { Notification } from "@/types/navbar";
+import { NotificationDTO } from "@/types/notification";
 import NotificationBadge from "./NotificationBadge";
 import NotificationList from "./NotificationList";
 import { useNotificationDropdown } from "./useNotificationDropdown";
-import { NotificationDTO } from "@/types/notification-type";
 
 interface NotificationDropdownProps {
   notifications: NotificationDTO[];
-  onMarkAllAsRead?: () => void;
-  onNotificationClick?: (id: string) => void;
   totalUnread?: number;
 }
 
 const NotificationDropdown = ({
   notifications = [],
-  onMarkAllAsRead = () => {},
-  onNotificationClick,
   totalUnread = 0,
 }: NotificationDropdownProps) => {
   const {
@@ -54,8 +49,6 @@ const NotificationDropdown = ({
 
         <NotificationList
           notifications={notifications}
-          onMarkAllAsRead={onMarkAllAsRead}
-          onNotificationClick={onNotificationClick}
           totalUnread={totalUnread}
         />
       </div>

@@ -14,7 +14,7 @@ const LearningHeader: FC<LearningHeaderProps> = ({courseTitle, progress, courseS
     return (
         <header className="bg-black text-white px-4 py-2 flex items-center justify-between border-b border-gray-700">
             <div className="flex items-center overflow-hidden">
-                <Link href={"/"+courseSlug} className="mr-3 sm:mr-4 flex-shrink-0">
+                <Link href={"/courses/"+courseSlug} className="mr-3 sm:mr-4 flex-shrink-0">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-6 w-6 sm:h-8 sm:w-8 text-white hover:text-gray-300 transition"
