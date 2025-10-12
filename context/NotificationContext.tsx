@@ -1,16 +1,16 @@
 'use client';
 
-import React, {createContext, useContext, useEffect, useState, useCallback, useRef} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {Client, IMessage} from '@stomp/stompjs';
 import {createWebSocketClient} from '@/lib/websocket';
 import {NotificationDTO} from '@/types/notification';
 import {getAccessToken} from '@/lib/apiClient';
 import {playNotificationSound} from '@/utils/notificationSound';
 import {
-    markNotificationAsRead as apiMarkAsRead,
     deleteNotification as apiDeleteNotification,
+    fetchUserNotifications,
     markAllNotificationsAsRead as apiMarkAllAsRead,
-    fetchUserNotifications
+    markNotificationAsRead as apiMarkAsRead
 } from '@/services/notificationService';
 import {useAuth} from './AuthContext';
 import {WS_ENDPOINTS} from "@/config/api.endpoint";

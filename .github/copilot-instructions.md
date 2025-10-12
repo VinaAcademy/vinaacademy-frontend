@@ -516,3 +516,85 @@ const imageUrl = await uploadImage(formData);
 - **Full WebSocket Docs**: See `docs/WEBSOCKET_NOTIFICATION.md`
 - **Architecture**: This file
 - **Mock Data**: Check `data/mock*.ts` files for development examples
+
+## Chat/Conversations UI/UX Guidelines
+
+### Standard Component Sizes
+These sizes have been optimized for balance and readability across the chat interface:
+
+#### Page Container
+- Max width: `max-w-4xl` (optimal for conversation lists)
+- Padding: `py-6 px-4` (compact but breathable)
+- Background: `bg-gradient-to-br from-gray-50 via-white to-blue-50/20` (subtle gradient)
+
+#### Header Section
+- Icon container: `p-2.5` with `rounded-xl`
+- Icon size: `h-6 w-6`
+- Title: `text-2xl font-bold` with gradient text
+- Description: `text-sm text-gray-600`
+- Spacing: `gap-3 space-y-3`
+
+#### Status Indicators (Connection Status)
+- Padding: `px-3 py-2`
+- Font: `text-sm font-medium`
+- Status dot: `h-1.5 w-1.5` with `rounded-full`
+- Border radius: `rounded-lg`
+
+#### Search Bar
+- Height: `h-11` (comfortable tap target)
+- Icon size: `h-4 w-4`
+- Font: `text-sm`
+- Padding: `pl-10 pr-4`
+- Border: `border` (single, not border-2)
+- Focus ring: `ring-2` (not ring-4)
+- Border radius: `rounded-xl`
+
+#### Conversation List Container
+- Border radius: `rounded-xl` (consistent with other elements)
+- Shadow: `shadow-md` (moderate depth)
+- Background: `bg-white/80 backdrop-blur-sm`
+
+#### Conversation Item
+- Padding: `p-4` (balanced spacing)
+- Gap: `gap-3`
+- Avatar size: `size={48}` (readable but not overwhelming)
+- Online indicator: `h-3 w-3` (subtle presence indicator)
+- Ring on unread: `ring-2 ring-blue-400` (noticeable but not harsh)
+- Title font: `text-sm font-semibold`
+- Message preview: `text-xs`
+- Unread badge: `h-5 min-w-[20px] px-1.5` with `text-xs`
+- Hover effect: `hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/30`
+
+#### Empty States
+- Padding: `py-16 px-6` (centered attention)
+- Icon container: `p-6` with `rounded-full`
+- Icon size: `h-10 w-10`
+- Title: `text-xl font-bold`
+- Description: `text-sm`
+- Button: `px-4 py-2 rounded-lg`
+
+#### Loading Skeletons
+- Padding: `p-4`
+- Gap: `gap-3`
+- Avatar: `h-12 w-12`
+- Content spacing: `space-y-2`
+
+### Design Patterns
+- Use `backdrop-blur-sm` for glass morphism effect
+- Gradient overlays on hover: `from-blue-500/0 to-purple-500/0` → `from-blue-500/5 to-purple-500/5`
+- Ring effects for focus/unread: `ring-2` with appropriate color
+- Smooth transitions: `transition-all duration-300`
+- Staggered animations: `style={{ animationDelay: \`\${index * 30}ms\` }}`
+- Border radius consistency: `rounded-xl` for containers, `rounded-lg` for smaller elements
+- Status dots: `h-1.5 w-1.5` for compact indicators
+
+### Color Palette
+- Primary gradient: `from-blue-600 to-purple-600`
+- Hover states: `blue-50` to `purple-50` with low opacity
+- Unread highlight: `from-blue-50/60 to-transparent` with `border-l-4 border-l-blue-500`
+- Text hierarchy: 
+  - Primary: `text-gray-900` (headings)
+  - Secondary: `text-gray-800` (normal text)
+  - Tertiary: `text-gray-600` (descriptions)
+  - Muted: `text-gray-500` (timestamps)
+  - Active/Unread: `text-blue-600`

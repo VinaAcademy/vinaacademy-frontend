@@ -4,9 +4,9 @@
  */
 
 import {useEffect, useCallback} from 'react';
-import {useWebSocketNotification} from '@/context/NotificationContext';
 import {NotificationType} from '@/types/notification';
 import {usePathname} from 'next/navigation';
+import {useNotification} from "@/hooks/useNotification";
 
 interface UseChatNotificationOptions {
     /**
@@ -31,7 +31,7 @@ interface UseChatNotificationOptions {
  */
 export function useChatNotification(options: UseChatNotificationOptions = {}) {
     const {currentConversationId, onChatNotification} = options;
-    const {notifications, markAsRead} = useWebSocketNotification();
+    const {notifications, markAsRead} = useNotification();
     const pathname = usePathname();
 
     // Extract conversation ID from notification target URL
@@ -56,7 +56,7 @@ export function useChatNotification(options: UseChatNotificationOptions = {}) {
 
             // If viewing this conversation, mark notification as read
             if (currentConversationId === conversationId) {
-                markAsRead(notif.id);
+                markAsRead(notif.id).then();
                 return;
             }
 
@@ -112,7 +112,7 @@ export function useChatNotification(options: UseChatNotificationOptions = {}) {
  * Hook to get chat notifications for a specific conversation
  */
 export function useConversationNotifications(conversationId: string | null) {
-    const {notifications} = useWebSocketNotification();
+    const {notifications} = useNotification();
 
     if (!conversationId) return [];
 

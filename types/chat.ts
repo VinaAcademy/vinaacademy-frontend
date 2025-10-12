@@ -61,7 +61,6 @@ export interface MessageDto {
  */
 export interface ConversationDto {
     id: string;                    // UUID
-    name: string;                  // Display name (user name for DIRECT, title for GROUP)
     avatarUrl: string;             // Avatar URL
     createdAt: string;             // ISO 8601 timestamp
     updatedAt: string;             // ISO 8601 timestamp
@@ -70,7 +69,8 @@ export interface ConversationDto {
     lastMessage: MessageDto | null; // Last message in conversation
     lastMessageAt: string | null;  // ISO 8601 timestamp (Instant)
     members: MemberDto[];          // List of conversation members
-    isRead?: boolean| null;      // Whether the current user has read the latest message
+    isRead?: boolean | null;      // Whether the current user has read the latest message
+    unreadCount?: number | null;   // Number of unread messages for the current user
 }
 
 // ==================== REQUEST MODELS ====================
@@ -262,7 +262,7 @@ export interface ChatServiceError {
 /**
  * WebSocket error types
  */
-export type WebSocketErrorType = 
+export type WebSocketErrorType =
     | 'CONNECTION_FAILED'
     | 'AUTHENTICATION_FAILED'
     | 'SUBSCRIPTION_FAILED'

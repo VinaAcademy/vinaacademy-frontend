@@ -33,9 +33,6 @@ export default function ConversationsPage() {
 
         const query = searchQuery.toLowerCase();
         return conversations.filter(conv => {
-            // Search by conversation name
-            if (conv.name.toLowerCase().includes(query)) return true;
-
             // Search by title (for groups)
             if (conv.title?.toLowerCase().includes(query)) return true;
 
@@ -47,83 +44,89 @@ export default function ConversationsPage() {
         });
     }, [conversations, searchQuery]);
 
-    // Get unread count for a conversation
-    const getUnreadCount = (conversation: ConversationDto): number => {
-        if (!user || !conversation.lastMessage) return 0;
-
-        const member = conversation.members.find(m => m.memberId === user.id);
-        if (!member) return 0;
-
-        // If user hasn't read any messages
-        if (!member.lastReadMsgId) {
-            return conversation.lastMessage.seq;
-        }
-
-        // If last message is from someone else and user hasn't read it
-        if (conversation.lastMessage.senderId !== user.id) {
-            if (member.lastReadAt) {
-                const lastMsgTime = new Date(conversation.lastMessage.createdAt);
-                const lastReadTime = new Date(member.lastReadAt);
-                return lastMsgTime > lastReadTime ? 1 : 0;
-            }
-            return 1;
-        }
-
-        return 0;
-    };
-
     // Handle conversation click
     const handleConversationClick = (conversation: ConversationDto) => {
         router.push(`/conversations/${conversation.id}`);
     };
 
     return (
-        <div className="container max-w-4xl mx-auto py-8">
-            {/* Header */}
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-                    <MessageCircle className="h-8 w-8"/>
-                    Tin nhắn
-                </h1>
-                <p className="text-muted-foreground">
-                    Kết nối với giảng viên, sinh viên và nhóm học tập của bạn.
-                </p>
-            </div>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/20">
+            <div className="container max-w-4xl mx-auto px-4 py-6">
+                {/* Header with gradient */}
+                <div className="mb-6 space-y-3">
+                    <div className="flex items-center gap-3">
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-20"></div>
+                            <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 p-2.5 rounded-xl shadow-md">
+                                <MessageCircle className="h-6 w-6 text-white"/>
+                            </div>
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
+                                Tin nhắn
+                            </h1>
+                            <p className="text-gray-600 text-sm mt-0.5">
+                                Kết nối với giảng viên, sinh viên và nhóm học tập của bạn.
+                            </p>
+                        </div>
+                    </div>
 
-            {/* Connection Status */}
-            {!connected && !connecting && (
-                <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-lg mb-4">
-                    Chat đang bị ngắt kết nối. Hệ thống sẽ tự động thử lại...
+                    {/* Connection Status with better styling */}
+                    {!connected && !connecting && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg flex items-center gap-2 text-sm animate-in slide-in-from-top-2 duration-300">
+                            <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"></div>
+                            <span className="font-medium">Chat đang bị ngắt kết nối. Hệ thống sẽ tự động thử lại...</span>
+                        </div>
+                    )}
+                    {connecting && (
+                        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2 rounded-lg flex items-center gap-2 text-sm animate-in slide-in-from-top-2 duration-300">
+                            <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                            <span className="font-medium">Đang kết nối để trò chuyện...</span>
+                        </div>
+                    )}
+                    {connected && (
+                        <div className="bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded-lg flex items-center gap-2 text-sm animate-in slide-in-from-top-2 duration-300">
+                            <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
+                            <span className="font-medium">Đã kết nối</span>
+                        </div>
+                    )}
                 </div>
-            )}
-            {connecting && (
-                <div className="bg-blue-500/10 text-blue-600 px-4 py-3 rounded-lg mb-4">
-                    Đang kết nối để trò chuyện...
+
+                {/* Enhanced Search Bar */}
+                <div className="relative mb-5 group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur-lg opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                    <div className="relative">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-hover:text-blue-600 transition-colors duration-300"/>
+                        <Input
+                            type="text"
+                            placeholder="Tìm kiếm cuộc trò chuyện, người dùng..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10 pr-4 h-11 text-sm rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md bg-white/80 backdrop-blur-sm"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                <span className="text-lg">×</span>
+                            </button>
+                        )}
+                    </div>
                 </div>
-            )}
 
-            {/* Search Bar */}
-            <div className="relative mb-6">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-                <Input
-                    type="text"
-                    placeholder="Tìm kiếm cuộc trò chuyện, người dùng..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                />
+                {/* List Component with shadow */}
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <ConversationList
+                        conversations={filteredConversations}
+                        user={user}
+                        handleConversationClick={handleConversationClick}
+                        loading={conversationsLoading}
+                        searchQuery={searchQuery}
+                        clearSearch={() => setSearchQuery('')}
+                    />
+                </div>
             </div>
-
-            {/* List Component */}
-            <ConversationList
-                conversations={filteredConversations}
-                user={user}
-                getUnreadCount={getUnreadCount}
-                handleConversationClick={handleConversationClick}
-                loading={conversationsLoading}
-                searchQuery={searchQuery}
-                clearSearch={() => setSearchQuery('')}
-            />
         </div>
     );
 }
