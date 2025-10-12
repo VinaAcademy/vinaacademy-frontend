@@ -13,6 +13,7 @@ import {
     fetchUserNotifications
 } from '@/services/notificationService';
 import {useAuth} from './AuthContext';
+import {WS_ENDPOINTS} from "@/config/api.endpoint";
 
 interface NotificationContextType {
     isConnected: boolean;
@@ -231,7 +232,7 @@ export function NotificationProvider({
                         // Subscribe to user-specific notification queue
                         if (client.connected) {
                             subscriptionRef.current = client.subscribe(
-                                '/user/queue/notifications',
+                                WS_ENDPOINTS.NOTIFICATION.USER_QUEUE,
                                 handleNotificationMessage
                             );
 

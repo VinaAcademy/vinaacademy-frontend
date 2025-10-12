@@ -11,6 +11,7 @@ export enum NotificationType {
   FINANCIAL_ALERT = 'FINANCIAL_ALERT',
   STAFF_REQUEST = 'STAFF_REQUEST',
   INSTRUCTOR_REQUEST = 'INSTRUCTOR_REQUEST',
+  MESSAGE = 'MESSAGE', // Chat message notification
 }
 
 /**

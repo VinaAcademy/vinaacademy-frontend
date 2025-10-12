@@ -3,7 +3,7 @@ import { useState } from "react";
 import { 
   Bell, CheckCircle, AlertCircle, FileText, 
   MessageSquare, Tag, DollarSign, Users, Trash2,
-  BadgeInfo
+  BadgeInfo, MessageCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,6 +34,7 @@ export const getTypeIcon = (type: NotificationType) => {
     case NotificationType.PROMOTION: return <Tag className="h-5 w-5" />;
     case NotificationType.FINANCIAL_ALERT: return <DollarSign className="h-5 w-5" />;
     case NotificationType.STAFF_REQUEST: return <Users className="h-5 w-5" />;
+    case NotificationType.MESSAGE: return <MessageCircle className="h-5 w-5" />;
     default: return <AlertCircle className="h-5 w-5" />;
   }
 };
@@ -49,6 +50,7 @@ export const getTypeBadgeColor = (type: NotificationType): string => {
     case NotificationType.PROMOTION: return "bg-pink-500";
     case NotificationType.FINANCIAL_ALERT: return "bg-red-500";
     case NotificationType.STAFF_REQUEST: return "bg-orange-500";
+    case NotificationType.MESSAGE: return "bg-cyan-500";
     default: return "bg-gray-500";
   }
 };
