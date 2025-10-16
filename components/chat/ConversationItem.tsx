@@ -72,22 +72,22 @@ export class ConversationItem extends React.Component<ConversationItemProps> {
                 onClick={() => handleConversationClick(conversation)}
                 className={cn(
                     'group relative flex items-start gap-3 p-4 cursor-pointer transition-all duration-300',
-                    'hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/30',
+                    'hover:bg-gradient-to-r hover:from-cyan-50/50 hover:to-sky-50/30',
                     'active:scale-[0.99]',
-                    unreadChatCount > 0 && 'bg-gradient-to-r from-blue-50/60 to-transparent border-l-4 border-l-blue-500'
+                    unreadChatCount > 0 && 'bg-gradient-to-r from-cyan-50/60 to-transparent border-l-4 border-l-cyan-500'
                 )}
             >
                 {/* Hover effect overlay */}
                 <div
-                    className="absolute inset-0 bg-gradient-to-r from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/5 group-hover:to-purple-500/5 transition-all duration-300 pointer-events-none"></div>
+                    className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-sky-500/0 group-hover:from-cyan-500/5 group-hover:to-sky-500/5 transition-all duration-300 pointer-events-none"></div>
 
                 {/* Avatar with ring effect */}
                 <div className="relative flex-shrink-0 z-10">
                     <div className={cn(
                         "absolute inset-0 rounded-full transition-all duration-300",
                         unreadChatCount > 0
-                            ? "ring-2 ring-blue-400 ring-offset-2 animate-pulse"
-                            : "group-hover:ring-2 group-hover:ring-blue-300/50 group-hover:ring-offset-2"
+                            ? "ring-2 ring-cyan-400 ring-offset-2 animate-pulse"
+                            : "group-hover:ring-2 group-hover:ring-cyan-300/50 group-hover:ring-offset-2"
                     )}>
                     </div>
                     <Avatar
@@ -110,7 +110,7 @@ export class ConversationItem extends React.Component<ConversationItemProps> {
                             <h3
                                 className={cn(
                                     'font-semibold text-sm truncate transition-colors duration-300',
-                                    unreadChatCount > 0 ? 'text-gray-900' : 'text-gray-800 group-hover:text-blue-900'
+                                    unreadChatCount > 0 ? 'text-gray-900' : 'text-gray-800 group-hover:text-cyan-900'
                                 )}
                             >
                                 {isGroup
@@ -120,7 +120,7 @@ export class ConversationItem extends React.Component<ConversationItemProps> {
                             {isGroup && (
                                 <Badge
                                     variant="outline"
-                                    className="flex-shrink-0 bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 border-blue-200 text-xs font-medium px-1.5 py-0"
+                                    className="flex-shrink-0 bg-gradient-to-r from-cyan-50 to-sky-50 text-cyan-700 border-cyan-200 text-xs font-medium px-1.5 py-0"
                                 >
                                     <Users className="h-3 w-3 mr-0.5"/>
                                     {conversation.members.length}
@@ -130,7 +130,7 @@ export class ConversationItem extends React.Component<ConversationItemProps> {
                         {lastMessage && conversation.lastMessageAt && (
                             <span className={cn(
                                 "text-xs flex-shrink-0 whitespace-nowrap ml-2 font-medium transition-colors duration-300",
-                                unreadChatCount > 0 ? "text-blue-600" : "text-gray-500 group-hover:text-gray-700"
+                                unreadChatCount > 0 ? "text-cyan-600" : "text-gray-500 group-hover:text-gray-700"
                             )}>
                             {formatMessageTime(conversation.lastMessageAt)}
                         </span>
@@ -151,7 +151,7 @@ export class ConversationItem extends React.Component<ConversationItemProps> {
                         </p>
                         {unreadChatCount > 0 && (
                             <Badge
-                                className="flex-shrink-0 h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-600 hover:to-blue-500 text-white text-xs font-bold shadow-md animate-in zoom-in duration-300"
+                                className="flex-shrink-0 h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full bg-gradient-to-r from-cyan-600 to-sky-500 hover:from-cyan-600 hover:to-sky-500 text-white text-xs font-bold shadow-md animate-in zoom-in duration-300"
                             >
                                 {unreadChatCount > 99 ? '99+' : unreadChatCount}
                             </Badge>

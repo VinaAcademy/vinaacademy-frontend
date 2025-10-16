@@ -1,5 +1,3 @@
-
-
 export const APP_CONFIG = {
     APP_NAME: 'VinaAcademy',
     APP_TITLE: 'VinaAcademy - Nền tảng học trực tuyến',
@@ -8,5 +6,14 @@ export const APP_CONFIG = {
     COURSES: {
         RECENT_COURSES_LIMIT: 5,
         USER_LEARNING_LIMIT: 5
-    }
+    },
+    HIDE_FOOTER_ROUTES: [
+        "/conversations/",
+        "/instructor",
+        "/instructor/dashboard",
+        "/instructor/courses",
+        "/instructor/students",
+        "/instructor/earnings",
+        "/instructor/profile-settings",
+        "/instructors/become-instructor"],
 }

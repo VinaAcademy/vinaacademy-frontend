@@ -197,33 +197,121 @@ export function NotificationProvider({
         }
     }, [addNotification, debug]);
 
-    const {isAuthenticated, isLoading} = useAuth();
+    const {isAuthenticated, isLoading, user} = useAuth();
 
     // Initialize WebSocket connection
     useEffect(() => {
+        // Wait for auth to finish loading before making any decisions
+        if (isLoading) {
+            if (debug) {
+                console.log('[WebSocket] Auth still loading, waiting...');
+            }
+            return;
+        }
+
+        // Don't connect if not authenticated after loading is complete
+        if (!isAuthenticated || !user) {
+            if (debug) {
+                console.log('[WebSocket] User not authenticated after auth loading, skipping connection');
+            }
+            // Clean up existing connection if user logged out
+            if (clientRef.current) {
+                if (debug) {
+                    console.log('[WebSocket] Cleaning up existing connection due to logout/no auth');
+                }
+                try {
+                    if (subscriptionRef.current) {
+                        subscriptionRef.current.unsubscribe();
+                        subscriptionRef.current = null;
+                    }
+                    clientRef.current.deactivate();
+                    clientRef.current = null;
+                } catch (error) {
+                    console.error('[WebSocket] Error cleaning up connection:', error);
+                }
+                setIsConnected(false);
+                clearNotifications();
+            }
+            return;
+        }
+
+        // If already connected with same user, don't reconnect
+        if (clientRef.current && isConnected) {
+            if (debug) {
+                console.log('[WebSocket] Already connected, skipping reinitialization');
+            }
+            return;
+        }
+
+        // If there's a client but not connected, clean it up first
+        if (clientRef.current && !isConnected) {
+            if (debug) {
+                console.log('[WebSocket] Found disconnected client, cleaning up before reconnecting');
+            }
+            try {
+                if (subscriptionRef.current) {
+                    subscriptionRef.current.unsubscribe();
+                    subscriptionRef.current = null;
+                }
+                clientRef.current.deactivate();
+                clientRef.current = null;
+            } catch (error) {
+                console.error('[WebSocket] Error cleaning up disconnected client:', error);
+            }
+        }
+
         let mounted = true;
 
         const initWebSocket = async () => {
             try {
-                // Get access token from cookies
+                // Get access token from cookies - always get fresh token
                 const token = getAccessToken();
 
                 if (!token) {
+                    console.error('[WebSocket] ❌ No access token found but user is authenticated. This is a bug!');
                     if (debug) {
-                        console.log('[WebSocket] No access token found, skipping connection');
+                        console.log('[WebSocket] User state:', { isAuthenticated, user: user?.email });
                     }
                     return;
                 }
 
                 if (debug) {
-                    console.log('[WebSocket] Initializing connection...');
+                    console.log('[WebSocket] ✅ Initializing connection with token for user:', user?.email);
                 }
 
-                // Create WebSocket client
+                // Create WebSocket client with token refresh support
                 const client = createWebSocketClient({
                     url: wsUrl,
                     token,
                     debug,
+                    onTokenExpired: async () => {
+                        // Import dynamically to avoid circular dependencies
+                        const {getAccessToken: getToken} = await import('@/lib/apiClient');
+                        const {refreshToken: refreshAuthToken} = await import('@/services/authService');
+                        
+                        try {
+                            if (debug) {
+                                console.log('[WebSocket] Token expired, refreshing...');
+                            }
+                            
+                            const refreshedUser = await refreshAuthToken();
+                            
+                            if (refreshedUser) {
+                                // Get the fresh token from cookies after refresh
+                                const newToken = getToken();
+                                if (debug) {
+                                    console.log('[WebSocket] Token refreshed successfully, got new token:', !!newToken);
+                                }
+                                return newToken || null;
+                            }
+                            
+                            console.error('[WebSocket] Failed to refresh token - no user returned');
+                            return null;
+                        } catch (error) {
+                            console.error('[WebSocket] Token refresh error:', error);
+                            return null;
+                        }
+                    },
                     onConnect: () => {
                         if (!mounted) return;
 
@@ -287,6 +375,7 @@ export function NotificationProvider({
             if (subscriptionRef.current) {
                 try {
                     subscriptionRef.current.unsubscribe();
+                    subscriptionRef.current = null;
                 } catch (error) {
                     console.error('[WebSocket] Error unsubscribing:', error);
                 }
@@ -295,12 +384,13 @@ export function NotificationProvider({
             if (clientRef.current) {
                 try {
                     clientRef.current.deactivate().then(r => r);
+                    clientRef.current = null;
                 } catch (error) {
                     console.error('[WebSocket] Error deactivating client:', error);
                 }
             }
         };
-    }, [wsUrl, debug, handleNotificationMessage, refreshNotifications, isAuthenticated, isLoading]);
+    }, [wsUrl, debug, handleNotificationMessage, refreshNotifications, isAuthenticated, isLoading, user]);
 
     const value: NotificationContextType = {
         isConnected,

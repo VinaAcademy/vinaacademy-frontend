@@ -5,7 +5,8 @@ import Navbar from "./navbar/Navbar";
 import ClientWrapper from "./announcement-bar/ClientWrapper";
 import Footer from "./Footer";
 import LogoClickHandler from "./LogoClickHandler";
-import { useAuth } from "@/context/AuthContext";
+import {APP_CONFIG} from "@/config/app.config";
+import React from "react";
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -13,21 +14,9 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     // Danh sách từ khóa để ẩn layout nếu đường dẫn chứa bất kỳ từ nào trong đây, trừ việc loại bỏ "/instructor"
     const hiddenKeywords = ["/dashboard", "/admin", "/learning"];
 
-    // Các đường dẫn cụ thể của trang quản lý instructor cần ẩn layout
-    const hiddenInstructorPaths = [
-        "/instructor",
-        "/instructor/dashboard",
-        "/instructor/courses",
-        "/instructor/students",
-        "/instructor/earnings",
-        "/instructor/profile-settings",
-        "/instructors/become-instructor" // Trang đăng ký làm giảng viên
-        // Thêm các đường dẫn khác nếu cần
-    ];
-
     // Kiểm tra nếu đường dẫn bắt đầu bằng các đường dẫn instructor cần ẩn
-    const isHiddenInstructorPath = hiddenInstructorPaths.some(path =>
-        pathname === path || pathname.startsWith(`${path}/`)
+    const isHiddenInstructorPath = APP_CONFIG.HIDE_FOOTER_ROUTES.some(path =>
+        pathname === path || pathname.startsWith(`${path}`)
     );
 
     // Kiểm tra nếu chứa các từ khóa khác cần ẩn layout

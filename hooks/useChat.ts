@@ -81,8 +81,32 @@ export function useChat(config: UseChatConfig): UseChatReturn {
     const {accessToken, debug = false, autoConnect = true} = config;
     const queryClient = useQueryClient();
 
-    // WebSocket client
-    const clientRef = useRef(getChatWebSocketClient({debug}));
+    // WebSocket client with token refresh callback
+    const clientRef = useRef(getChatWebSocketClient({
+        debug,
+        onTokenExpired: async () => {
+            // Import dynamically to avoid circular dependencies
+            const {getAccessToken} = await import('@/lib/apiClient');
+            const {refreshToken: refreshAuthToken} = await import('@/services/authService');
+            
+            try {
+                console.log('[useChat] Token expired, refreshing...');
+                const refreshedUser = await refreshAuthToken();
+                
+                if (refreshedUser) {
+                    const newToken = getAccessToken();
+                    console.log('[useChat] Token refreshed successfully');
+                    return newToken || null;
+                }
+                
+                console.error('[useChat] Failed to refresh token');
+                return null;
+            } catch (error) {
+                console.error('[useChat] Token refresh error:', error);
+                return null;
+            }
+        }
+    }));
     const client = clientRef.current;
 
     // Connection state
@@ -153,6 +177,16 @@ export function useChat(config: UseChatConfig): UseChatReturn {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autoConnect, accessToken]);
 
+    // Watch for token changes and update WebSocket connection
+    useEffect(() => {
+        if (accessToken && wsStatus.connected) {
+            // Update token in WebSocket client when it changes
+            client.updateToken(accessToken).catch(error => {
+                console.error('[useChat] Failed to update token:', error);
+            });
+        }
+    }, [accessToken, wsStatus.connected, client]);
+
     // ==================== MESSAGE HANDLING ====================
 
     // Handle incoming messages
@@ -162,14 +196,24 @@ export function useChat(config: UseChatConfig): UseChatReturn {
         const handleMessage = (message: MessageDto) => {
             console.log('[useChat] Received message:', message);
 
-            // Add message to local state
-            setMessages(prev => ({
-                ...prev,
-                [message.conversationId]: [
-                    message,
-                    ...(prev[message.conversationId] || []),
-                ],
-            }));
+            // Add message to local state (prevent duplicates)
+            setMessages(prev => {
+                const existingMessages = prev[message.conversationId] || [];
+                const messageExists = existingMessages.some(m => m.id === message.id);
+                
+                if (messageExists) {
+                    console.log('[useChat] Duplicate message ignored:', message.id);
+                    return prev;
+                }
+                
+                return {
+                    ...prev,
+                    [message.conversationId]: [
+                        message,
+                        ...existingMessages,
+                    ],
+                };
+            });
 
             // Update conversation list
             queryClient.invalidateQueries({queryKey: ['conversations']}).then(r => r);
@@ -199,13 +243,28 @@ export function useChat(config: UseChatConfig): UseChatReturn {
     const loadMessages = useCallback(async (conversationId: string, page = 0) => {
         const result = await getMessagesByConversation(conversationId, page, 50);
         if (result) {
-            setMessages(prev => ({
-                ...prev,
-                [conversationId]: [
-                    ...(prev[conversationId] || []),
-                    ...result,
-                ],
-            }));
+            setMessages(prev => {
+                const existingMessages = prev[conversationId] || [];
+                const existingIds = new Set(existingMessages.map(m => m.id));
+                
+                // Filter out messages that already exist
+                const newMessages = result.filter(m => !existingIds.has(m.id));
+                
+                if (newMessages.length === 0) {
+                    console.log('[useChat] No new messages to add (all duplicates)');
+                    return prev;
+                }
+                
+                console.log(`[useChat] Adding ${newMessages.length} new messages to conversation ${conversationId}`);
+                
+                return {
+                    ...prev,
+                    [conversationId]: [
+                        ...existingMessages,
+                        ...newMessages,
+                    ],
+                };
+            });
         }
     }, []);
 

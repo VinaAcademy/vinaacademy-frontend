@@ -56,8 +56,8 @@ export default function ConversationsPage() {
                 <div className="mb-6 space-y-3">
                     <div className="flex items-center gap-3">
                         <div className="relative">
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-20"></div>
-                            <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 p-2.5 rounded-xl shadow-md">
+                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-sky-600 rounded-xl blur opacity-20"></div>
+                            <div className="relative bg-gradient-to-r from-cyan-600 to-sky-600 p-2.5 rounded-xl shadow-md">
                                 <MessageCircle className="h-6 w-6 text-white"/>
                             </div>
                         </div>
@@ -94,15 +94,15 @@ export default function ConversationsPage() {
 
                 {/* Enhanced Search Bar */}
                 <div className="relative mb-5 group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur-lg opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-sky-500 rounded-xl blur-lg opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
                     <div className="relative">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-hover:text-blue-600 transition-colors duration-300"/>
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-hover:text-cyan-600 transition-colors duration-300"/>
                         <Input
                             type="text"
                             placeholder="Tìm kiếm cuộc trò chuyện, người dùng..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10 pr-4 h-11 text-sm rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md bg-white/80 backdrop-blur-sm"
+                            className="pl-10 pr-4 h-11 text-sm rounded-xl border border-gray-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all duration-300 shadow-sm hover:shadow-md bg-white/80 backdrop-blur-sm"
                         />
                         {searchQuery && (
                             <button

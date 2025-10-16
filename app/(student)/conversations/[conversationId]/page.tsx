@@ -1,6 +1,11 @@
 /**
  * Conversation Detail Page
  * Displays messages for a specific conversation with real-time updates
+ *
+ * Performance optimizations:
+ * - Debounced send to prevent spam
+ * - flex-col-reverse in MessageList to avoid array cloning
+ * - Ready for virtualization when message count > 100
  */
 
 'use client';
@@ -10,21 +15,13 @@ import {useRouter, useParams} from 'next/navigation';
 import {useChat} from '@/context/ChatContext';
 import {useAuth} from '@/context/AuthContext';
 import {useChatNotification} from '@/hooks/useChatNotification';
-import {MessageDto} from '@/types/chat';
 import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
 import {Skeleton} from '@/components/ui/skeleton';
-import {Avatar} from '@/components/ui/avatar';
-import {
-    ArrowLeft,
-    Send,
-    User,
-    Users,
-    Paperclip,
-    Smile,
-    MoreVertical
-} from 'lucide-react';
+import {ArrowLeft} from 'lucide-react';
 import {cn} from '@/lib/utils';
+import ConversationHeader from '@/components/chat/messages/ConversationHeader';
+import MessageList from '@/components/chat/messages/MessageList';
+import MessageInput from '@/components/chat/messages/MessageInput';
 
 export default function ConversationPage() {
     const params = useParams();
@@ -53,6 +50,10 @@ export default function ConversationPage() {
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const [hasLoadedInitialMessages, setHasLoadedInitialMessages] = useState(false);
 
+    // Debounce for Enter key press to prevent spam
+    const lastSendTime = useRef<number>(0);
+    const SEND_DEBOUNCE_MS = 500; // 500ms debounce
+
     // Get current conversation
     const conversation = getConversation(conversationId);
     const conversationMessages = messages[conversationId] || [];
@@ -64,6 +65,10 @@ export default function ConversationPage() {
     const recipient = isGroup || !conversation
         ? null
         : (conversation.members.find(m => m.memberId !== user?.id));
+
+    // Get the current user's member data to access lastReadMsgId
+    const currentUserMember = conversation?.members.find(m => m.memberId === user?.id);
+    const lastReadMessageId = currentUserMember?.lastReadMsgId;
 
     // Load initial messages
     useEffect(() => {
@@ -77,52 +82,20 @@ export default function ConversationPage() {
     // Mark conversation as read when viewing
     useEffect(() => {
         if (conversationId && connected) {
-            markAsRead(conversationId);
+            markAsRead(conversationId).then();
         }
     }, [conversationId, connected, markAsRead]);
 
-    // Scroll to bottom when new messages arrive
-    useEffect(() => {
-        if (conversationMessages.length > 0) {
-            messagesEndRef.current?.scrollIntoView({behavior: 'smooth'});
-        }
-    }, [conversationMessages.length]);
-
-    // Format message time
-    const formatMessageTime = (timestamp: string): string => {
-        const date = new Date(timestamp);
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-
-        if (diffMins < 1) return 'Vừa xong';
-        if (diffMins < 60) return `${diffMins} phút trước`;
-        if (diffHours < 24) return date.toLocaleTimeString('vi-VN', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-        });
-        if (diffDays < 7) return date.toLocaleDateString('vi-VN', {
-            weekday: 'short',
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-        });
-
-        return date.toLocaleDateString('vi-VN', {
-            month: 'short',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-        });
-    };
-
-    // Handle send message
+    // Handle send message with debounce protection
     const handleSendMessage = useCallback(async () => {
         if (!messageInput.trim() || !conversationId || !connected) return;
+
+        // Debounce check
+        const now = Date.now();
+        if (now - lastSendTime.current < SEND_DEBOUNCE_MS) {
+            return; // Ignore rapid sends
+        }
+        lastSendTime.current = now;
 
         try {
             setIsSending(true);
@@ -143,117 +116,24 @@ export default function ConversationPage() {
         } finally {
             setIsSending(false);
         }
-    }, [messageInput, conversationId, connected, sendTextMessage, isGroup, recipient]);
+    }, [messageInput, conversationId, connected, sendTextMessage, isGroup, recipient, user?.id]);
 
-    // Handle key press
-    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Handle key press with debounce
+    const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            handleSendMessage();
+            handleSendMessage().then(r => r);
         }
-    };
-
-    // Render message item
-    const renderMessage = (message: MessageDto, index: number) => {
-        const isOwn = message.senderId === user?.id;
-        const sender = conversation?.members.find(m => m.memberId === message.senderId);
-
-        // Check if we should show sender info (for groups)
-        const showSender = isGroup && !isOwn;
-
-        // Check if we should show timestamp (first message or different day)
-        const prevMessage = index > 0 ? conversationMessages[index - 1] : null;
-        const showTimestamp = !prevMessage ||
-            new Date(message.createdAt).toDateString() !== new Date(prevMessage.createdAt).toDateString();
-
-        return (
-            <div key={message.id}>
-                {/* Date separator */}
-                {showTimestamp && (
-                    <div className="flex items-center justify-center my-4">
-                        <div className="bg-muted px-3 py-1 rounded-full text-xs text-muted-foreground">
-                            {new Date(message.createdAt).toLocaleDateString('vi-VN', {
-                                weekday: 'long',
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
-                            })}
-                        </div>
-                    </div>
-                )}
-
-                {/* Message */}
-                <div
-                    className={cn(
-                        'flex gap-2 mb-4',
-                        isOwn ? 'justify-end' : 'justify-start'
-                    )}
-                >
-                    {/* Avatar for received messages */}
-                    {!isOwn && (
-                        <Avatar
-                            src={sender?.avatarUrl}
-                            alt={sender?.fullName || 'User'}
-                            size={32}
-                            className="flex-shrink-0"
-                        />
-                    )}
-
-                    {/* Message content */}
-                    <div
-                        className={cn(
-                            'flex flex-col',
-                            isOwn ? 'items-end' : 'items-start'
-                        )}
-                    >
-                        {/* Sender name (for groups) */}
-                        {showSender && (
-                            <span className="text-xs text-muted-foreground mb-1 px-1">
-                                {sender?.fullName}
-                            </span>
-                        )}
-
-                        {/* Message bubble */}
-                        <div
-                            className={cn(
-                                'rounded-2xl px-4 py-2 max-w-md break-words',
-                                isOwn
-                                    ? 'bg-primary text-primary-foreground rounded-br-sm'
-                                    : 'bg-muted rounded-bl-sm'
-                            )}
-                        >
-                            {message.type === 'TEXT' && (
-                                <p className="text-sm whitespace-pre-wrap">
-                                    {message.textContent}
-                                </p>
-                            )}
-                            {message.type === 'IMAGE' && (
-                                <div className="text-sm">📷 Image</div>
-                            )}
-                            {message.type === 'FILE' && (
-                                <div className="text-sm">
-                                    📎 {message.fileName}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Timestamp */}
-                        <span className="text-xs text-muted-foreground mt-1 px-1">
-                            {formatMessageTime(message.createdAt)}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        );
-    };
+    }, [handleSendMessage]);
 
     if (conversationsLoading) {
         return (
-            <div className="flex flex-col h-[calc(100vh-4rem)]">
+            <div className="flex flex-col h-[calc(100vh-4rem)] animate-in fade-in duration-300">
                 {/* Header skeleton */}
-                <div className="border-b p-4">
+                <div className="border-b p-4 bg-gradient-to-r from-card via-card to-card/95">
                     <div className="flex items-center gap-3">
                         <Skeleton className="h-10 w-10 rounded-full"/>
+                        <Skeleton className="h-12 w-12 rounded-full"/>
                         <div className="flex-1">
                             <Skeleton className="h-5 w-40 mb-2"/>
                             <Skeleton className="h-3 w-24"/>
@@ -262,14 +142,15 @@ export default function ConversationPage() {
                 </div>
 
                 {/* Messages skeleton */}
-                <div className="flex-1 p-4 space-y-4">
+                <div className="flex-1 p-4 space-y-4 bg-gradient-to-b from-background via-background to-muted/10">
                     {[...Array(5)].map((_, i) => (
                         <div
                             key={i}
                             className={cn(
-                                'flex gap-2',
+                                'flex gap-2 animate-pulse',
                                 i % 2 === 0 ? 'justify-start' : 'justify-end'
                             )}
+                            style={{ animationDelay: `${i * 100}ms` }}
                         >
                             {i % 2 === 0 && <Skeleton className="h-8 w-8 rounded-full"/>}
                             <Skeleton className="h-16 w-64 rounded-2xl"/>
@@ -282,15 +163,23 @@ export default function ConversationPage() {
 
     if (!conversation) {
         return (
-            <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-4">
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold mb-2">Không tìm thấy cuộc trò chuyện</h2>
-                    <p className="text-muted-foreground mb-4">
+            <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-4 animate-in fade-in zoom-in duration-500">
+                <div className="text-center max-w-md">
+                    <div className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 rounded-full p-8 mb-6 mx-auto w-fit shadow-lg">
+                        <ArrowLeft className="h-16 w-16 text-red-500 dark:text-red-400"/>
+                    </div>
+                    <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+                        Không tìm thấy cuộc trò chuyện
+                    </h2>
+                    <p className="text-muted-foreground mb-6">
                         Cuộc trò chuyện này có thể đã bị xóa hoặc bạn không có quyền truy cập vào nó.
                     </p>
-                    <Button onClick={() => router.push('/conversations')}>
+                    <Button
+                        onClick={() => router.push('/conversations')}
+                        className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
                         <ArrowLeft className="h-4 w-4 mr-2"/>
-                        Quay lại
+                        Quay lại danh sách
                     </Button>
                 </div>
             </div>
@@ -298,138 +187,53 @@ export default function ConversationPage() {
     }
 
     return (
-        <div className="flex flex-col h-[calc(100vh-4rem)]">
-            {/* Header */}
-            <div className="border-b bg-card">
-                <div className="container max-w-4xl mx-auto px-4 py-3">
-                    <div className="flex items-center gap-3">
-                        {/* Back button */}
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => router.push('/conversations')}
-                        >
-                            <ArrowLeft className="h-5 w-5"/>
-                        </Button>
-
-                        {/* Avatar */}
-                        <Avatar
-                            src={conversation.avatarUrl || recipient?.avatarUrl || user?.avatarUrl}
-                            alt={conversation.name}
-                            size={40}
-                        />
-
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                            <h2 className="font-semibold truncate">
-                                {isGroup ? conversation.title : recipient?.fullName || conversation.name || user?.fullName}
-                            </h2>
-                            <p className="text-sm text-muted-foreground">
-                                {isGroup ? (
-                                    <span className="flex items-center gap-1">
-                                        <Users className="h-3 w-3"/>
-                                        {conversation.members.length} members
-                                    </span>
-                                ) : (
-                                    <span>@{recipient?.username || user?.username}</span>
-                                )}
-                            </p>
-                        </div>
-
-                        {/* Actions */}
-                        <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-5 w-5"/>
-                        </Button>
-                    </div>
-                </div>
+        <div className="flex flex-col h-screen max-h-screen bg-background overflow-hidden">
+            {/* Header - Fixed at top, flex-shrink-0 prevents it from shrinking */}
+            <div className="flex-shrink-0">
+                <ConversationHeader
+                    conversation={conversation}
+                    recipient={recipient}
+                    isGroup={isGroup}
+                    userAvatarUrl={user?.avatarUrl}
+                    userFullName={user?.fullName}
+                    userUsername={user?.username}
+                    onBack={() => router.push('/conversations')}
+                />
             </div>
 
-            {/* Connection status */}
+            {/* Connection status - Fixed below header, flex-shrink-0 prevents it from shrinking */}
             {!connected && (
-                <div className="bg-destructive/10 text-destructive px-4 py-2 text-center text-sm">
-                    Disconnected. Messages may not be sent or received.
+                <div className="flex-shrink-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-700 dark:text-amber-400 px-4 py-2.5 text-center text-sm border-b border-amber-200 dark:border-amber-800 animate-in slide-in-from-top duration-300">
+                    <div className="flex items-center justify-center gap-2">
+                        <div className="h-2 w-2 bg-amber-500 rounded-full animate-pulse"/>
+                        <span>Mất kết nối. Tin nhắn có thể không được gửi hoặc nhận.</span>
+                    </div>
                 </div>
             )}
 
-            {/* Messages */}
-            <div
-                ref={messagesContainerRef}
-                className="flex-1 overflow-y-auto bg-background"
-            >
-                <div className="container max-w-4xl mx-auto px-4 py-4">
-                    {conversationMessages.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-center py-16">
-                            <div className="bg-muted rounded-full p-6 mb-4">
-                                {isGroup ? (
-                                    <Users className="h-12 w-12 text-muted-foreground"/>
-                                ) : (
-                                    <User className="h-12 w-12 text-muted-foreground"/>
-                                )}
-                            </div>
-                            <h3 className="text-lg font-semibold mb-2">
-                                {isGroup ? 'Bắt đầu cuộc trò chuyện nhóm' : 'Bắt đầu cuộc trò chuyện'}
-                            </h3>
-                            <p className="text-muted-foreground">
-                                Gửi tin nhắn để bắt đầu
-                            </p>
-                        </div>
-                    ) : (
-                        <>
-                            {/* Reverse order for newest first from backend */}
-                            {[...conversationMessages].reverse().map((message, index) =>
-                                renderMessage(message, index)
-                            )}
-                            <div ref={messagesEndRef}/>
-                        </>
-                    )}
-                </div>
+            {/* Messages - Scrollable area (flex-1 with min-h-0 to allow shrinking) */}
+            <div className="flex-1 min-h-0">
+                <MessageList
+                    messages={conversationMessages}
+                    isGroup={isGroup}
+                    userId={user?.id}
+                    members={conversation?.members || []}
+                    messagesEndRef={messagesEndRef}
+                    messagesContainerRef={messagesContainerRef}
+                    lastReadMessageId={lastReadMessageId}
+                />
             </div>
 
-            {/* Message input */}
-            <div className="border-t bg-card">
-                <div className="container max-w-4xl mx-auto px-4 py-3">
-                    <div className="flex items-center gap-2">
-                        {/* Attachment button */}
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled
-                            title="Coming soon"
-                        >
-                            <Paperclip className="h-5 w-5"/>
-                        </Button>
-
-                        {/* Input */}
-                        <Input
-                            type="text"
-                            placeholder="Type a message..."
-                            value={messageInput}
-                            onChange={(e) => setMessageInput(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            disabled={!connected || isSending}
-                            className="flex-1"
-                        />
-
-                        {/* Emoji button */}
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled
-                            title="Coming soon"
-                        >
-                            <Smile className="h-5 w-5"/>
-                        </Button>
-
-                        {/* Send button */}
-                        <Button
-                            onClick={handleSendMessage}
-                            disabled={!messageInput.trim() || !connected || isSending}
-                            size="icon"
-                        >
-                            <Send className="h-5 w-5"/>
-                        </Button>
-                    </div>
-                </div>
+            {/* Message input - Fixed at bottom, flex-shrink-0 prevents it from shrinking */}
+            <div className="flex-shrink-0">
+                <MessageInput
+                    messageInput={messageInput}
+                    isSending={isSending}
+                    connected={connected}
+                    onMessageChange={setMessageInput}
+                    onSendMessage={handleSendMessage}
+                    onKeyPress={handleKeyPress}
+                />
             </div>
         </div>
     );

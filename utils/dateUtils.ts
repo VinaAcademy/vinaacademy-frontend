@@ -1,12 +1,13 @@
-export function formatDate(dateString: string): string {
+export function formatDate(dateString: string, options: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+}): string {
     if (!dateString) return '';
 
     const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-    });
+    return date.toLocaleDateString('vi-VN', options);
 }
 
 export const formatMessageTime = (timestamp: string): string => {

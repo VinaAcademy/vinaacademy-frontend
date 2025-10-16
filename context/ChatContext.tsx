@@ -127,7 +127,12 @@ export function useChat(): ChatContextType {
     const context = useContext(ChatContext);
 
     if (context === undefined) {
-        throw new Error('useChat must be used within ChatProvider');
+        const {isAuthenticated} = useAuth();
+        if (isAuthenticated) {
+            throw new Error('useChat must be used within a ChatProvider when authenticated');
+        } else {
+            throw new Error('Redirecting to login');
+        }
     }
 
     return context;

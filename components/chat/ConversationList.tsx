@@ -54,7 +54,7 @@ export class ConversationList extends React.Component<ConversationListProps> {
                             <>
                                 <div className="relative mb-5">
                                     <div
-                                        className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-xl opacity-20"></div>
+                                        className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-sky-500 rounded-full blur-xl opacity-20"></div>
                                     <div
                                         className="relative rounded-full bg-gradient-to-br from-gray-100 to-gray-200 p-6 shadow-inner">
                                         <Search className="h-10 w-10 text-gray-400"/>
@@ -69,7 +69,7 @@ export class ConversationList extends React.Component<ConversationListProps> {
                                 <Button
                                     variant="outline"
                                     onClick={clearSearch}
-                                    className="hover:bg-gray-50 border hover:border-blue-500 hover:text-blue-600 transition-all duration-300 px-4 py-2 rounded-lg font-medium shadow-sm hover:shadow"
+                                    className="hover:bg-gray-50 border hover:border-cyan-500 hover:text-cyan-600 transition-all duration-300 px-4 py-2 rounded-lg font-medium shadow-sm hover:shadow"
                                 >
                                     Xóa tìm kiếm
                                 </Button>
@@ -78,10 +78,10 @@ export class ConversationList extends React.Component<ConversationListProps> {
                             <>
                                 <div className="relative mb-5">
                                     <div
-                                        className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-xl opacity-20"></div>
+                                        className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-sky-500 rounded-full blur-xl opacity-20"></div>
                                     <div
-                                        className="relative rounded-full bg-gradient-to-br from-blue-100 to-purple-100 p-6 shadow-inner">
-                                        <MessageCircle className="h-10 w-10 text-blue-600"/>
+                                        className="relative rounded-full bg-gradient-to-br from-cyan-100 to-sky-100 p-6 shadow-inner">
+                                        <MessageCircle className="h-10 w-10 text-cyan-600"/>
                                     </div>
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-900 mb-2">

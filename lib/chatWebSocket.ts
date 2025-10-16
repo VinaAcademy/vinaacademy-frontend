@@ -23,6 +23,7 @@ interface ChatWebSocketConfig {
     reconnectDelay?: number;
     heartbeatIncoming?: number;
     heartbeatOutgoing?: number;
+    onTokenExpired?: () => Promise<string | null>; // Callback to refresh token
 }
 
 /**
@@ -39,7 +40,9 @@ export class ChatWebSocketClient {
         error: null,
     };
     private config: ChatWebSocketConfig;
-    private accessToken: string | null = null;
+    private reconnectAttempts: number = 0;
+    private maxReconnectAttempts: number = 5;
+    private isRefreshingToken: boolean = false;
 
     constructor(config: ChatWebSocketConfig = {}) {
         this.config = {
@@ -70,7 +73,6 @@ export class ChatWebSocketClient {
                 return;
             }
 
-            this.accessToken = accessToken;
             this.status.connecting = true;
             this.status.error = null;
 
@@ -105,7 +107,29 @@ export class ChatWebSocketClient {
                         this.status.connecting = false;
                         this.status.connected = false;
                         this.status.error = error;
-                        reject(new Error(error));
+
+                        // Check if error is due to authentication
+                        const isAuthError = frame.headers['message']?.toLowerCase().includes('auth') ||
+                            frame.headers['message']?.toLowerCase().includes('token') ||
+                            frame.headers['message']?.toLowerCase().includes('unauthorized');
+
+                        console.log('isAuthError', isAuthError, frame.headers['message']);
+
+                        if (isAuthError && this.config.onTokenExpired && !this.isRefreshingToken) {
+                            this.log('🔑 Authentication error detected, attempting token refresh...');
+                            this.handleTokenRefresh().then((success: boolean) => {
+                                if (success) {
+                                    this.log('✅ Token refreshed, reconnecting...');
+                                    // Will reconnect automatically due to reconnectDelay
+                                } else {
+                                    reject(new Error('Token refresh failed'));
+                                }
+                            }).catch((err: Error) => {
+                                reject(err);
+                            });
+                        } else {
+                            reject(new Error(error));
+                        }
                     },
 
                     onWebSocketError: (event) => {
@@ -143,10 +167,73 @@ export class ChatWebSocketClient {
         if (this.client) {
             this.log('Disconnecting...');
             this.clearSubscriptions();
-            this.client.deactivate();
+            this.client.deactivate().then(r => r);
             this.client = null;
             this.status.connected = false;
             this.status.connecting = false;
+            this.reconnectAttempts = 0;
+        }
+    }
+
+    /**
+     * Handle token refresh and reconnection
+     */
+    private async handleTokenRefresh(): Promise<boolean> {
+        if (this.isRefreshingToken) {
+            this.log('Token refresh already in progress');
+            return false;
+        }
+
+        if (!this.config.onTokenExpired) {
+            console.error('[ChatWebSocket] No token refresh callback configured');
+            return false;
+        }
+
+        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+            console.error('[ChatWebSocket] Max reconnect attempts reached');
+            return false;
+        }
+
+        this.isRefreshingToken = true;
+        this.reconnectAttempts++;
+
+        try {
+            this.log(`🔄 Refreshing token (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+            const newToken = await this.config.onTokenExpired();
+
+            if (newToken) {
+                this.log('✅ Token refreshed successfully');
+
+                // Disconnect current connection
+                this.disconnect();
+
+                // Reconnect with new token
+                await this.connect(newToken);
+
+                this.reconnectAttempts = 0; // Reset on successful reconnect
+                return true;
+            } else {
+                console.error('[ChatWebSocket] Token refresh returned null');
+                return false;
+            }
+        } catch (error) {
+            console.error('[ChatWebSocket] Token refresh failed:', error);
+            return false;
+        } finally {
+            this.isRefreshingToken = false;
+        }
+    }
+
+    /**
+     * Update access token and reconnect if needed
+     * @param newToken - New access token
+     */
+    public async updateToken(newToken: string): Promise<void> {
+
+        if (this.isConnected()) {
+            this.log('🔄 Updating token, reconnecting...');
+            this.disconnect();
+            await this.connect(newToken);
         }
     }
 
