@@ -14,16 +14,11 @@ import { useRouter } from "next/navigation";
 import { Search, Menu, X } from "lucide-react";
 import ExploreDropdown from "./explore-dropdown/ExploreDropdown";
 import MobileNav from "./mobile/MobileNav";
-
-interface NavbarProps {
-  onNavigateHome?: () => void;
-}
-
-const Navbar = ({ onNavigateHome }: NavbarProps) => {
+const Navbar = () => {
   const { categories, isLoading } = useCategories();
   const { isAuthenticated, user, logout } = useAuth();
   const { cartItems, removeFromCart, totalPrice } = useCart();
-  const { notifications, unreadCount, markAsRead, isConnected } = useNotification();
+  const { notifications, unreadCount} = useNotification();
   const { toast } = useToast();
   const router = useRouter();
   const [formattedCartItems, setFormattedCartItems] = useState<CartItem[]>([]);
@@ -116,7 +111,6 @@ const Navbar = ({ onNavigateHome }: NavbarProps) => {
           <DesktopNav
             categories={categories}
             isLoading={isLoading}
-            isAuthenticated={isAuthenticated}
             roleStaffAdmin={roleStaffAdmin}
             notifications={notifications}
             totalUnread={unreadCount}

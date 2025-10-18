@@ -8,7 +8,6 @@
 
 import React from 'react';
 import {MessageCircle} from 'lucide-react';
-import {Badge} from '@/components/ui/badge';
 import {Button} from '@/components/ui/button';
 import {useRouter} from 'next/navigation';
 import {cn} from '@/lib/utils';
@@ -18,6 +17,7 @@ interface ChatBadgeProps {
     className?: string;
     variant?: 'icon' | 'button' | 'badge';
     showZero?: boolean;
+    unreadCount?: number; // Optional: allows external unread count to be passed
 }
 
 /**
@@ -34,15 +34,22 @@ interface ChatBadgeProps {
  *
  * // Just the badge
  * <ChatBadge variant="badge" />
+ *
+ * // With external unread count
+ * <ChatBadge variant="icon" unreadCount={5} />
  * ```
  */
 export function ChatBadge({
                               className,
                               variant = 'icon',
                               showZero = false,
+                              unreadCount: externalUnreadCount,
                           }: ChatBadgeProps) {
     const router = useRouter();
-    const {unreadChatCount} = useChatNotification();
+    const {unreadChatCount: hookUnreadCount} = useChatNotification();
+    
+    // Use external count if provided, otherwise fall back to hook
+    const unreadChatCount = externalUnreadCount !== undefined ? externalUnreadCount : hookUnreadCount;
 
     const handleClick = () => {
         router.push('/conversations');
@@ -56,16 +63,16 @@ export function ChatBadge({
                 size="icon"
                 onClick={handleClick}
                 className={cn('relative', className)}
-                title={`${unreadChatCount} unread message${unreadChatCount !== 1 ? 's' : ''}`}
+                title={`${unreadChatCount} tin nhắn chưa đọc`}
             >
                 <MessageCircle className="h-5 w-5"/>
                 {(unreadChatCount > 0 || showZero) && (
-                    <Badge
-                        variant="default"
-                        className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-xs"
+                    <span
+                        className="absolute -top-0.5 -right-0.5 flex items-center justify-center bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full animate-pulse-subtle shadow-sm"
+                        aria-hidden="true"
                     >
                         {unreadChatCount > 9 ? '9+' : unreadChatCount}
-                    </Badge>
+                    </span>
                 )}
             </Button>
         );
@@ -80,11 +87,11 @@ export function ChatBadge({
                 className={cn('gap-2', className)}
             >
                 <MessageCircle className="h-4 w-4"/>
-                <span>Messages</span>
+                <span>Tin nhắn</span>
                 {(unreadChatCount > 0 || showZero) && (
-                    <Badge variant="default" className="ml-auto">
+                    <span className="ml-auto px-2 py-0.5 bg-red-500 text-white text-xs font-semibold rounded-full">
                         {unreadChatCount > 9 ? '9+' : unreadChatCount}
-                    </Badge>
+                    </span>
                 )}
             </Button>
         );
@@ -97,9 +104,9 @@ export function ChatBadge({
         }
 
         return (
-            <Badge variant="default" className={className}>
+            <span className={cn('px-2 py-0.5 bg-red-500 text-white text-xs font-semibold rounded-full', className)}>
                 {unreadChatCount > 9 ? '9+' : unreadChatCount}
-            </Badge>
+            </span>
         );
     }
 

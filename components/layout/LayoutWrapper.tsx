@@ -15,7 +15,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     const hiddenKeywords = ["/dashboard", "/admin", "/learning"];
 
     // Kiểm tra nếu đường dẫn bắt đầu bằng các đường dẫn instructor cần ẩn
-    const isHiddenInstructorPath = APP_CONFIG.HIDE_FOOTER_ROUTES.some(path =>
+    const isHiddenInstructorPath = APP_CONFIG.HIDE_LAYOUT_ROUTES.some(path =>
         pathname === path || pathname.startsWith(`${path}`)
     );
 

@@ -184,31 +184,11 @@ export function useChatMessages(conversationId: string | null) {
  * Note: This is a simplified version - you may want to implement proper unread tracking
  */
 export function useUnreadCount(): number {
+    const {isAuthenticated, user} = useAuth();
+    if (!isAuthenticated || !user) return 0;
     const {conversations} = useChat();
-    const {user} = useAuth();
 
-    if (!user) return 0;
-
-    // Count conversations where last message is not from current user
-    // and is newer than user's last read time
-    return conversations.filter(conv => {
-        if (!conv.lastMessage) return false;
-
-        const member = conv.members.find(m => m.memberId === user.id);
-        if (!member) return false;
-
-        // If user hasn't read any messages
-        if (!member.lastReadMsgId) return true;
-
-        // If last message is from someone else
-        if (conv.lastMessage.senderId !== user.id) {
-            // Check if it's newer than last read
-            if (member.lastReadAt) {
-                return new Date(conv.lastMessage.createdAt) > new Date(member.lastReadAt);
-            }
-            return true;
-        }
-
-        return false;
-    }).length;
+    return conversations.reduce((count, conv) => {
+        return count + (conv.unreadCount || 0);
+    }, 0);
 }

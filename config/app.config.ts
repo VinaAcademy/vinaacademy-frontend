@@ -7,7 +7,7 @@ export const APP_CONFIG = {
         RECENT_COURSES_LIMIT: 5,
         USER_LEARNING_LIMIT: 5
     },
-    HIDE_FOOTER_ROUTES: [
+    HIDE_LAYOUT_ROUTES: [
         "/conversations/",
         "/instructor",
         "/instructor/dashboard",
