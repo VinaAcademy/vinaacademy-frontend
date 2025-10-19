@@ -1,7 +1,7 @@
 # VinaAcademy Frontend - AI Coding Instructions
 
 <div style="background: linear-gradient(135deg, rgba(84, 180, 211, 1) 0%, rgba(57, 192, 237, 0.2) 100%); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
-  <strong>🎯 Quick Navigation:</strong> Next.js 14+ • App Router • Microservices • Real-time Chat & Notifications • Role-based Access
+  <strong>🎯 Quick Navigation:</strong> Next.js 15+ • App Router • Microservices • Real-time Chat & Notifications • Role-based Access
 </div>
 
 ## General Guidelines
@@ -9,20 +9,24 @@
 > [!IMPORTANT]
 > **CRITICAL**: Do NOT create markdown documentation files (e.g., README.md, SETUP.md, GUIDE.md, CHANGES.md) after completing tasks unless explicitly requested by the user. Focus on implementing the actual code changes requested. Provide a brief summary in the chat instead.
 
+> [!TIP]
+> **WINDOWS POWERSHELL**: This project is developed on Windows with PowerShell. Join commands with `;` separator (e.g., `npm install; npm run dev`). Use forward slashes in paths when passing to Node tools.
+
 <details style="background: rgba(57, 192, 237, 0.2); padding: 12px; border-radius: 6px; border-left: 4px solid rgb(84, 180, 211);">
 <summary><strong>🔑 Key Architectural Principles</strong></summary>
 
-- **Route Groups** organize code without affecting URLs
-- **API Proxy** handles CORS automatically via `next.config.ts`
-- **Dual WebSocket** system separates Notifications from Chat
-- **JWT Auto-refresh** happens transparently on 401 errors
-- **Centralized Endpoints** in `config/api.endpoint.ts`
+- **Route Groups** organize code without affecting URLs (e.g., `(admin)`, `(student)`, `(auth)`)
+- **API Proxy** handles CORS automatically via `next.config.ts` (all `/api/*` requests)
+- **Dual WebSocket** system separates Notifications from Chat (both auto-reconnect)
+- **JWT Auto-refresh** happens transparently on 401 errors (no user action needed)
+- **Centralized Endpoints** in `config/api.endpoint.ts` (never hardcode URLs)
+- **Provider Composition** via `ComposerProvider` pattern (eliminates provider hell)
 </details>
 
 
 ## Architecture Overview
 
-This is a **Next.js 14+ App Router** e-learning platform with role-based access and microservices integration. Key architectural patterns:
+This is a **Next.js 15.2.4 App Router** e-learning platform with role-based access and microservices integration. Key architectural patterns:
 
 - **Route Groups**: Uses Next.js route groups `(admin)`, `(instructor)`, `(student)`, `(auth)`, `(public)`, `(staff,admin)` for role-based layouts without affecting URLs
 - **API Proxy**: All backend calls proxy through `/api/*` → `${NEXT_PUBLIC_API_URL}/api/v1/*` via `next.config.ts` rewrites
@@ -41,7 +45,14 @@ This is a **Next.js 14+ App Router** e-learning platform with role-based access 
 // /admin/* → requires ROLE_admin
 // /instructor/* → requires ROLE_instructor  
 // /requests/* → requires ROLE_admin OR ROLE_staff
+// /cart, /learning, /my-courses, /payment → any authenticated user
 ```
+
+**Critical Notes**:
+- Route groups `(admin)`, `(instructor)`, `(student)`, etc. do NOT appear in URLs
+- Middleware checks happen BEFORE page loads - no client-side protection needed
+- Unauthorized access redirects to `/` (homepage), not login page
+- Use `pathname.startsWith('/path')` checks for sub-routes
 
 ### Token Management
 - Access tokens auto-refresh via `apiClient.ts` interceptors on 401 responses
@@ -123,6 +134,70 @@ export const CHAT_ENDPOINTS = {
 import { API_ENDPOINTS } from '@/config/api.endpoint';
 const response = await apiClient.get(API_ENDPOINTS.COURSE.BY_SLUG(slug));
 ```
+
+### Application Configuration
+
+All application-wide constants and settings are centralized in `config/app.config.ts`:
+
+```typescript
+export const APP_CONFIG = {
+  APP_NAME: 'VinaAcademy',
+  APP_TITLE: 'VinaAcademy - Nền tảng học trực tuyến',
+  APP_DESCRIPTION: 'Học mọi lúc, mọi nơi với VinaAcademy',
+  APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  
+  COURSES: {
+    RECENT_COURSES_LIMIT: 5,
+    USER_LEARNING_LIMIT: 5
+  },
+  
+  HIDE_LAYOUT_ROUTES: [
+    "/conversations/",
+    "/instructor",
+    "/instructor/dashboard",
+    "/instructor/courses",
+    "/instructor/students",
+    "/instructor/earnings",
+    "/instructor/profile-settings",
+    "/instructors/become-instructor"
+  ],
+  
+  LOADING_IGNORE_ROUTES: [
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/reset-password"
+  ]
+}
+```
+
+**Key Configuration Sections**:
+- **APP_CONFIG.COURSES**: Business logic constants (pagination limits, display counts)
+- **APP_CONFIG.HIDE_LAYOUT_ROUTES**: Routes that should not show the default layout wrapper
+- **APP_CONFIG.LOADING_IGNORE_ROUTES**: Routes that skip global loading states
+
+**Usage Pattern**:
+```typescript
+import { APP_CONFIG } from '@/config/app.config';
+
+// Use in components
+const limit = APP_CONFIG.COURSES.RECENT_COURSES_LIMIT;
+
+// Check if route should hide layout
+const shouldHideLayout = APP_CONFIG.HIDE_LAYOUT_ROUTES.some(route => 
+  pathname.startsWith(route)
+);
+
+// Check if route should ignore loading indicator
+const ignoreLoading = APP_CONFIG.LOADING_IGNORE_ROUTES.includes(pathname);
+```
+
+**Best Practices**:
+- Always import from `@/config/app.config`, never hardcode magic numbers or route lists
+- Group related constants under namespaced objects (e.g., `COURSES`, `PAYMENT`)
+- Use environment variables for deployment-specific values, constants for business logic
+- Document route-based configurations with comments explaining the behavior
+- Keep route arrays consistent with `middleware.ts` protection patterns
 
 ### API Client Pattern
 ```typescript
@@ -229,11 +304,12 @@ NEXT_PUBLIC_NOTIFICATION_WS_URL=http://localhost:8080/ws/notification
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Configuration details:
-- **API Proxy**: All `/api/*` requests automatically proxy to `NEXT_PUBLIC_API_URL` via `next.config.ts` rewrites - this handles CORS automatically
+**Configuration details**:
+- **API Proxy**: All `/api/*` AND `/api/v1/*` requests automatically proxy to `NEXT_PUBLIC_API_URL` via `next.config.ts` rewrites - this handles CORS automatically
 - **Cookies**: `secure: true` in production only, `sameSite: 'strict'` always (see `lib/apiClient.ts`)
 - **Docker**: Uses `output: "standalone"` in `next.config.ts` for optimized container builds
 - **Images**: Wildcard `remotePatterns` in `next.config.ts` allows all remote images (backend serves user uploads)
+- **Default fallbacks**: If `NEXT_PUBLIC_API_URL` is missing, defaults to `http://localhost:8080/api/v1`
 
 ### Real-Time Notifications
 - WebSocket connects automatically when user logs in (has JWT token)
