@@ -16,4 +16,10 @@ export const APP_CONFIG = {
         "/instructor/earnings",
         "/instructor/profile-settings",
         "/instructors/become-instructor"],
+    LOADING_IGNORE_ROUTES: [
+        "/login",
+        "/register",
+        "/forgot-password",
+        "/reset-password"
+    ]
 }

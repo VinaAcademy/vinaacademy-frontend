@@ -1,22 +1,21 @@
 "use client";
 
 import {useForm} from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import {zodResolver} from "@hookform/resolvers/zod";
 import {z} from "zod";
 import {useState} from "react";
 import {Button} from "@/components/ui/button";
-import {Checkbox} from "@/components/ui/checkbox";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {Form, FormField, FormItem, FormControl, FormMessage} from "@/components/ui/form";
 
 //icon
-import {FcGoogle} from "react-icons/fc";
 import {FaUserShield} from "react-icons/fa";
 import {IoMdLock} from "react-icons/io";
 
 import DialogForgotPassword from "./otp-dialog";
 import Image from "next/image";
+import Link from "next/link";
 
 const formSchema = z.object({
     email: z
@@ -52,21 +51,20 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({
-    heading = "VN Academy",
-    subheading = "Đăng nhập ngay để trải nghiệm",
-    logo = {
-        url: "/",
-        src: "/logo.svg",
-        alt: "Vina Academy Logo",
-    },
-    loginText = "Đăng nhập",
-    googleText = "Đăng nhập bằng Google",
-    signupText = "Chưa có tài khoản?",
-    signupUrl = "/register",
-    onSubmit,
-    isSubmitting = false,
-    error = null,
-}: LoginFormProps) {
+                                      heading = "VN Academy",
+                                      subheading = "Đăng nhập ngay để trải nghiệm",
+                                      logo = {
+                                          url: "/",
+                                          src: "/logo.svg",
+                                          alt: "Vina Academy Logo",
+                                      },
+                                      loginText = "Đăng nhập",
+                                      signupText = "Chưa có tài khoản?",
+                                      signupUrl = "/register",
+                                      onSubmit,
+                                      isSubmitting = false,
+                                      error = null,
+                                  }: LoginFormProps) {
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const form = useForm<LoginFormValues>({
@@ -90,16 +88,16 @@ export default function LoginForm({
                 <div className="mx-auto grid w-full max-w-md gap-6">
                     <div className="flex flex-col rounded-xl border bg-white shadow-sm transition-all p-6 md:p-8">
                         <div className="flex flex-col items-center space-y-4 mb-6">
-                            <a href={logo.url} className="inline-flex items-center">
+                            <Link href={logo.url} className="inline-flex items-center">
                                 <div className="relative h-14 w-14 md:h-16 md:w-16">
-                                    <Image 
-                                        fill 
-                                        src={logo.src} 
-                                        alt={logo.alt} 
+                                    <Image
+                                        fill
+                                        src={logo.src}
+                                        alt={logo.alt}
                                         className="object-contain"
                                     />
                                 </div>
-                            </a>
+                            </Link>
                             <div className="text-center">
                                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{heading}</h1>
                                 <p className="text-sm md:text-base text-gray-500 mt-1">{subheading}</p>
@@ -125,8 +123,9 @@ export default function LoginForm({
                                             <Label className="text-sm font-medium">Email</Label>
                                             <FormControl>
                                                 <div className="relative">
-                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                                                        <FaUserShield className="h-4 w-4" />
+                                                    <span
+                                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                                                        <FaUserShield className="h-4 w-4"/>
                                                     </span>
                                                     <Input
                                                         type="email"
@@ -136,7 +135,7 @@ export default function LoginForm({
                                                     />
                                                 </div>
                                             </FormControl>
-                                            <FormMessage className="text-xs" />
+                                            <FormMessage className="text-xs"/>
                                         </FormItem>
                                     )}
                                 />
@@ -149,8 +148,9 @@ export default function LoginForm({
                                             <Label className="text-sm font-medium">Mật khẩu</Label>
                                             <FormControl>
                                                 <div className="relative">
-                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                                                        <IoMdLock className="h-4 w-4" />
+                                                    <span
+                                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                                                        <IoMdLock className="h-4 w-4"/>
                                                     </span>
                                                     <Input
                                                         type="password"
@@ -161,32 +161,35 @@ export default function LoginForm({
                                                     />
                                                 </div>
                                             </FormControl>
-                                            <FormMessage className="text-xs" />
+                                            <FormMessage className="text-xs"/>
                                         </FormItem>
                                     )}
                                 />
 
                                 <div className="flex justify-end">
-                                    <button 
+                                    <button
                                         type="button"
                                         className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition"
                                         onClick={() => setDialogOpen(true)}
                                     >
                                         Quên mật khẩu?
                                     </button>
-                                    <DialogForgotPassword open={dialogOpen} onClose={() => setDialogOpen(false)} />
+                                    <DialogForgotPassword open={dialogOpen} onClose={() => setDialogOpen(false)}/>
                                 </div>
 
-                                <Button 
-                                    type="submit" 
-                                    className="w-full h-10 mt-2 text-sm font-medium" 
+                                <Button
+                                    type="submit"
+                                    className="w-full h-10 mt-2 text-sm font-medium"
                                     disabled={isSubmitting}
                                 >
                                     {isSubmitting ? (
                                         <div className="flex items-center justify-center">
-                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10"
+                                                        stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor"
+                                                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
                                             Đang đăng nhập...
                                         </div>
@@ -218,11 +221,12 @@ export default function LoginForm({
 
                         <div className="mt-6 text-center text-sm">
                             <span className="text-gray-500">{signupText}</span>{" "}
-                            <a href={signupUrl} className="font-medium text-blue-600 hover:text-blue-800 hover:underline">
+                            <Link href={signupUrl}
+                                  className="font-medium text-blue-600 hover:text-blue-800 hover:underline">
                                 Đăng ký ngay
-                            </a>
+                            </Link>
                         </div>
-                        
+
                         <p className="mt-4 text-center text-xs text-gray-500">
                             Bằng cách đăng nhập, bạn đồng ý với{" "}
                             <a href="#" className="underline hover:text-blue-600">Điều khoản dịch vụ</a>{" "}
