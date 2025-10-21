@@ -21,5 +21,6 @@ export const APP_CONFIG = {
         "/register",
         "/forgot-password",
         "/reset-password"
-    ]
+    ],
+    WS_HEARTBEAT_INTERVAL: 60000 // 60 seconds
 }

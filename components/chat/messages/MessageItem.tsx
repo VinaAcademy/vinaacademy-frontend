@@ -4,6 +4,7 @@ import {MemberDto, MessageDto} from "@/types/chat";
 import {formatDate, formatMessageTime} from '@/utils/dateUtils';
 import {Avatar} from "@/components/ui/avatar";
 import {CheckCheck} from 'lucide-react';
+import {getImageUrl} from "@/utils/imageUtils";
 
 interface MessageItemProps {
     message: MessageDto;
@@ -65,7 +66,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
                 {/* Avatar for received messages */}
                 {!isOwn && (
                     <Avatar
-                        src={sender?.avatarUrl}
+                        src={getImageUrl(sender?.avatarUrl || '')}
                         alt={sender?.fullName || 'User'}
                         size={32}
                         className="flex-shrink-0 transition-transform group-hover:scale-110 duration-200"

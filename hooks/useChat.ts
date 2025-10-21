@@ -20,6 +20,7 @@ import type {
     CreateGroupRequest,
     WebSocketStatus,
 } from '@/types/chat';
+import {APP_CONFIG} from "@/config/app.config";
 
 /**
  * Chat hook configuration
@@ -105,7 +106,9 @@ export function useChat(config: UseChatConfig): UseChatReturn {
                 console.error('[useChat] Token refresh error:', error);
                 return null;
             }
-        }
+        },
+        heartbeatIncoming: APP_CONFIG.WS_HEARTBEAT_INTERVAL,
+        heartbeatOutgoing: APP_CONFIG.WS_HEARTBEAT_INTERVAL,
     }));
     const client = clientRef.current;
 

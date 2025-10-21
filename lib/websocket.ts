@@ -89,9 +89,7 @@ export function createWebSocketClient(config: WebSocketConfig): Client {
   };
 
   const client = new Client({
-    // Use SockJS for WebSocket connection
     webSocketFactory: () => new SockJS(url) as any,
-    
     // Add Authorization header if token is available
     connectHeaders: token ? {
       Authorization: `Bearer ${token}`,

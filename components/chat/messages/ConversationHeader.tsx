@@ -3,6 +3,7 @@ import {Button} from '@/components/ui/button';
 import {Avatar} from '@/components/ui/avatar';
 import {ArrowLeft, Users, Phone, Video, Info} from 'lucide-react';
 import {ConversationDto, MemberDto} from '@/types/chat';
+import {getImageUrl} from "@/utils/imageUtils";
 
 interface ConversationHeaderProps {
     conversation: ConversationDto;
@@ -15,14 +16,14 @@ interface ConversationHeaderProps {
 }
 
 const ConversationHeader: React.FC<ConversationHeaderProps> = ({
-    conversation,
-    recipient,
-    isGroup,
-    userAvatarUrl,
-    userFullName,
-    userUsername,
-    onBack,
-}) => {
+                                                                   conversation,
+                                                                   recipient,
+                                                                   isGroup,
+                                                                   userAvatarUrl,
+                                                                   userFullName,
+                                                                   userUsername,
+                                                                   onBack,
+                                                               }) => {
     // Mock online status - in production, this should come from real-time presence data
     const isOnline = true; // TODO: Implement real presence tracking
 
@@ -43,13 +44,14 @@ const ConversationHeader: React.FC<ConversationHeaderProps> = ({
                     {/* Avatar with online indicator */}
                     <div className="relative">
                         <Avatar
-                            src={conversation.avatarUrl || recipient?.avatarUrl || userAvatarUrl}
+                            src={getImageUrl(conversation.avatarUrl || recipient?.avatarUrl || userAvatarUrl || '')}
                             alt={conversation.title || 'Avatar'}
                             size={48}
                             className="border-2 border-white dark:border-gray-800 shadow-sm"
                         />
                         {!isGroup && isOnline && (
-                            <div className="absolute bottom-0 right-0 h-3.5 w-3.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"/>
+                            <div
+                                className="absolute bottom-0 right-0 h-3.5 w-3.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"/>
                         )}
                     </div>
 
@@ -80,8 +82,8 @@ const ConversationHeader: React.FC<ConversationHeaderProps> = ({
 
                     {/* Action buttons */}
                     <div className="flex items-center gap-1">
-                        <Button 
-                            variant="ghost" 
+                        <Button
+                            variant="ghost"
                             size="icon"
                             disabled
                             title="Coming soon"
@@ -89,8 +91,8 @@ const ConversationHeader: React.FC<ConversationHeaderProps> = ({
                         >
                             <Phone className="h-5 w-5"/>
                         </Button>
-                        <Button 
-                            variant="ghost" 
+                        <Button
+                            variant="ghost"
                             size="icon"
                             disabled
                             title="Coming soon"
@@ -98,8 +100,8 @@ const ConversationHeader: React.FC<ConversationHeaderProps> = ({
                         >
                             <Video className="h-5 w-5"/>
                         </Button>
-                        <Button 
-                            variant="ghost" 
+                        <Button
+                            variant="ghost"
                             size="icon"
                             className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                         >

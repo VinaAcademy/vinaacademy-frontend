@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {User, Users, MessageSquareOff} from 'lucide-react';
 import {MessageDto, MemberDto} from '@/types/chat';
 import MessageItem from './MessageItem';
@@ -9,8 +9,6 @@ interface MessageListProps {
     isGroup: boolean;
     userId?: string;
     members: MemberDto[];
-    messagesEndRef: React.RefObject<HTMLDivElement | null>;
-    messagesContainerRef: React.RefObject<HTMLDivElement | null>;
     lastReadMessageId?: string | null;
 }
 
@@ -19,8 +17,6 @@ const MessageList: React.FC<MessageListProps> = ({
                                                      isGroup,
                                                      userId,
                                                      members,
-                                                     messagesEndRef,
-                                                     messagesContainerRef,
                                                      lastReadMessageId,
                                                  }) => {
     // Deduplicate messages by ID (safety layer)
@@ -44,14 +40,17 @@ const MessageList: React.FC<MessageListProps> = ({
     const lastReadIndex = useMemo(() => {
         if (!lastReadMessageId) return -1;
         return uniqueMessages.findIndex(msg => msg.id === lastReadMessageId);
-    }, [uniqueMessages, lastReadMessageId]);
+    }, [uniqueMessages]);
+
+    const containerRef = useRef<HTMLDivElement>(null);
+    const endRef = useRef<HTMLDivElement>(null);
 
     // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
-        if (uniqueMessages.length > 0 && messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({behavior: 'smooth'});
+        if (uniqueMessages.length > 0 && endRef.current) {
+            endRef.current.scrollIntoView({behavior: 'smooth'});
         }
-    }, [uniqueMessages.length, messagesEndRef]);
+    }, [uniqueMessages.length, endRef]);
 
     // TODO: For large message lists (>100 messages), consider implementing:
     // - Virtualization with react-window or @tanstack/react-virtual
@@ -60,7 +59,7 @@ const MessageList: React.FC<MessageListProps> = ({
 
     return (
         <div
-            ref={messagesContainerRef}
+            ref={containerRef}
             className="h-full overflow-y-auto overflow-x-hidden bg-gradient-to-b from-background via-background to-muted/10"
         >
             <div className="container max-w-4xl mx-auto px-4 py-4 min-h-full">
@@ -89,39 +88,39 @@ const MessageList: React.FC<MessageListProps> = ({
                     </div>
                 ) : (
                     <div className="flex flex-col-reverse">
-                        <div ref={messagesEndRef}/>
+                        <div ref={endRef}/>
                         {
                             uniqueMessages.map((message, index) => {
-                            const actualIndex = uniqueMessages.length - 1 - index;
-                            const currentMsg = uniqueMessages[actualIndex];
-                            const prevMsg = uniqueMessages[actualIndex + 1];
+                                const actualIndex = uniqueMessages.length - 1 - index;
+                                const currentMsg = uniqueMessages[actualIndex];
+                                const prevMsg = uniqueMessages[actualIndex + 1];
 
-                            const isFirstOfDay =
-                                !prevMsg ||
-                                new Date(prevMsg.createdAt).toDateString() !==
-                                new Date(currentMsg.createdAt).toDateString();
-                            // lastReadIndex is reversed, so we need to convert it
+                                const isFirstOfDay =
+                                    !prevMsg ||
+                                    new Date(prevMsg.createdAt).toDateString() !==
+                                    new Date(currentMsg.createdAt).toDateString();
+                                // lastReadIndex is reversed, so we need to convert it
                                 // +1 to show divider after the last read message
-                            const readIndex = uniqueMessages.length - lastReadIndex;
-                            const showUnreadDivider = readIndex !== -1 && actualIndex === readIndex;
+                                const readIndex = uniqueMessages.length - lastReadIndex;
+                                const showUnreadDivider = readIndex !== -1 && actualIndex === readIndex;
 
-                            return (
-                                <React.Fragment key={message.id}>
-                                    <MessageItem
-                                        message={message}
-                                        index={actualIndex}
-                                        userId={userId}
-                                        isGroup={isGroup}
-                                        conversationMessages={uniqueMessages}
-                                        members={members}
-                                        isFirstOfDay={isFirstOfDay}
-                                    />
+                                return (
+                                    <React.Fragment key={message.id}>
+                                        <MessageItem
+                                            message={message}
+                                            index={actualIndex}
+                                            userId={userId}
+                                            isGroup={isGroup}
+                                            conversationMessages={uniqueMessages}
+                                            members={members}
+                                            isFirstOfDay={isFirstOfDay}
+                                        />
 
-                                    {/* Unread Messages Divider */}
-                                    {showUnreadDivider && <UnreadDivider />}
-                                </React.Fragment>
-                            );
-                        })}
+                                        {/* Unread Messages Divider */}
+                                        {showUnreadDivider && <UnreadDivider/>}
+                                    </React.Fragment>
+                                );
+                            })}
                     </div>
                 )}
             </div>
