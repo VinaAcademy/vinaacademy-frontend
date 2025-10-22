@@ -234,6 +234,27 @@ export const API_ENDPOINTS = {
         UPLOAD: '/storage/chunk-upload',
         STATUS: (sessionId: string) => `/storage/chunk-upload/status/${sessionId}`,
     },
+
+    // ==================== CHAT ====================
+    CHAT: {
+        // Conversation endpoints
+        CONVERSATIONS: {
+            LIST: '/conversations',
+            BY_ID: (conversationId: string) => `/conversations/${conversationId}`,
+            DIRECT: (userId: string) => `/conversations/direct/${userId}`,
+            CREATE_GROUP: '/conversations/groups',
+            MARK_READ: (conversationId: string) => `/conversations/${conversationId}/mark-read`,
+        },
+
+        // Message endpoints
+        MESSAGES: {
+            BY_RECIPIENT: (recipientId: string) => `/messages/recipient/${recipientId}`,
+            BY_CONVERSATION: (conversationId: string) => `/messages/conversation/${conversationId}`,
+        },
+
+        // Online users
+        ONLINE_USERS: "/api/v1/chat/online-users"
+    }
 } as const;
 
 const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080/ws';
@@ -247,28 +268,11 @@ export const WS_ENDPOINTS = {
         URL: `${WS_BASE_URL}/chat`,
         PRIVATE_MESSAGE_QUEUE: '/user/queue/pm',
         GROUP_MESSAGE_WEBSOCKET_TOPIC: (conversationId: string) => `/topic/group/${conversationId}`,
+        ONLINE_USERS_WEBSOCKET_TOPIC: '/topic/online-users',
         SEND_PRIVATE_MESSAGE: '/app/pm',
         SEND_GROUP_MESSAGE: '/app/group',
     }
 }
-
-// ==================== CHAT ====================
-export const CHAT_ENDPOINTS = {
-    // Conversation endpoints
-    CONVERSATIONS: {
-        LIST: '/conversations',
-        BY_ID: (conversationId: string) => `/conversations/${conversationId}`,
-        DIRECT: (userId: string) => `/conversations/direct/${userId}`,
-        CREATE_GROUP: '/conversations/groups',
-        MARK_READ: (conversationId: string) => `/conversations/${conversationId}/mark-read`,
-    },
-
-    // Message endpoints
-    MESSAGES: {
-        BY_RECIPIENT: (recipientId: string) => `/messages/recipient/${recipientId}`,
-        BY_CONVERSATION: (conversationId: string) => `/messages/conversation/${conversationId}`,
-    },
-} as const;
 
 /**
  * Helper function to build query parameters

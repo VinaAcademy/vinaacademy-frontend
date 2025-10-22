@@ -5,7 +5,7 @@
  */
 
 import apiClient from '@/lib/apiClient';
-import { CHAT_ENDPOINTS } from '@/config/api.endpoint';
+import { API_ENDPOINTS } from '@/config/api.endpoint';
 import type {
     ConversationDto,
     MessageDto,
@@ -20,7 +20,7 @@ import type {
  */
 export async function getConversations(): Promise<ConversationDto[] | null> {
     try {
-        const response = await apiClient.get(CHAT_ENDPOINTS.CONVERSATIONS.LIST);
+        const response = await apiClient.get(API_ENDPOINTS.CHAT.CONVERSATIONS.LIST);
         return response.data.data;
     } catch (error) {
         console.error('getConversations error:', error);
@@ -34,7 +34,7 @@ export async function getConversations(): Promise<ConversationDto[] | null> {
  */
 export async function getConversationById(conversationId: string): Promise<ConversationDto | null> {
     try {
-        const response = await apiClient.get(CHAT_ENDPOINTS.CONVERSATIONS.BY_ID(conversationId));
+        const response = await apiClient.get(API_ENDPOINTS.CHAT.CONVERSATIONS.BY_ID(conversationId));
         return response.data.data;
     } catch (error) {
         console.error(`getConversationById error for ${conversationId}:`, error);
@@ -49,7 +49,7 @@ export async function getConversationById(conversationId: string): Promise<Conve
  */
 export async function getOrCreateDirectConversation(userId: string): Promise<ConversationDto | null> {
     try {
-        const response = await apiClient.get(CHAT_ENDPOINTS.CONVERSATIONS.DIRECT(userId));
+        const response = await apiClient.get(API_ENDPOINTS.CHAT.CONVERSATIONS.DIRECT(userId));
         return response.data.data;
     } catch (error) {
         console.error(`getOrCreateDirectConversation error for user ${userId}:`, error);
@@ -63,7 +63,7 @@ export async function getOrCreateDirectConversation(userId: string): Promise<Con
  */
 export async function createGroupConversation(request: CreateGroupRequest): Promise<ConversationDto | null> {
     try {
-        const response = await apiClient.post(CHAT_ENDPOINTS.CONVERSATIONS.CREATE_GROUP, request);
+        const response = await apiClient.post(API_ENDPOINTS.CHAT.CONVERSATIONS.CREATE_GROUP, request);
         return response.data.data;
     } catch (error) {
         console.error('createGroupConversation error:', error);
@@ -77,7 +77,7 @@ export async function createGroupConversation(request: CreateGroupRequest): Prom
  */
 export async function markConversationAsRead(conversationId: string): Promise<boolean> {
     try {
-        await apiClient.put(CHAT_ENDPOINTS.CONVERSATIONS.MARK_READ(conversationId));
+        await apiClient.put(API_ENDPOINTS.CHAT.CONVERSATIONS.MARK_READ(conversationId));
         return true;
     } catch (error) {
         console.error(`markConversationAsRead error for ${conversationId}:`, error);
@@ -100,7 +100,7 @@ export async function getMessagesByRecipient(
     size: number = 50
 ): Promise<MessageDto[] | null> {
     try {
-        const response = await apiClient.get(CHAT_ENDPOINTS.MESSAGES.BY_RECIPIENT(recipientId), {
+        const response = await apiClient.get(API_ENDPOINTS.CHAT.MESSAGES.BY_RECIPIENT(recipientId), {
             params: { page, size }
         });
         return response.data.data;
@@ -123,12 +123,22 @@ export async function getMessagesByConversation(
     size: number = 50
 ): Promise<MessageDto[] | null> {
     try {
-        const response = await apiClient.get(CHAT_ENDPOINTS.MESSAGES.BY_CONVERSATION(conversationId), {
+        const response = await apiClient.get(API_ENDPOINTS.CHAT.MESSAGES.BY_CONVERSATION(conversationId), {
             params: { page, size }
         });
         return response.data.data;
     } catch (error) {
         console.error(`getMessagesByConversation error for conversation ${conversationId}:`, error);
+        return null;
+    }
+}
+
+export async function getOnlineUsers(): Promise<string[] | null> {
+    try {
+        const response = await apiClient.get(API_ENDPOINTS.CHAT.ONLINE_USERS);
+        return response.data.data;
+    } catch (error) {
+        console.error('getOnlineUsers error:', error);
         return null;
     }
 }
