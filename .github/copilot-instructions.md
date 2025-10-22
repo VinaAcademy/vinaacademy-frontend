@@ -1,8 +1,38 @@
 # VinaAcademy Frontend - AI Coding Instructions
 
 <div style="background: linear-gradient(135deg, rgba(84, 180, 211, 1) 0%, rgba(57, 192, 237, 0.2) 100%); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
-  <strong>🎯 Quick Navigation:</strong> Next.js 15+ • App Router • Microservices • Real-time Chat & Notifications • Role-based Access
+  <strong>🎯 Tech Stack:</strong> Next.js 15.2.4 • React 19 • TypeScript • App Router • TanStack Query • SockJS/STOMP WebSocket • Microservices • Role-based Access
 </div>
+
+## Quick Reference Card
+
+### Critical Rules (Read First!)
+1. **NO DOCUMENTATION FILES** - Never create README.md, SETUP.md, GUIDE.md unless explicitly requested
+2. **ALL API ENDPOINTS** must come from `config/api.endpoint.ts` - never hardcode URLs
+3. **ALL CONFIG VALUES** must come from `config/app.config.ts` - never hardcode magic numbers
+4. **ALWAYS use `apiClient.ts`** - never use fetch() directly (handles auth + refresh automatically)
+5. **Services return `null` on errors** - UI handles via React Query loading/error states
+6. **Backend response unwrapping** - Always access `response.data.data` (double data property)
+7. **Windows PowerShell** - Join commands with `;` (e.g., `npm install; npm run dev`)
+
+### File When You Need To...
+| Need | File/Pattern | Example |
+|------|--------------|---------|
+| Add API endpoint | `config/api.endpoint.ts` | `API_ENDPOINTS.COURSE.BY_SLUG(slug)` |
+| Add app constant | `config/app.config.ts` | `APP_CONFIG.COURSES.RECENT_COURSES_LIMIT` |
+| Create service | `services/[entity]Service.ts` | Return `EntityDto \| null`, log errors |
+| Create hook | `hooks/use[Entity].ts` | Use TanStack Query with proper keys |
+| Add route protection | `middleware.ts` | Check `roles.includes('ROLE_admin')` |
+| Access auth | `useAuth()` from `context/AuthContext.tsx` | Get user, roles, login/logout |
+| Access notifications | `useWebSocketNotification()` | Get notifications, unreadCount, markAsRead |
+| Access chat | `useChat()` from `context/ChatContext.tsx` | sendTextMessage, loadMessages, conversations |
+| Show toast | `createSuccessToast()` / `createErrorToast()` | From `components/ui/toast-cus` |
+
+### Provider Nesting Order (CRITICAL)
+```
+AppProvider → ReactQuery → Toast → Auth → Notification WS → Chat WS → Category → Cart → LayoutWrapper
+```
+**Order matters!** WebSocket providers MUST be after Auth (need token), before feature contexts.
 
 ## General Guidelines
 
@@ -630,6 +660,73 @@ const { notifications, unreadCount, isConnected, markAsRead } = useWebSocketNoti
 ```typescript
 SYSTEM, PAYMENT_SUCCESS, COURSE_REVIEW, COURSE_APPROVAL, 
 SUPPORT_REPLY, PROMOTION, FINANCIAL_ALERT, STAFF_REQUEST, INSTRUCTOR_REQUEST
+```
+
+## Common Mistakes & Anti-Patterns
+
+### ❌ DON'T DO THIS
+```typescript
+// ❌ Hardcoded URLs
+const response = await fetch('http://localhost:8080/api/v1/courses');
+
+// ❌ Hardcoded config values
+const limit = 5; // What is this magic number?
+
+// ❌ Direct cookie access for auth
+const token = Cookies.get('access_token');
+
+// ❌ Throwing errors in services
+export async function getCourse(id: string): Promise<CourseDto> {
+  const response = await apiClient.get(`/courses/${id}`);
+  if (!response.data) throw new Error('Not found'); // ❌
+  return response.data.data;
+}
+
+// ❌ Client-side route protection
+if (!user?.roles.includes('ROLE_admin')) {
+  router.push('/'); // ❌ Too late - middleware should handle this
+}
+
+// ❌ Assuming numeric IDs
+const courseId: number = 12345; // ❌ Backend uses UUIDs as strings
+
+// ❌ Forgetting API response unwrapping
+return response.data; // ❌ Missing .data property
+```
+
+### ✅ DO THIS INSTEAD
+```typescript
+// ✅ Import from centralized config
+import { API_ENDPOINTS } from '@/config/api.endpoint';
+const response = await apiClient.get(API_ENDPOINTS.COURSE.LIST);
+
+// ✅ Use app config constants
+import { APP_CONFIG } from '@/config/app.config';
+const limit = APP_CONFIG.COURSES.RECENT_COURSES_LIMIT;
+
+// ✅ Use apiClient helper for auth
+import { getAccessToken } from '@/lib/apiClient';
+const token = getAccessToken(); // Handles cookies correctly
+
+// ✅ Return null on error, log details
+export async function getCourse(id: string): Promise<CourseDto | null> {
+  try {
+    const response = await apiClient.get(API_ENDPOINTS.COURSE.BY_ID(id));
+    return response.data.data; // ✅ Unwrap ApiResponse<T>
+  } catch (error) {
+    console.error(`getCourse error for id ${id}:`, error);
+    return null; // ✅ Let UI handle gracefully
+  }
+}
+
+// ✅ Let middleware handle route protection (already done)
+// Just use useAuth() to show/hide UI elements
+
+// ✅ UUIDs as strings
+const courseId: string = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+
+// ✅ Always unwrap response
+return response.data.data; // ✅ Access nested data property
 ```
 
 ## Common Pitfalls
