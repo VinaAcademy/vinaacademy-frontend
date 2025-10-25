@@ -16,24 +16,27 @@ import {
     Logger,
     StatusTracker
 } from './types';
-import { ConnectionManager } from './ConnectionManager';
-import { SubscriptionManager } from './SubscriptionManager';
-import { MessageSender } from './MessageSender';
-import { MessageHandlerManager } from './MessageHandlerManager';
-import { TokenRefreshHandler } from './TokenRefreshHandler';
+import {ConnectionManager} from './ConnectionManager';
+import {SubscriptionManager} from './SubscriptionManager';
+import {MessageSender} from './MessageSender';
+import {MessageHandlerManager} from './MessageHandlerManager';
+import {TokenRefreshHandler} from './TokenRefreshHandler';
+import {OnlineUsersHandler, OnlineUsersManager} from "@/lib/chatWebSocket/OnlineUsersManager";
 
 /**
  * Chat WebSocket Client
  * Coordinates all WebSocket operations through specialized managers
  */
 export class ChatWebSocketClient {
-    private logger: Logger;
-    private statusTracker: StatusTracker;
-    private tokenRefreshHandler: TokenRefreshHandler;
+    private readonly logger: Logger;
+    private readonly statusTracker: StatusTracker;
+    private readonly tokenRefreshHandler: TokenRefreshHandler;
     private connectionManager: ConnectionManager;
     private subscriptionManager: SubscriptionManager | null = null;
     private messageSender: MessageSender | null = null;
     private messageHandlerManager: MessageHandlerManager;
+
+    private onlineUsersManager: OnlineUsersManager | null = null;
 
     constructor(config: ChatWebSocketConfig = {}) {
         // Merge config with defaults
@@ -208,6 +211,9 @@ export class ChatWebSocketClient {
 
         // Auto-subscribe to private messages
         this.subscriptionManager.subscribeToPrivateMessages();
+
+        this.onlineUsersManager = new OnlineUsersManager(client, this.logger);
+        this.onlineUsersManager.subscribe();
     }
 
     /**
@@ -217,6 +223,9 @@ export class ChatWebSocketClient {
         this.subscriptionManager?.clearAll();
         this.subscriptionManager = null;
         this.messageSender = null;
+
+        this.onlineUsersManager?.unsubscribe();
+        this.onlineUsersManager = null;
     }
 
     /**
@@ -226,6 +235,22 @@ export class ChatWebSocketClient {
         if (!this.isConnected()) {
             throw new Error('Cannot perform operation: not connected');
         }
+    }
+
+    // ==================== ONLINE USERS MANAGEMENT ====================
+
+    /**
+     * Register handler for online users updates
+     */
+    public onOnlineUsersUpdate(handler: OnlineUsersHandler): void {
+        this.onlineUsersManager?.onUpdate(handler);
+    }
+
+    /**
+     * Remove online users handler
+     */
+    public removeOnlineUsersHandler(handler: OnlineUsersHandler): void {
+        this.onlineUsersManager?.removeHandler(handler);
     }
 }
 

@@ -253,7 +253,7 @@ export const API_ENDPOINTS = {
         },
 
         // Online users
-        ONLINE_USERS: "/api/v1/chat/online-users"
+        ONLINE_USERS: "/chat/online-users"
     }
 } as const;
 

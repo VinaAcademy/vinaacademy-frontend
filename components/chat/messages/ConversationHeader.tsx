@@ -4,6 +4,8 @@ import {Avatar} from '@/components/ui/avatar';
 import {ArrowLeft, Users, Phone, Video, Info} from 'lucide-react';
 import {ConversationDto, MemberDto} from '@/types/chat';
 import {getImageUrl} from "@/utils/imageUtils";
+import {useChat} from "@/context";
+import OnlineIndicator from "@/components/chat/OnlineIndicator";
 
 interface ConversationHeaderProps {
     conversation: ConversationDto;
@@ -25,7 +27,7 @@ const ConversationHeader: React.FC<ConversationHeaderProps> = ({
                                                                    onBack,
                                                                }) => {
     // Mock online status - in production, this should come from real-time presence data
-    const isOnline = true; // TODO: Implement real presence tracking
+    const {isUserOnline} = useChat();
 
     return (
         <div className="border-b bg-gradient-to-r from-card via-card to-card/95 backdrop-blur-sm shadow-sm">
@@ -49,9 +51,11 @@ const ConversationHeader: React.FC<ConversationHeaderProps> = ({
                             size={48}
                             className="border-2 border-white dark:border-gray-800 shadow-sm"
                         />
-                        {!isGroup && isOnline && (
-                            <div
-                                className="absolute bottom-0 right-0 h-3.5 w-3.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"/>
+                        {!isGroup && (
+                            <OnlineIndicator
+                                isOnline={isUserOnline(recipient?.memberId || '')}
+                                size={14}
+                            />
                         )}
                     </div>
 
@@ -69,10 +73,19 @@ const ConversationHeader: React.FC<ConversationHeaderProps> = ({
                             ) : (
                                 <>
                                     <span>@{recipient?.username || userUsername}</span>
-                                    {isOnline && (
+                                    {recipient && (
                                         <>
-                                            <span className="text-green-500">•</span>
-                                            <span className="text-green-600 dark:text-green-400 font-medium">Đang hoạt động</span>
+                                            {isUserOnline(recipient.memberId) ? (
+                                                <>
+                                                    <span className="text-green-500">•</span>
+                                                    <span className="text-green-600 dark:text-green-400 font-medium">Đang hoạt động</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="text-gray-400">•</span>
+                                                    <span className="text-gray-500 dark:text-gray-400">Ngoại tuyến</span>
+                                                </>
+                                            )}
                                         </>
                                     )}
                                 </>

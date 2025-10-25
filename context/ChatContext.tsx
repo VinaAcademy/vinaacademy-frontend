@@ -56,6 +56,11 @@ interface ChatContextType {
 
     // Read status
     markAsRead: (conversationId: string) => Promise<void>;
+
+    // Online users - PHASE 4
+    onlineUserIds: Set<string>;
+    isUserOnline: (userId: string) => boolean;
+    refreshOnlineUsers: () => Promise<void>;
 }
 
 /**

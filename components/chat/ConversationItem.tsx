@@ -7,6 +7,7 @@ import {Avatar} from '@/components/ui/avatar';
 import {Users, Image as ImageIcon, Paperclip} from 'lucide-react';
 import {formatMessageTime} from '@/utils/dateUtils';
 import {ConversationDto, MessageDto} from '@/types/chat';
+import OnlineIndicator from "@/components/chat/OnlineIndicator";
 
 
 // Props interface
@@ -14,6 +15,7 @@ interface ConversationItemProps {
     conversation: ConversationDto;
     user: { id: string, fullName: string } | null;
     handleConversationClick: (conversation: ConversationDto) => void;
+    isOnline?: boolean;
 }
 
 export class ConversationItem extends React.Component<ConversationItemProps> {
@@ -22,7 +24,9 @@ export class ConversationItem extends React.Component<ConversationItemProps> {
             conversation,
             user,
             handleConversationClick,
+            isOnline = false
         } = this.props;
+
         const unreadChatCount = conversation.unreadCount || 0;
         const isGroup = conversation.type === 'GROUP';
         const lastMessage = conversation.lastMessage as MessageDto | undefined;
@@ -30,7 +34,13 @@ export class ConversationItem extends React.Component<ConversationItemProps> {
         // Get recipient for direct conversations
         const recipient = isGroup
             ? null
-            : conversation.members.find((m) => m.memberId !== user?.id) ?? user;
+            : conversation.members.find((m) => m.memberId !== user?.id)
+            ?? {
+                memberId: user?.id || '',
+                fullName: user?.fullName || 'Người dùng ẩn danh',
+                username: '',
+                avatarUrl: ''
+            };
 
         // Render last message preview
         const renderLastMessagePreview = () => {
@@ -98,8 +108,10 @@ export class ConversationItem extends React.Component<ConversationItemProps> {
                     />
                     {/* Online indicator */}
                     {!isGroup && (
-                        <div
-                            className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 border-2 border-white rounded-full"></div>
+                        <OnlineIndicator
+                            isOnline={isOnline}
+                            size={12}
+                        />
                     )}
                 </div>
 

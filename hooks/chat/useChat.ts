@@ -16,6 +16,7 @@ import { useChatMessages } from './useChatMessages';
 import { useChatConversations } from './useChatConversations';
 import { useChatGroups } from './useChatGroups';
 import { useChatReadStatus } from './useChatReadStatus';
+import { useChatOnlineUsers } from './useChatOnlineUsers';
 import type {
   ConversationDto,
   MessageDto,
@@ -72,6 +73,11 @@ interface UseChatReturn {
 
   // Read status
   markAsRead: (conversationId: string) => Promise<void>;
+
+  // Online users - PHASE 4
+  onlineUserIds: Set<string>;
+  isUserOnline: (userId: string) => boolean;
+  refreshOnlineUsers: () => Promise<void>;
 }
 
 /**
@@ -122,6 +128,13 @@ export function useChat(config: UseChatConfig): UseChatReturn {
   // 5. Read status management
   const readStatus = useChatReadStatus();
 
+  // 6. Online users management - PHASE 4
+  const onlineUsers = useChatOnlineUsers({
+    client: connection.client,
+    connected: connection.connected,
+    autoRefresh: true,
+  });
+
   // Compose and return the complete API
   return {
     // From useChatConnection
@@ -152,6 +165,11 @@ export function useChat(config: UseChatConfig): UseChatReturn {
 
     // From useChatReadStatus
     markAsRead: readStatus.markAsRead,
+
+    // From useChatOnlineUsers - PHASE 4
+    onlineUserIds: onlineUsers.onlineUserIds,
+    isUserOnline: onlineUsers.isUserOnline,
+    refreshOnlineUsers: onlineUsers.refreshOnlineUsers,
   };
 }
 

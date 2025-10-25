@@ -12,6 +12,7 @@ export { useChatMessages } from './useChatMessages';
 export { useChatConversations, useConversation, useConversationMessages } from './useChatConversations';
 export { useChatGroups } from './useChatGroups';
 export { useChatReadStatus } from './useChatReadStatus';
+export { useChatOnlineUsers } from './useChatOnlineUsers';
 
 // Types (re-export for convenience)
 export type {
@@ -21,3 +22,4 @@ export type {
   MemberDto,
   WebSocketStatus,
 } from '@/types/chat';
+
