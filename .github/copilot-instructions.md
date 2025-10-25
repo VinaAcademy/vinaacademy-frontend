@@ -6,23 +6,25 @@
 
 ## Quick Reference Card
 
-### Critical Rules (Read First!)
+### ⚡ Critical Rules (Read First!)
 1. **NO DOCUMENTATION FILES** - Never create README.md, SETUP.md, GUIDE.md unless explicitly requested
-2. **ALL API ENDPOINTS** must come from `config/api.endpoint.ts` - never hardcode URLs
-3. **ALL CONFIG VALUES** must come from `config/app.config.ts` - never hardcode magic numbers
-4. **ALWAYS use `apiClient.ts`** - never use fetch() directly (handles auth + refresh automatically)
-5. **Services return `null` on errors** - UI handles via React Query loading/error states
-6. **Backend response unwrapping** - Always access `response.data.data` (double data property)
-7. **Windows PowerShell** - Join commands with `;` (e.g., `npm install; npm run dev`)
+2. **ALL API ENDPOINTS** from `config/api.endpoint.ts` - never hardcode URLs (e.g., `API_ENDPOINTS.COURSE.BY_SLUG(slug)`)
+3. **ALL CONFIG VALUES** from `config/app.config.ts` - never hardcode magic numbers (e.g., `APP_CONFIG.COURSES.RECENT_COURSES_LIMIT`)
+4. **Query keys from `config/query-keys.config.ts`** - never create inline keys (e.g., `QUERY_KEYS.COURSE.bySlug(slug)`)
+5. **ALWAYS use `apiClient.ts`** - never use fetch() directly (handles auth + refresh on 401 automatically)
+6. **Services return `null` on errors** - UI handles via React Query loading/error states (don't throw)
+7. **Backend response unwrapping** - Always access `response.data.data` (double data property for all endpoints)
+8. **Windows PowerShell** - Join commands with `;` (e.g., `npm install; npm run dev`)
 
 ### File When You Need To...
 | Need | File/Pattern | Example |
 |------|--------------|---------|
 | Add API endpoint | `config/api.endpoint.ts` | `API_ENDPOINTS.COURSE.BY_SLUG(slug)` |
 | Add app constant | `config/app.config.ts` | `APP_CONFIG.COURSES.RECENT_COURSES_LIMIT` |
+| Add query key | `config/query-keys.config.ts` | `QUERY_KEYS.COURSE.bySlug(slug)` in hooks |
 | Create service | `services/[entity]Service.ts` | Return `EntityDto \| null`, log errors |
-| Create hook | `hooks/use[Entity].ts` | Use TanStack Query with proper keys |
-| Add route protection | `middleware.ts` | Check `roles.includes('ROLE_admin')` |
+| Create hook | `hooks/use[Entity].ts` | Use TanStack Query with proper keys from config |
+| Add route protection | `middleware.ts` | Check `roles.includes('ROLE_admin')` (JWT parsing) |
 | Access auth | `useAuth()` from `context/AuthContext.tsx` | Get user, roles, login/logout |
 | Access notifications | `useWebSocketNotification()` | Get notifications, unreadCount, markAsRead |
 | Access chat | `useChat()` from `context/ChatContext.tsx` | sendTextMessage, loadMessages, conversations |
@@ -313,6 +315,21 @@ npm run start   # Production server
 npm run lint    # ESLint checking
 ```
 
+**Common Development Commands (Windows PowerShell)**:
+```powershell
+# Start dev server and watch logs
+npm run dev; Pause
+
+# Build and start production locally
+npm run build; npm start
+
+# Run linting and build check
+npm run lint; npm run build
+
+# Specific feature development (e.g., chat)
+npm run dev  # Then navigate to /conversations to test chat context
+```
+
 **Windows/PowerShell Specific**:
 - Join commands with `;` separator: `npm install; npm run dev`
 - Use forward slashes in paths when passing to Node tools
@@ -340,6 +357,26 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - **Docker**: Uses `output: "standalone"` in `next.config.ts` for optimized container builds
 - **Images**: Wildcard `remotePatterns` in `next.config.ts` allows all remote images (backend serves user uploads)
 - **Default fallbacks**: If `NEXT_PUBLIC_API_URL` is missing, defaults to `http://localhost:8080/api/v1`
+
+### Testing & Development Patterns
+- **Mock Data**: Use files in `data/mock*.ts` for development (e.g., `mockCourses.ts`, `mockCourseData.ts`, `mockCartData.ts`, `mockInstructorCourse.ts`)
+- **Error Handling**: Services return `null` on errors for graceful degradation - React Query handles loading/error states
+- **WebSocket Debugging**: Enable debug mode in `AppProvider.tsx` by passing `[NotificationProvider, { debug: true }]` or `[ChatProvider, { debug: true, autoConnect: true }]`
+- **Component Testing**: Most features are testable through UI navigation - Chat WebSocket via `/conversations`, Notifications via bell icon
+- **API Interceptors**: `apiClient.ts` automatically logs all requests to console (check DevTools for `🔄 Request:` prefix)
+- **Token Debugging**: Check browser DevTools → Application → Cookies for `access_token` and `refresh_token` validation
+- **React Query**: DevTools enabled in development mode - check in DevTools or add `@tanstack/react-query-devtools` UI component
+
+### Practical Development Checklist
+When implementing new features:
+1. ✅ Add endpoint to `config/api.endpoint.ts` (never hardcode URLs)
+2. ✅ Add config constants to `config/app.config.ts` if needed (never hardcode magic numbers)
+3. ✅ Add query keys to `config/query-keys.config.ts` (enable proper cache invalidation)
+4. ✅ Create service in `services/[entity]Service.ts` (return `null` on error, use `apiClient`)
+5. ✅ Create/update hook in `hooks/use[Entity].ts` (use TanStack Query with proper keys)
+6. ✅ Test with actual backend or mock data from `data/mock*.ts`
+7. ✅ Verify WebSocket connections work if using real-time features (check browser console)
+8. ✅ Check middleware protection for new routes (if role-based access needed)
 
 ### Real-Time Notifications
 - WebSocket connects automatically when user logs in (has JWT token)
@@ -489,6 +526,41 @@ utils/
 UI Component → Custom Hook → Service Layer → API Client → Backend
            ← React Query ← Response Transform ← HTTP Response ←
 ```
+
+### Backend API Response Structure
+**All API responses follow this nested structure** - ALWAYS unwrap with `response.data.data`:
+
+```typescript
+// Single entity response
+interface ApiResponse<T> {
+  data: T;              // ← Actual data is wrapped in 'data' property
+  status: string;
+  message: string;
+  timestamp: string;
+}
+
+// Paginated responses (for list endpoints)
+interface PaginatedResponse<T> {
+  content: T[];         // Array of items
+  totalElements: number;
+  totalPages: number;
+  size: number;         // Items per page
+  number: number;       // Current page (0-indexed)
+  first: boolean;       // Is this the first page?
+  last: boolean;        // Is this the last page?
+}
+
+// Usage in services:
+const response = await apiClient.get('/courses');
+return response.data.data;        // ✅ Unwraps ApiResponse<T> → T
+const paginated = await apiClient.get('/courses?page=0&size=10');
+return response.data.data;        // ✅ Returns PaginatedResponse<CourseDto>
+```
+
+**Common Error Scenarios**:
+- Missing `response.data.data` unwrap → `TypeError: Cannot read property of undefined`
+- Assuming `response.data` is the entity → Gets ApiResponse wrapper instead of actual data
+- Wrong pagination index → Remember page is 0-indexed (page=0 is first page)
 
 ## Libraries and Frameworks
 
@@ -806,6 +878,75 @@ import { useAuth } from '@/context/AuthContext';
 
 const { user } = useAuth();
 const isAdmin = user?.roles?.includes('ROLE_admin');
+```
+
+### Spring Boot Pagination Pattern
+Backend uses Spring Data pagination (0-indexed). Always respect:
+- `page`: 0-indexed (page=0 is first page)
+- `size`: items per page
+- `sort`: format is `{field},{direction}` (e.g., `sort=createdDate,desc`)
+- Response structure: `{ content: T[], totalElements, totalPages, number, first, last }`
+
+```typescript
+// services/courseService.ts - Real example
+const buildSort = (sortBy: string, sortDirection: 'asc' | 'desc') => `${sortBy},${sortDirection}`;
+
+export async function getCoursesPaginated(
+  page = 0,
+  size = 5,
+  sortBy = 'name',
+  sortDirection: 'asc' | 'desc' = 'asc'
+): Promise<PaginatedResponse<CourseDto> | null> {
+  try {
+    const response = await apiClient.get('/courses', {
+      params: {
+        page,
+        size,
+        sort: buildSort(sortBy, sortDirection), // ✅ Spring format
+      }
+    });
+    return response.data.data; // ✅ Unwrap ApiResponse<PaginatedResponse<T>>
+  } catch (error) {
+    console.error('getCoursesPaginated error:', error);
+    return null;
+  }
+}
+
+// hooks/useCourses.ts - Hook pattern
+export const useCourses = ({
+  page = 0,
+  size = 8,
+  sortBy = 'createdDate',
+  sortDirection = 'desc'
+}: UseCoursesProps = {}) => {
+  return useQuery({
+    queryKey: QUERY_KEYS.COURSE.list({ page, size, sortBy, sortDirection }),
+    queryFn: () => searchCourses(searchRequest, page, size, sortBy, sortDirection),
+  });
+};
+```
+
+### Adding Query Keys for New Features
+Query keys must be centralized in `config/query-keys.config.ts`. This ensures consistent cache invalidation:
+```typescript
+// config/query-keys.config.ts
+const MY_FEATURE_KEYS = {
+  all: ['myFeature'] as const,
+  list: (params) => ['myFeature', params.page, params.size] as const,
+  detail: (id: string) => ['myFeature', id] as const,
+} as const;
+
+// Then export and use in hooks
+export const QUERY_KEYS = {
+  // ... existing keys
+  MY_FEATURE: MY_FEATURE_KEYS,
+} as const;
+
+// In hook:
+useQuery({
+  queryKey: QUERY_KEYS.MY_FEATURE.detail(id),
+  queryFn: () => getMyFeature(id),
+});
 ```
 
 ### File Upload Pattern

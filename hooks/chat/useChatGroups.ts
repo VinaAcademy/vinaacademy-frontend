@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createGroupConversation } from '@/services/chatService';
 import type { ChatWebSocketClient } from '@/lib/chatWebSocket';
 import type { ConversationDto, CreateGroupRequest } from '@/types/chat';
+import {CHAT_KEYS} from "@/config/query-keys.config";
 
 /**
  * Groups hook configuration
@@ -61,7 +62,7 @@ export function useChatGroups(config: UseChatGroupsConfig): UseChatGroupsReturn 
     onSuccess: (data) => {
       if (data) {
         // Invalidate conversations list
-        queryClient.invalidateQueries({ queryKey: ['conversations'] }).then(r => r);
+        queryClient.invalidateQueries({ queryKey: CHAT_KEYS.all }).then(r => r);
         // Subscribe to the new group
         client.subscribeToGroup(data.id);
       }

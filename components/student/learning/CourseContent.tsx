@@ -1,14 +1,14 @@
 "use client";
 
-import {FC, useState, useEffect} from 'react';
+import React, {FC, useState, useEffect} from 'react';
 import {CheckCircle, Circle, Play} from 'lucide-react';
 import {useRouter} from 'next/navigation';
-import {Lecture, LectureType, Section} from '@/types/lecture';
+import {Lecture, Section} from '@/types/lecture';
 import { LessonType } from '@/types/course';
 import { mapLessonTypeToDisplay, markLessonComplete } from '@/services/lessonService';
-import { updateLessonProgress, getAllLessonProgressByCourse } from '@/services/progressService';
+import { getAllLessonProgressByCourse } from '@/services/progressService';
 import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import {LESSON_KEYS} from "@/config/query-keys.config";
 
 interface CourseContentProps {
     title: string;
@@ -18,7 +18,7 @@ interface CourseContentProps {
     onProgressUpdate?: () => void;
 }
 
-const CourseContent: FC<CourseContentProps> = ({title, sections: initialSections, courseSlug, courseId, onProgressUpdate}) => {
+const CourseContent: FC<CourseContentProps> = ({sections: initialSections, courseSlug, courseId, onProgressUpdate}) => {
     const router = useRouter();
     const queryClient = useQueryClient();
     const [sections, setSections] = useState<Section[]>(initialSections);
@@ -71,7 +71,7 @@ const CourseContent: FC<CourseContentProps> = ({title, sections: initialSections
                 }
             };
             
-            refreshProgressStatus();
+            refreshProgressStatus().then(r => r);
         }
     }, [initialSections, courseId]);
 
@@ -113,8 +113,8 @@ const CourseContent: FC<CourseContentProps> = ({title, sections: initialSections
                 // 1. Invalidate the course progress data in the cache
                 if (courseId) {
                     // Invalidate the specific query for this course's progress
-                    queryClient.invalidateQueries({
-                        queryKey: ['lecture', courseSlug]
+                    await queryClient.invalidateQueries({
+                        queryKey: LESSON_KEYS.listByCourse(courseSlug)
                     });
                     
                     // Also refresh the data locally

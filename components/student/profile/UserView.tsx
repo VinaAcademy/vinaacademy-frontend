@@ -1,18 +1,14 @@
 // app/user/[userId]/UserProfileContent.tsx
 "use client";
 
-import { format } from "date-fns";
-import {
-  useQuery,
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
-import { getViewUserInfo } from "@/services/profileService";
-import { Award, Book, Calendar, CheckCircle, User, MapPin, Mail, Globe, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { getImageUrl } from "@/utils/imageUtils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar-shadcn";
-import { BadgeCheck } from "lucide-react";
+import {format} from "date-fns";
+import {QueryClient, QueryClientProvider, useQuery,} from "@tanstack/react-query";
+import {getViewUserInfo} from "@/services/profileService";
+import {Award, Book, Calendar, CheckCircle, Clock, Globe, Mail, User} from "lucide-react";
+import {Button} from "@/components/ui/button";
+import {getImageUrl} from "@/utils/imageUtils";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar-shadcn";
+import {USER_KEYS} from "@/config/query-keys.config";
 
 const queryClient = new QueryClient();
 
@@ -23,11 +19,10 @@ function UserProfileContentInner({ userId }: { userId: string }) {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["user", userId],
+    queryKey: USER_KEYS.byId(userId),
     queryFn: async () => {
       try {
-        const data = await getViewUserInfo(userId);
-        return data;
+        return await getViewUserInfo(userId);
       } catch (error) {
         console.error("Error fetching user data:", error);
       }

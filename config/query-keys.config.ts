@@ -47,8 +47,8 @@ const COURSE_KEYS = {
   ] as const,
   
   // Course list with active tab and pagination
-  byTab: (activeTab: string, currentPage: number, pageSize: number, status?: string) =>
-    ['courses', activeTab, currentPage, pageSize, status] as const,
+  byTab: (params: {activeTab: string; currentPage: number; pageSize: number; status?: string}) =>
+    ['courses', params.activeTab, params.currentPage, params.pageSize, params.status] as const,
   
   // Single course by slug
   bySlug: (slug: string) => [...COURSE_KEYS.all, 'by-slug', slug] as const,
@@ -58,20 +58,6 @@ const COURSE_KEYS = {
   
   // Continue learning courses
   continueLearning: (limit: number) => ['continue-learning', limit] as const,
-} as const;
-
-/**
- * Lecture/Lesson-related query keys
- */
-const LECTURE_KEYS = {
-  all: ['lectures'] as const,
-  
-  // Lecture by course slug and lecture ID
-  byCourse: (courseSlug: string, lectureId: string) =>
-    ['lecture', courseSlug, lectureId] as const,
-  
-  // Lecture list for a course (used in learning interface)
-  listByCourse: (courseSlug: string) => ['lecture', courseSlug] as const,
 } as const;
 
 /**
@@ -85,6 +71,14 @@ const LESSON_KEYS = {
   
   // Lessons by section ID
   bySection: (sectionId: string) => ['lessons', 'section', sectionId] as const,
+
+
+  // Lesson by course slug and lecture ID
+  byCourse: (courseSlug: string, lectureId: string) =>
+      ['lesson', courseSlug, lectureId] as const,
+
+  // Lesson list for a course (used in learning interface)
+  listByCourse: (courseSlug: string) => ['lessons', courseSlug] as const,
 } as const;
 
 /**
@@ -134,8 +128,8 @@ const CHAT_KEYS = {
     ['conversation', conversationId] as const,
   
   // Messages for a conversation (paginated)
-  messages: (conversationId: string | null, page: number) =>
-    ['messages', conversationId, page] as const,
+  messages: (conversationId: string | null, page: number, size: number) =>
+    ['messages', conversationId, page, size] as const,
 } as const;
 
 /**
@@ -312,7 +306,6 @@ export const getInvalidationKey = (key: readonly unknown[]) => key;
  */
 export const QUERY_KEYS = {
   COURSE: COURSE_KEYS,
-  LECTURE: LECTURE_KEYS,
   LESSON: LESSON_KEYS,
   SECTION: SECTION_KEYS,
   QUIZ: QUIZ_KEYS,
@@ -334,7 +327,6 @@ export const QUERY_KEYS = {
 // Export individual key groups for convenience
 export {
   COURSE_KEYS,
-  LECTURE_KEYS,
   LESSON_KEYS,
   SECTION_KEYS,
   QUIZ_KEYS,

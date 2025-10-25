@@ -11,6 +11,7 @@ import {
   getOrCreateDirectConversation,
 } from '@/services/chatService';
 import type { ConversationDto } from '@/types/chat';
+import {CHAT_KEYS} from "@/config/query-keys.config";
 
 /**
  * Conversations hook configuration
@@ -51,7 +52,7 @@ export function useChatConversations(
     error: conversationsError,
     refetch: refetchConversations,
   } = useQuery({
-    queryKey: ['conversations'],
+    queryKey: CHAT_KEYS.all,
     queryFn: async () => {
       const result = await getConversations();
       return result || [];
@@ -72,7 +73,7 @@ export function useChatConversations(
     async (userId: string) => {
       const conversation = await getOrCreateDirectConversation(userId);
       if (conversation) {
-        await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        await queryClient.invalidateQueries({ queryKey: CHAT_KEYS.all });
       }
       return conversation;
     },
@@ -98,7 +99,7 @@ export function useChatConversations(
  */
 export function useConversation(conversationId: string | null) {
   return useQuery({
-    queryKey: ['conversation', conversationId],
+    queryKey: CHAT_KEYS.conversation(conversationId),
     queryFn: async () => {
       if (!conversationId) return null;
       return await getConversationById(conversationId);
@@ -121,7 +122,7 @@ export function useConversationMessages(
   const { getMessagesByConversation } = require('@/services/chatService');
   
   return useQuery({
-    queryKey: ['messages', conversationId, page],
+    queryKey: CHAT_KEYS.messages(conversationId, page, size),
     queryFn: async () => {
       if (!conversationId) return [];
       const result = await getMessagesByConversation(conversationId, page, size);

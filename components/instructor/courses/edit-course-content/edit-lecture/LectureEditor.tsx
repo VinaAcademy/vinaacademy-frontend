@@ -13,6 +13,7 @@ import {getLessonById, updateLesson} from '@/services/lessonService';
 import {lessonToLecture, lectureToLessonRequest} from '@/utils/adapters/lessonAdapter';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {QUIZ_KEYS} from "@/hooks/instructor/useQuizInstructor";
+import {LESSON_KEYS} from "@/config/query-keys.config";
 
 // Create a default lecture object to initialize the state
 const createDefaultLecture = (): Lecture => ({
@@ -37,7 +38,7 @@ export default function LectureEditor() {
 
     // Use React Query to fetch and cache the lesson data
     const {data: lessonData, isLoading, error} = useQuery({
-        queryKey: ['lesson', lectureId],
+        queryKey: LESSON_KEYS.byId(lectureId),
         queryFn: () => getLessonById(lectureId),
         enabled: !!lectureId,
         staleTime: 1000 * 60 * 5, // 5 minutes
@@ -82,13 +83,13 @@ export default function LectureEditor() {
                 setTimeout(() => setSaveSuccess(false), 3000);
 
                 // Invalidate and refetch the lesson query to ensure fresh data
-                await queryClient.invalidateQueries({queryKey: ['lesson', lectureId]});
+                await queryClient.invalidateQueries({queryKey: LESSON_KEYS.byId(lectureId)});
 
                 await queryClient.invalidateQueries({queryKey: QUIZ_KEYS.quiz(lectureId)});
 
                 // Also invalidate the section lessons list query to update the UI when returning to the list
                 if (sectionId) {
-                    await queryClient.invalidateQueries({queryKey: ['lessons', 'section', sectionId]});
+                    await queryClient.invalidateQueries({queryKey: LESSON_KEYS.bySection(sectionId)});
                 }
 
                 toast.success("Đã lưu thay đổi thành công");

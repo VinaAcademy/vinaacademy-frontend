@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Video, AlertTriangle } from 'lucide-react';
 import { Lecture } from '@/types/lecture';
 import { VideoStatus } from '@/types/video';
@@ -10,6 +10,7 @@ import UploadedVideoCard from './video/UploadedVideoCard';
 import { UploadSessionDto } from '@/services/chunkUploadService';
 import ChunkUploadDropZone from './video/ChunkDropZone';
 import { processVideo } from '@/services/videoService';
+import {LESSON_KEYS} from "@/config/query-keys.config";
 
 interface VideoUploaderProps {
     lecture: Lecture;
@@ -61,7 +62,7 @@ export default function VideoUploader({
 
                         if (lesson.status === VideoStatus.READY) {
                             clearTimeout(timeoutId);
-                            queryClient.invalidateQueries({ queryKey: ['lesson', lecture.id] });
+                            await queryClient.invalidateQueries({queryKey: LESSON_KEYS.byId(lecture.id)});
                             createSuccessToast("Video processed successfully and ready to play");
 
                             setLecture(prev => ({
@@ -112,7 +113,7 @@ export default function VideoUploader({
 
     return (
         <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                 <Video className="h-4 w-4" /> Video bài giảng
             </label>
 

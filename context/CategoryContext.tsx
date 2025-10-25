@@ -4,6 +4,7 @@ import React, { createContext, useContext } from "react";
 import { useQuery } from '@tanstack/react-query';
 import { getCategories } from "@/services/categoryService";
 import { CategoryDto } from "@/types/category";
+import {CATEGORY_KEYS} from "@/config/query-keys.config";
 
 interface CategoryContextType {
   categories: CategoryDto[];
@@ -34,7 +35,7 @@ export const CategoryProvider = ({ children }: { children: React.ReactNode }) =>
     error,
     refetch,
   } = useQuery<CategoryDto[], Error>({
-    queryKey: ['categories'],
+    queryKey: CATEGORY_KEYS.all,
     queryFn: getCategories,
     staleTime: 1000 * 60 * 5, // dữ liệu cũ sau 5 phút
   });

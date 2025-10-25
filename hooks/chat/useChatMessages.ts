@@ -9,6 +9,7 @@ import {getMessagesByConversation} from '@/services/chatService';
 import type {ChatWebSocketClient} from '@/lib/chatWebSocket';
 import type {MessageDto} from '@/types/chat';
 import CHAT_CONFIG from "@/config/chat.config";
+import {CHAT_KEYS} from "@/config/query-keys.config";
 
 /**
  * Messages hook configuration
@@ -72,7 +73,7 @@ export function useChatMessages(config: UseChatMessagesConfig): UseChatMessagesR
             });
 
             // Update conversation list to reflect new message
-            queryClient.invalidateQueries({queryKey: ['conversations']}).then(r => r);
+            queryClient.invalidateQueries({queryKey: CHAT_KEYS.all}).then(r => r);
         };
 
         client.onMessage(handleMessage);

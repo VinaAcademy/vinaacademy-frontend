@@ -6,6 +6,7 @@
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { markConversationAsRead } from '@/services/chatService';
+import {CHAT_KEYS} from "@/config/query-keys.config";
 
 /**
  * Read status hook return type
@@ -25,7 +26,7 @@ export function useChatReadStatus(): UseChatReadStatusReturn {
     async (conversationId: string) => {
       const success = await markConversationAsRead(conversationId);
       if (success) {
-        await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        await queryClient.invalidateQueries({ queryKey: CHAT_KEYS.all });
       }
     },
     [queryClient]
