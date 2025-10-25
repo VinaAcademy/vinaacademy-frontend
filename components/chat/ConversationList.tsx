@@ -7,10 +7,11 @@ import {MessageCircle, Search} from 'lucide-react';
 import {ConversationItem} from './ConversationItem';
 import {ConversationDto} from '@/types/chat';
 import {useChat} from "@/context";
+import {User} from "@/types/auth";
 
 interface ConversationListProps {
     conversations: ConversationDto[];
-    user: { id: string, fullName: string } | null;
+    user: User | null;
     handleConversationClick: (conversation: ConversationDto) => void;
     loading?: boolean;
     searchQuery?: string;
@@ -104,7 +105,8 @@ export function ConversationList(props: ConversationListProps) {
             <div className="divide-y divide-gray-100">
                 {conversations.map((conversation, index) => {
                     const recipient = conversation.members.find(member => member.memberId !== user?.id);
-                    const isOnline = recipient ? isUserOnline(recipient.memberId || user?.id || '') : false;
+                    const isOnline = recipient ? isUserOnline(recipient.memberId) : true;
+                    console.log('conversation online, conversationId:', conversation.id, recipient?.memberId || user?.id || '');
                     return (
                         <div
                             key={conversation.id}

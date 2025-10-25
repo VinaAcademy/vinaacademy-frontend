@@ -23,6 +23,7 @@ export const API_ENDPOINTS = {
     USER: {
         ME: '/users/me',
         UPDATE_INFO: '/users/update-info',
+        SEARCH: "/users/search",
         VIEW: (userId: string) => `/users/view/${userId}`,
     },
 

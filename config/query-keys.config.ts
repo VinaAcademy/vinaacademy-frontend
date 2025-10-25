@@ -153,6 +153,9 @@ const USER_KEYS = {
   
   // Current user profile
   profile: () => [...USER_KEYS.all, 'profile'] as const,
+  
+  // Search users by keywords
+  search: (keywords: string) => ['users', 'search', keywords] as const,
 } as const;
 
 /**

@@ -8,12 +8,14 @@ import {Users, Image as ImageIcon, Paperclip} from 'lucide-react';
 import {formatMessageTime} from '@/utils/dateUtils';
 import {ConversationDto, MessageDto} from '@/types/chat';
 import OnlineIndicator from "@/components/chat/OnlineIndicator";
+import {User} from "@/types/auth";
+import {getImageUrl} from "@/utils/imageUtils";
 
 
 // Props interface
 interface ConversationItemProps {
     conversation: ConversationDto;
-    user: { id: string, fullName: string } | null;
+    user: User | null;
     handleConversationClick: (conversation: ConversationDto) => void;
     isOnline?: boolean;
 }
@@ -38,8 +40,8 @@ export class ConversationItem extends React.Component<ConversationItemProps> {
             ?? {
                 memberId: user?.id || '',
                 fullName: user?.fullName || 'Người dùng ẩn danh',
-                username: '',
-                avatarUrl: ''
+                username: user?.username || 'anonymous',
+                avatarUrl: user?.avatarUrl || '',
             };
 
         // Render last message preview
@@ -101,7 +103,7 @@ export class ConversationItem extends React.Component<ConversationItemProps> {
                     )}>
                     </div>
                     <Avatar
-                        src={conversation.avatarUrl}
+                        src={getImageUrl(conversation.avatarUrl || recipient?.avatarUrl || '')}
                         alt={conversation?.title || 'Avatar'}
                         size={48}
                         className="border-2 border-white shadow-sm group-hover:shadow-md transition-all duration-300"
