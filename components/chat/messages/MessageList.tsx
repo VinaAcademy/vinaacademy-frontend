@@ -1,15 +1,18 @@
-import React, {useEffect, useMemo, useRef} from 'react';
-import {User, Users, MessageSquareOff} from 'lucide-react';
-import {MessageDto, MemberDto} from '@/types/chat';
-import MessageItem from './MessageItem';
-import UnreadDivider from "@/components/chat/messages/UnreadDivider";
+import React, {useEffect, useMemo, useRef} from 'react'
+import {User, Users, MessageSquareOff} from 'lucide-react'
+import {MessageDto, MemberDto} from '@/types/chat'
+import MessageItem from './MessageItem'
+import UnreadDivider from '@/components/chat/messages/UnreadDivider'
+import LoadOlderButton from "@/components/chat/messages/LoadOlderButton";
 
 interface MessageListProps {
-    messages: MessageDto[];
-    isGroup: boolean;
-    userId?: string;
-    members: MemberDto[];
-    lastReadMessageId?: string | null;
+    messages: MessageDto[],
+    isGroup: boolean,
+    userId?: string,
+    members: MemberDto[],
+    lastReadMessageId?: string | null,
+    loadMoreMessages?: () => void,
+    currentPage: number,
 }
 
 const MessageList: React.FC<MessageListProps> = ({
@@ -18,44 +21,40 @@ const MessageList: React.FC<MessageListProps> = ({
                                                      userId,
                                                      members,
                                                      lastReadMessageId,
+                                                     loadMoreMessages,
+                                                     currentPage = 0
                                                  }) => {
-    // Deduplicate messages by ID (safety layer)
-    const uniqueMessages = useMemo(() => {
-        const seen = new Set<string>();
-        const unique: MessageDto[] = [];
 
+    const uniqueMessages = useMemo(() => {
+        const seen = new Set<string>()
+        const unique: MessageDto[] = []
         for (const message of messages) {
             if (!seen.has(message.id)) {
-                seen.add(message.id);
-                unique.push(message);
+                seen.add(message.id)
+                unique.push(message)
             } else {
-                console.warn('[MessageList] Duplicate message detected and filtered:', message.id);
+                console.warn('[MessageList] Duplicate message detected and filtered:', message.id)
             }
         }
+        return unique
+    }, [messages])
 
-        return unique;
-    }, [messages]);
-
-    // Find the index of the last read message to display "Unread Messages" divider
     const lastReadIndex = useMemo(() => {
-        if (!lastReadMessageId) return -1;
-        return uniqueMessages.findIndex(msg => msg.id === lastReadMessageId);
-    }, [uniqueMessages]);
+        if (!lastReadMessageId) return -1
+        return uniqueMessages.findIndex((msg) => msg.id === lastReadMessageId)
+    }, [uniqueMessages, lastReadMessageId])
 
     const containerRef = useRef<HTMLDivElement>(null);
     const endRef = useRef<HTMLDivElement>(null);
-
+    const prevPageRef  = useRef(-1);
     // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
-        if (uniqueMessages.length > 0 && endRef.current) {
-            endRef.current.scrollIntoView({behavior: 'smooth'});
+        const prev = prevPageRef.current;
+        if (uniqueMessages.length > 0 && endRef.current && currentPage == prev) {
+            endRef.current.scrollIntoView({behavior: 'smooth'})
         }
-    }, [uniqueMessages.length, endRef]);
-
-    // TODO: For large message lists (>100 messages), consider implementing:
-    // - Virtualization with react-window or @tanstack/react-virtual
-    // - Infinite scroll with pagination (load older messages on scroll up)
-    // - Message batching to reduce re-renders
+        prevPageRef.current = currentPage;
+    }, [uniqueMessages.length, currentPage])
 
     return (
         <div
@@ -89,43 +88,40 @@ const MessageList: React.FC<MessageListProps> = ({
                 ) : (
                     <div className="flex flex-col-reverse">
                         <div ref={endRef}/>
-                        {
-                            uniqueMessages.map((message, index) => {
-                                const actualIndex = uniqueMessages.length - 1 - index;
-                                const currentMsg = uniqueMessages[actualIndex];
-                                const prevMsg = uniqueMessages[actualIndex + 1];
+                        {uniqueMessages.map((message, index) => {
+                            const actualIndex = uniqueMessages.length - 1 - index
+                            const currentMsg = uniqueMessages[actualIndex]
+                            const prevMsg = uniqueMessages[actualIndex + 1]
+                            const isFirstOfDay =
+                                !prevMsg ||
+                                new Date(prevMsg.createdAt).toDateString() !==
+                                new Date(currentMsg.createdAt).toDateString()
 
-                                const isFirstOfDay =
-                                    !prevMsg ||
-                                    new Date(prevMsg.createdAt).toDateString() !==
-                                    new Date(currentMsg.createdAt).toDateString();
-                                // lastReadIndex is reversed, so we need to convert it
-                                // +1 to show divider after the last read message
-                                const readIndex = uniqueMessages.length - lastReadIndex;
-                                const showUnreadDivider = readIndex !== -1 && actualIndex === readIndex;
+                            const readIndex = uniqueMessages.length - lastReadIndex
+                            const showUnreadDivider = readIndex !== -1 && actualIndex === readIndex
 
-                                return (
-                                    <React.Fragment key={message.id}>
-                                        <MessageItem
-                                            message={message}
-                                            index={actualIndex}
-                                            userId={userId}
-                                            isGroup={isGroup}
-                                            conversationMessages={uniqueMessages}
-                                            members={members}
-                                            isFirstOfDay={isFirstOfDay}
-                                        />
+                            return (
+                                <React.Fragment key={message.id}>
+                                    <MessageItem
+                                        message={message}
+                                        index={actualIndex}
+                                        userId={userId}
+                                        isGroup={isGroup}
+                                        conversationMessages={uniqueMessages}
+                                        members={members}
+                                        isFirstOfDay={isFirstOfDay}
+                                    />
+                                    {showUnreadDivider && <UnreadDivider/>}
+                                </React.Fragment>
+                            )
+                        })}
 
-                                        {/* Unread Messages Divider */}
-                                        {showUnreadDivider && <UnreadDivider/>}
-                                    </React.Fragment>
-                                );
-                            })}
+                        <LoadOlderButton onLoadMore={loadMoreMessages}/>
                     </div>
                 )}
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default MessageList;
+export default MessageList

@@ -72,7 +72,7 @@ const ConversationHeader: React.FC<ConversationHeaderProps> = ({
                                 </>
                             ) : (
                                 <>
-                                    <span>@{recipient?.username || userUsername}</span>
+                                    <span>@{recipient?.username || userUsername || 'Người dùng ẩn danh'}</span>
                                     {recipient && (
                                         <>
                                             {isUserOnline(recipient.memberId) ? (

@@ -38,8 +38,8 @@ export default function ConversationsPage() {
 
             // Search by member names
             return conv.members.some(member =>
-                member.fullName.toLowerCase().includes(query) ||
-                member.username.toLowerCase().includes(query)
+                (member.fullName ?? '').toLowerCase().includes(query) ||
+                (member.username ?? '').toLowerCase().includes(query)
             );
         });
     }, [conversations, searchQuery]);

@@ -20,7 +20,9 @@ export default function ConversationPage() {
         isGroup,
         lastReadMessageId,
         isSending,
-        handleSendMessage
+        handleSendMessage,
+        loadMoreMessages,
+        currentPage
     } = useConversationLogic(conversationId);
 
     if (conversationsLoading) return <ConversationSkeleton/>;
@@ -49,6 +51,8 @@ export default function ConversationPage() {
                 userId={user?.id}
                 members={conversation?.members || []}
                 lastReadMessageId={lastReadMessageId}
+                loadMoreMessages={loadMoreMessages}
+                currentPage={currentPage}
             />
 
             <MessageInput

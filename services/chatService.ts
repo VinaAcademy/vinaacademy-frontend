@@ -11,6 +11,7 @@ import type {
     MessageDto,
     CreateGroupRequest
 } from '@/types/chat';
+import {PaginatedResponse} from "@/types/api-response";
 
 // ==================== CONVERSATIONS ====================
 
@@ -98,7 +99,7 @@ export async function getMessagesByRecipient(
     recipientId: string,
     page: number = 0,
     size: number = 50
-): Promise<MessageDto[] | null> {
+): Promise<PaginatedResponse<MessageDto> | null> {
     try {
         const response = await apiClient.get(API_ENDPOINTS.CHAT.MESSAGES.BY_RECIPIENT(recipientId), {
             params: { page, size }
@@ -121,7 +122,7 @@ export async function getMessagesByConversation(
     conversationId: string,
     page: number = 0,
     size: number = 50
-): Promise<MessageDto[] | null> {
+): Promise<PaginatedResponse<MessageDto> | null> {
     try {
         const response = await apiClient.get(API_ENDPOINTS.CHAT.MESSAGES.BY_CONVERSATION(conversationId), {
             params: { page, size }
@@ -144,27 +145,6 @@ export async function getOnlineUsers(): Promise<string[] | null> {
 }
 
 // ==================== HELPER FUNCTIONS ====================
-
-/**
- * Get unread message count for a conversation
- * @param conversation - The conversation to check
- * @param currentUserId - UUID of the current user
- */
-export function getUnreadCount(conversation: ConversationDto, currentUserId: string): number {
-    const member = conversation.members.find(m => m.memberId === currentUserId);
-    if (!member || !conversation.lastMessage) return 0;
-
-    // If user hasn't read any messages yet
-    if (!member.lastReadMsgId) {
-        return conversation.lastMessage.seq;
-    }
-
-    // Calculate unread based on sequence numbers
-    // This is an approximation - server should provide exact count
-    const lastReadSeq = conversation.lastMessage.seq;
-    return Math.max(0, conversation.lastMessage.seq - lastReadSeq);
-}
-
 /**
  * Get the other participant in a direct conversation
  * @param conversation - The conversation
@@ -205,7 +185,9 @@ export function isConversationModerator(conversation: ConversationDto, userId: s
 export function formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
+    let i = Math.floor(Math.log(bytes) / Math.log(k));
+    i = Math.min(i, sizes.length - 1);
+    const value = bytes / Math.pow(k, i);
+    return `${Math.round(value * 100) / 100} ${sizes[i]}`;
 }

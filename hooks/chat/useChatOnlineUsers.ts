@@ -56,7 +56,7 @@ export function useChatOnlineUsers(config: UserChatOnlineUsers): ChatOnlineUsers
 
         const handleOnlineUsersUpdate = (userIds: Set<string>) => {
             console.log('[useChatOnlineUsers] Received online users update via WebSocket:', userIds);
-            setOnlineUserIds(userIds);
+            setOnlineUserIds(new Set(userIds));
         };
 
         // Register handler

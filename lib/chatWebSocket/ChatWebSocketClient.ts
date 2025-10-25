@@ -85,6 +85,7 @@ export class ChatWebSocketClient {
      * Update access token and reconnect if needed
      */
     public async updateToken(newToken: string): Promise<void> {
+        this.clearManagers();
         return this.connectionManager.reconnect(newToken);
     }
 

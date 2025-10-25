@@ -6,7 +6,7 @@ import { MAX_LENGTH } from "@/hooks/page/conversation/useMessageInput";
 interface Props {
     connected: boolean;
     isSending: boolean;
-    handleInput: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+    handleInput: (e: React.FormEvent<HTMLTextAreaElement>) => void;
     handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
     setIsFocused: (v: boolean) => void;
     isFocused: boolean;
@@ -23,7 +23,6 @@ const InputTextarea = React.forwardRef<HTMLTextAreaElement, Props>(
             handleInput,
             handleKeyDown,
             setIsFocused,
-            isFocused,
             charCount,
             charPercentage,
             showCharCount,

@@ -5,19 +5,30 @@ import {FileText, Image as ImageIcon, LucideIcon} from "lucide-react";
 
 interface ActionButton {
     icon: LucideIcon;
-    color: string;
     title: string;
+    hoverBg?: string[];
+    textColor: string;
 }
 
 const buttons: ActionButton[] = [
-    {icon: ImageIcon, color: "green", title: "Đính kèm ảnh"},
-    {icon: FileText, color: "sky", title: "Đính kèm file"},
+    {
+        icon: ImageIcon,
+        title: "Đính kèm ảnh",
+        hoverBg: ["hover:bg-blue-100", "hover:dark:bg-blue-900/30"],
+        textColor: "blue-600 dark:blue-400"
+    },
+    {
+        icon: FileText,
+        title: "Đính kèm file",
+        hoverBg: ["hover:bg-green-100", "hover:dark:bg-green-900/30"],
+        textColor: "green-600 dark:green-400"
+    },
 ];
 
 export function InputActionLeft() {
     return (
         <div className="flex flex-col gap-2 self-end pb-1">
-            {buttons.map(({icon: LucideIcon, color, title}, i) => (
+            {buttons.map(({icon: LucideIcon, title, hoverBg, textColor}, i) => (
                 <Button
                     key={i}
                     variant="ghost"
@@ -26,10 +37,10 @@ export function InputActionLeft() {
                     title={`${title} (Coming soon)`}
                     className={cn(
                         "h-9 w-9 transition-all hover:scale-110 disabled:opacity-50",
-                        `hover:bg-${color}-100 dark:hover:bg-${color}-900/30`
+                        hoverBg ? hoverBg.join(" ") : "hover:bg-gray-100 dark:hover:bg-gray-800"
                     )}
                 >
-                    <LucideIcon className={cn("h-5 w-5", `text-${color}-600 dark:text-${color}-400`)}/>
+                    <LucideIcon className={cn("h-5 w-5", `text-${textColor}`)}/>
                 </Button>
             ))}
         </div>

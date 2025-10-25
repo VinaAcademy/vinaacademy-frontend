@@ -51,13 +51,14 @@ export class ConnectionManager {
     /**
      * Disconnect from WebSocket server
      */
-    disconnect(): void {
+    async disconnect(): Promise<void> {
         if (this.client) {
             this.logger.log('Disconnecting...');
-            this.client.deactivate().then(r => r);
+            const client = this.client;
             this.client = null;
             this.statusTracker.setDisconnected();
             this.tokenRefreshHandler.resetAttempts();
+            await client.deactivate();
         }
     }
 
@@ -94,10 +95,8 @@ export class ConnectionManager {
         resolve: () => void,
         reject: (error: Error) => void
     ): Client {
-        const socket = new SockJS(WS_ENDPOINTS.CHAT.URL);
-
         return new Client({
-            webSocketFactory: () => socket as any,
+            webSocketFactory: () => new SockJS(WS_ENDPOINTS.CHAT.URL) as any,
             connectHeaders: {
                 Authorization: `Bearer ${accessToken}`,
             },
@@ -148,12 +147,19 @@ export class ConnectionManager {
 
         try {
             const newToken = await this.tokenRefreshHandler.refresh();
-            if (newToken) {
-                this.logger.log('✅ Token refreshed, reconnecting...');
-                // Will reconnect automatically due to reconnectDelay
-            } else {
-                reject(new Error('Token refresh failed'));
+            if (newToken && this.client) {
+                this.logger.log('✅ Token refreshed. Reconnecting with new token...');
+                this.client.connectHeaders = {
+                    ...(this.client.connectHeaders || {}),
+                    Authorization: `Bearer ${newToken}`,
+                };
+                // Ensure reconnect is enabled and has defaults
+                this.client.reconnectDelay = this.client.reconnectDelay ?? (this.config.reconnectDelay ?? 5000);
+                await this.client.deactivate();
+                this.client.activate();
+                return;
             }
+            reject(new Error('Token refresh failed'));
         } catch (err) {
             reject(err as Error);
         }
