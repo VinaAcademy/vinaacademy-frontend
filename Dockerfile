@@ -52,12 +52,15 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
+RUN chown -R nextjs:nodejs /app
+
 USER nextjs
 
 EXPOSE 3000
 
 ENV PORT=3000
 
-COPY entrypoint.sh .
-RUN chmod +x entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]
