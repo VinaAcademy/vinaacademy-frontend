@@ -26,11 +26,12 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build the application with environment variables
-ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_SITE_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+# Build the application with valid placeholder URLs
+# These will be replaced at runtime with actual values
+# Using valid URL format to pass Next.js build validation
+ENV NEXT_PUBLIC_API_URL=http://PLACEHOLDER_API_URL/api/v1
+ENV NEXT_PUBLIC_SITE_URL=http://PLACEHOLDER_SITE_URL
+ENV NEXT_PUBLIC_WS_URL=http://PLACEHOLDER_WS_URL/ws
 
 RUN npm run build
 
@@ -51,6 +52,9 @@ COPY --from=builder /app/public ./public
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy runtime environment injection script
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/inject-env.js ./scripts/inject-env.js
 
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
