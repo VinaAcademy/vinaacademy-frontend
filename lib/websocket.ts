@@ -157,7 +157,8 @@ export function createWebSocketClient(config: WebSocketConfig): Client {
     heartbeatOutgoing: 4000, // Send heartbeat to server every 4 seconds
 
     // Enable debug logging if specified
-    debug: debug ? (str) => console.log('[WebSocket Debug]', str) : undefined,
+    // Note: Must always provide a function, not undefined, to avoid production errors
+    debug: debug ? (str) => console.log('[WebSocket Debug]', str) : () => {},
   });
 
   return client;

@@ -100,7 +100,8 @@ export class ConnectionManager {
             connectHeaders: {
                 Authorization: `Bearer ${accessToken}`,
             },
-            debug: this.config.debug ? (str) => console.log('[STOMP]', str) : undefined,
+            // Note: Must always provide a function, not undefined, to avoid production errors
+            debug: this.config.debug ? (str) => console.log('[STOMP]', str) : () => {},
             reconnectDelay: this.config.reconnectDelay,
             heartbeatIncoming: this.config.heartbeatIncoming,
             heartbeatOutgoing: this.config.heartbeatOutgoing,
