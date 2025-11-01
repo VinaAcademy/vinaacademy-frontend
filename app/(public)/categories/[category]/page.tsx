@@ -15,6 +15,7 @@ import { SortingControls } from "@/components/categories/category/SortingControl
 import { CourseTabs } from "@/components/categories/ui/CourseTabs";
 import { CourseGrid } from "@/components/categories/ui/CourseGrid";
 import CategoryTreeItem from "@/components/layout/navbar/explore-dropdown/CategoryTreeItem";
+import Link from "next/link";
 
 export default function CategoryPage() {
     const router = useRouter();
@@ -194,9 +195,9 @@ export default function CategoryPage() {
                             <nav className="flex" aria-label="Breadcrumb">
                                 <ol className="inline-flex items-center space-x-1 md:space-x-3">
                                     <li className="inline-flex items-center">
-                                        <a href="/" className="text-gray-700 hover:text-blue-600">
+                                        <Link href="/" className="text-gray-700 hover:text-blue-600">
                                             Trang chủ
-                                        </a>
+                                        </Link>
                                     </li>
                                     {categoryPath.map((cat, index) => (
                                         <li key={cat.id}>

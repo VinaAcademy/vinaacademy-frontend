@@ -24,6 +24,7 @@ import {
 import { submitCourseForReview } from '@/services/courseService';
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragEndEvent } from '@dnd-kit/core';
+import {SECTION_KEYS} from "@/config/query-keys.config";
 
 // Định nghĩa lại type phù hợp với backend nhưng vẫn đáp ứng yêu cầu frontend
 export interface SectionDisplay {
@@ -69,7 +70,7 @@ export const useCourseContent = (courseId?: string) => {
     const [isDragging, setIsDragging] = useState(false);
 
     // Query key definitions
-    const sectionsQueryKey: [string, string] | [] = courseId ? ['sections', courseId] : [];
+    const sectionsQueryKey: readonly ["sections", string] | [] = courseId ? SECTION_KEYS.byCourse(courseId) : [];
 
     // Fetch sections and their lectures
     const {
@@ -155,15 +156,15 @@ export const useCourseContent = (courseId?: string) => {
     });
 
     // Edit section mutation
-    const editSectionMutation = useMutation({
+    useMutation({
         mutationFn: async ({ sectionId, newTitle }: { sectionId: string, newTitle: string }) => {
             if (!courseId) {
-              throw new Error('Không có ID khóa học');
+                throw new Error('Không có ID khóa học');
             }
 
             const section = sections.find(s => s.id === sectionId);
             if (!section) {
-              throw new Error('Không tìm thấy phần học');
+                throw new Error('Không tìm thấy phần học');
             }
 
             const updatedSectionData = {
@@ -194,8 +195,7 @@ export const useCourseContent = (courseId?: string) => {
             console.error('Lỗi khi cập nhật phần học:', error);
         }
     });
-
-    // Delete section mutation
+// Delete section mutation
     const deleteSectionMutation = useMutation({
         mutationFn: async (sectionId: string) => {
             if (!window.confirm('Bạn có chắc chắn muốn xóa phần học này không?')) {
@@ -281,7 +281,7 @@ export const useCourseContent = (courseId?: string) => {
     });
 
     // Edit lecture mutation
-    const editLectureMutation = useMutation({
+    useMutation({
         mutationFn: async ({ sectionId, lectureId, lectureData }: {
             sectionId: string,
             lectureId: string,
@@ -336,8 +336,7 @@ export const useCourseContent = (courseId?: string) => {
             console.error('Lỗi khi cập nhật bài giảng:', error);
         }
     });
-
-    // Delete lecture mutation
+// Delete lecture mutation
     const deleteLectureMutation = useMutation({
         mutationFn: async ({ sectionId, lectureId }: { sectionId: string, lectureId: string }) => {
             if (!window.confirm('Bạn có chắc chắn muốn xóa bài giảng này không?')) {
@@ -387,12 +386,12 @@ export const useCourseContent = (courseId?: string) => {
             const ids = sectionIds || sections.map(section => section.id);
             return await reorderSections(courseId, ids);
         },
-        onSuccess: (success, sectionIds) => {
+        onSuccess: async (success, sectionIds) => {
             if (!success) {
                 console.error('Error reordering sections');
                 if (courseId) {
                     if (sectionsQueryKey.length > 0) {
-                        queryClient.invalidateQueries({ queryKey: sectionsQueryKey });
+                        await queryClient.invalidateQueries({ queryKey: sectionsQueryKey });
                     }
                 }
                 return;
@@ -619,11 +618,8 @@ export const useCourseContent = (courseId?: string) => {
         setIsDragging,
         toggleSection,
         addSection: () => addSectionMutation.mutate(),
-        editSection: (sectionId: string, newTitle: string) => editSectionMutation.mutate({ sectionId, newTitle }),
         deleteSection: (sectionId: string) => deleteSectionMutation.mutate(sectionId),
         addLecture: (sectionId: string) => addLectureMutation.mutate(sectionId),
-        editLecture: (sectionId: string, lectureId: string, lectureData: Partial<LectureDisplay>) =>
-            editLectureMutation.mutate({ sectionId, lectureId, lectureData }),
         deleteLecture: (sectionId: string, lectureId: string) =>
             deleteLectureMutation.mutate({ sectionId, lectureId }),
         saveAllChanges: () => saveAllChangesMutation.mutateAsync(),

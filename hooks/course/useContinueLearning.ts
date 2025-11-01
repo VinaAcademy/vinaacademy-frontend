@@ -2,6 +2,7 @@ import {LearningCourse} from "@/types/navbar";
 import {EnrollmentResponse, getUserEnrollments} from "@/services/enrollmentService";
 import {mockEnrolledCourses} from "@/data/mockCourseData";
 import {useQuery} from "@tanstack/react-query";
+import {COURSE_KEYS} from "@/config/query-keys.config";
 
 interface UseContinueLearningOptions {
   limit?: number;
@@ -50,7 +51,7 @@ export function useContinueLearning({ limit = 3, enabled = true }: UseContinueLe
     error,
     refetch
   } = useQuery({
-    queryKey: ['continue-learning', limit],
+    queryKey: COURSE_KEYS.continueLearning(limit),
     queryFn: async () => {
       try {
         return await getUserEnrollments(0, limit, 'IN_PROGRESS');

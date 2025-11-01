@@ -2,6 +2,7 @@ import { LearningCourse } from "@/types/navbar";
 import { getUserEnrollments, EnrollmentResponse } from "@/services/enrollmentService";
 import { mockEnrolledCourses } from "@/data/mockCourseData";
 import { useQuery } from "@tanstack/react-query";
+import {COURSE_KEYS} from "@/config/query-keys.config";
 
 type TabType = "all" | "inProgress" | "completed";
 
@@ -26,7 +27,7 @@ export function useFetchCourses(activeTab: TabType, currentPage: number, pageSiz
         isError,
         refetch
     } = useQuery({
-        queryKey: ['courses', activeTab, currentPage, pageSize, status],
+        queryKey: COURSE_KEYS.byTab({activeTab, currentPage, pageSize, status}),
         queryFn: async () => {
             try {
                 return await getUserEnrollments(currentPage, pageSize, status);

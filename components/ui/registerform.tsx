@@ -1,23 +1,22 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Form, FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
-import { toast } from "react-toastify";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {z} from "zod";
+import {useState} from "react";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {Form, FormField, FormItem, FormControl, FormMessage} from "@/components/ui/form";
 
 // Icons
-import { FcGoogle } from "react-icons/fc";
-import { FaUserShield } from "react-icons/fa";
-import { IoMdLock } from "react-icons/io";
-import { MdOutlineDriveFileRenameOutline, MdEmail } from "react-icons/md";
-import { RegisterRequest } from "@/types/auth";
-import { createErrorToast, createSuccessToast } from "./toast-cus";
+import {FaUserShield} from "react-icons/fa";
+import {IoMdLock} from "react-icons/io";
+import {MdOutlineDriveFileRenameOutline, MdEmail} from "react-icons/md";
+import {RegisterRequest} from "@/types/auth";
+import {createErrorToast, createSuccessToast} from "./toast-cus";
 import Image from "next/image";
+import Link from "next/link";
 
 // Password regex: At least 8 characters, at least one uppercase letter, one lowercase letter, and one number
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
@@ -52,17 +51,16 @@ interface RegisterFormProps {
 }
 
 export default function RegisterForm({
-    heading = "VN Academy",
-    subheading = "Tạo ngay cho mình một tài khoản",
-    imageUrl = "https://img.freepik.com/free-vector/mobile-login-concept-illustration_114360-83.jpg?t=st=1745597272~exp=1745600872~hmac=667ac92fb131452d1c619cbe5cd84b2efdf074d9debbbe2ac16108c009b1d820&w=826",
-    registerText = "Đăng ký",
-    googleText = "Đăng nhập bằng Google",
-    signinText = "Đã có tài khoản?",
-    signinUrl = "/login",
-    onSubmit,
-    isSubmitting = false,
-    error = null,
-}: RegisterFormProps) {
+                                         heading = "VN Academy",
+                                         subheading = "Tạo ngay cho mình một tài khoản",
+                                         imageUrl = "https://img.freepik.com/free-vector/mobile-login-concept-illustration_114360-83.jpg?t=st=1745597272~exp=1745600872~hmac=667ac92fb131452d1c619cbe5cd84b2efdf074d9debbbe2ac16108c009b1d820&w=826",
+                                         registerText = "Đăng ký",
+                                         signinText = "Đã có tài khoản?",
+                                         signinUrl = "/login",
+                                         onSubmit,
+                                         isSubmitting = false,
+                                         error = null,
+                                     }: RegisterFormProps) {
     const [submitError, setSubmitError] = useState<string | null>(error);
 
     const form = useForm<RegisterFormValues>({
@@ -116,7 +114,7 @@ export default function RegisterForm({
                         <form onSubmit={form.handleSubmit(handleSubmit)} className="grid gap-4">
                             {submitError && (
                                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative"
-                                    role="alert">
+                                     role="alert">
                                     <span className="block sm:inline">{submitError}</span>
                                 </div>
                             )}
@@ -124,70 +122,70 @@ export default function RegisterForm({
                             <FormField
                                 control={form.control}
                                 name="username"
-                                render={({ field }) => (
+                                render={({field}) => (
                                     <FormItem>
                                         <Label>Tên đăng nhập</Label>
                                         <FormControl>
                                             <Input type="text" placeholder="Nhập tên đăng nhập của bạn"
-                                                iconLeft={<FaUserShield />} {...field} />
+                                                   iconLeft={<FaUserShield/>} {...field} />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage/>
                                     </FormItem>
                                 )}
                             />
                             <FormField
                                 control={form.control}
                                 name="fullname"
-                                render={({ field }) => (
+                                render={({field}) => (
                                     <FormItem>
                                         <Label>Họ và tên</Label>
                                         <FormControl>
                                             <Input type="text" placeholder="Nhập tên đầy đủ của bạn"
-                                                iconLeft={<MdOutlineDriveFileRenameOutline />} {...field} />
+                                                   iconLeft={<MdOutlineDriveFileRenameOutline/>} {...field} />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage/>
                                     </FormItem>
                                 )}
                             />
                             <FormField
                                 control={form.control}
                                 name="email"
-                                render={({ field }) => (
+                                render={({field}) => (
                                     <FormItem>
                                         <Label>Email</Label>
                                         <FormControl>
                                             <Input type="email" placeholder="Nhập email của bạn"
-                                                iconLeft={<MdEmail />} {...field} />
+                                                   iconLeft={<MdEmail/>} {...field} />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage/>
                                     </FormItem>
                                 )}
                             />
                             <FormField
                                 control={form.control}
                                 name="password"
-                                render={({ field }) => (
+                                render={({field}) => (
                                     <FormItem>
                                         <Label>Mật khẩu</Label>
                                         <FormControl>
                                             <Input type="password" placeholder="Nhập mật khẩu của bạn"
-                                                iconLeft={<IoMdLock />} passwordEye={true} {...field} />
+                                                   iconLeft={<IoMdLock/>} passwordEye={true} {...field} />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage/>
                                     </FormItem>
                                 )}
                             />
                             <FormField
                                 control={form.control}
                                 name="confirmPassword"
-                                render={({ field }) => (
+                                render={({field}) => (
                                     <FormItem>
                                         <Label>Xác nhận mật khẩu</Label>
                                         <FormControl>
                                             <Input type="password" placeholder="Xác nhận mật khẩu"
-                                                iconLeft={<IoMdLock />} passwordEye={true} {...field} />
+                                                   iconLeft={<IoMdLock/>} passwordEye={true} {...field} />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage/>
                                     </FormItem>
                                 )}
                             />
@@ -211,20 +209,20 @@ export default function RegisterForm({
 
                     <div className="mx-auto mt-6 flex justify-center gap-1 text-sm text-muted-foreground">
                         <p>{signinText}</p>
-                        <a href={signinUrl} className="font-medium text-primary hover:underline">
+                        <Link href={signinUrl} className="font-medium text-primary hover:underline">
                             Đăng nhập
-                        </a>
+                        </Link>
                     </div>
                 </div>
 
                 {/* Right Side - Image */}
                 <div className="hidden md:block md:w-1/2 bg-gray-200 items-center justify-center">
-                    <Image 
-                        src={imageUrl} 
+                    <Image
+                        src={imageUrl}
                         alt="Register Illustration"
                         width={600}
                         height={600}
-                        className="h-full w-full object-cover flex items-center justify-center" 
+                        className="h-full w-full object-cover flex items-center justify-center"
                     />
                 </div>
             </div>

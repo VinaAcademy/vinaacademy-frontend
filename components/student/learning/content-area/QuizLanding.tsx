@@ -5,7 +5,7 @@ import { getQuiz, getSubmissionHistory, getLatestSubmission } from '@/services/q
 import { QuizDto, QuizSubmissionResultDto } from '@/types/quiz';
 import { 
   AlertTriangle, Play, History, Award, Clock, CheckCircle, 
-  XCircle, ArrowLeft, FileText, LayoutList, BarChart
+  XCircle, ArrowLeft, FileText, BarChart
 } from 'lucide-react';
 import QuizSubmissionHistory from '../quiz/QuizSubmissionHistory';
 import QuizResults from '../quiz/QuizResults';
@@ -13,6 +13,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { Quiz } from '@/types/lecture';
 import { useQueryClient } from '@tanstack/react-query';
+import {LESSON_KEYS} from "@/config/query-keys.config";
 
 interface QuizLandingProps {
   quizId: string;
@@ -100,7 +101,7 @@ const QuizLanding: FC<QuizLandingProps> = ({ quizId, onStartQuiz, onLessonComple
       }
     };
 
-    fetchQuizData();
+    fetchQuizData().then();
   }, [quizId, isCompleted]);
 
   const handleViewHistory = async () => {
@@ -118,14 +119,14 @@ const QuizLanding: FC<QuizLandingProps> = ({ quizId, onStartQuiz, onLessonComple
     }
   };
 
-  const handleSelectSubmission = (submission: QuizSubmissionResultDto) => {
+  const handleSelectSubmission = async (submission: QuizSubmissionResultDto) => {
     setSelectedSubmission(submission);
 
     // If the selected submission is passed and we have callbacks
     if (submission.isPassed && onLessonCompleted && courseSlug) {
       // Invalidate the query
-      queryClient.invalidateQueries({
-        queryKey: ['lecture', courseSlug]
+      await queryClient.invalidateQueries({
+        queryKey: LESSON_KEYS.listByCourse(courseSlug)
       });
 
       // Call the callback
@@ -455,11 +456,14 @@ const QuizLanding: FC<QuizLandingProps> = ({ quizId, onStartQuiz, onLessonComple
       {/* Add animation styles */}
       <style jsx global>{`
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-in-out;
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
       `}</style>
     </div>

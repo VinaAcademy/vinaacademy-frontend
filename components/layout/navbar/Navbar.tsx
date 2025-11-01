@@ -10,22 +10,15 @@ import { useCategories } from "@/context/CategoryContext";
 import { useCart } from "@/context/CartContext";
 import { useNotification } from "@/hooks/useNotification";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
 import { Search, Menu, X } from "lucide-react";
 import ExploreDropdown from "./explore-dropdown/ExploreDropdown";
 import MobileNav from "./mobile/MobileNav";
-
-interface NavbarProps {
-  onNavigateHome?: () => void;
-}
-
-const Navbar = ({ onNavigateHome }: NavbarProps) => {
+const Navbar = () => {
   const { categories, isLoading } = useCategories();
   const { isAuthenticated, user, logout } = useAuth();
   const { cartItems, removeFromCart, totalPrice } = useCart();
-  const { notifications, unreadCount, markAsRead, isConnected } = useNotification();
+  const { notifications, unreadCount} = useNotification();
   const { toast } = useToast();
-  const router = useRouter();
   const [formattedCartItems, setFormattedCartItems] = useState<CartItem[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -37,13 +30,8 @@ const Navbar = ({ onNavigateHome }: NavbarProps) => {
 
   // Handle logout function
   const handleLogout = () => {
-    logout();
     setMobileMenuOpen(false);
-    router.push("/");
-    toast({
-      title: "Đã đăng xuất",
-      description: "Bạn đã đăng xuất thành công",
-    });
+    logout();
   };
 
   useEffect(() => {
@@ -116,7 +104,6 @@ const Navbar = ({ onNavigateHome }: NavbarProps) => {
           <DesktopNav
             categories={categories}
             isLoading={isLoading}
-            isAuthenticated={isAuthenticated}
             roleStaffAdmin={roleStaffAdmin}
             notifications={notifications}
             totalUnread={unreadCount}

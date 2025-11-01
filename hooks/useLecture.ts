@@ -1,15 +1,14 @@
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getCourseLearning } from '@/services/courseService';
 import { getLessonById } from '@/services/lessonService';
 import { getAllLessonProgressByCourse } from '@/services/progressService';
-import { LearningCourse, Lecture } from '@/types/lecture';
 import {
   convertToLearningCourseWithLecture,
   createProgressMap,
   getLectureFromLesson
 } from '@/utils/adapters/learningCourseAdapter';
+import {LESSON_KEYS} from "@/config/query-keys.config";
 
 /**
  * Custom hook for fetching and transforming lecture data
@@ -18,7 +17,6 @@ import {
  * @returns Object containing course data, lecture data, loading state, and error state
  */
 export const useLecture = (slug: string, lectureId: string) => {
-  const router = useRouter();
   const [showQuizContent, setShowQuizContent] = useState<boolean>(false);
 
   // Use React Query for data fetching with caching
@@ -28,7 +26,7 @@ export const useLecture = (slug: string, lectureId: string) => {
     error,
     refetch
   } = useQuery({
-    queryKey: ['lecture', slug, lectureId],
+    queryKey: LESSON_KEYS.byCourse(slug, lectureId),
     queryFn: async () => {
       try {
         // Fetch course data

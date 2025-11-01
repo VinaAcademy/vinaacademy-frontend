@@ -1,12 +1,11 @@
 "use client";
 
-import { FC, useState, useEffect } from 'react';
-import { getLessonById, markLessonComplete } from '@/services/lessonService';
-import { LessonDto } from '@/types/lesson';
-import { useQueryClient } from '@tanstack/react-query';
-import { CheckCircle } from 'lucide-react';
-import DOMPurify from 'dompurify';
+import {FC, useState, useEffect} from 'react';
+import {getLessonById, markLessonComplete} from '@/services/lessonService';
+import {useQueryClient} from '@tanstack/react-query';
+import {CheckCircle} from 'lucide-react';
 import SafeHtml from '@/components/common/safe-html';
+import {LESSON_KEYS} from "@/config/query-keys.config";
 
 interface ReadingContentProps {
     lectureId: string;
@@ -27,16 +26,14 @@ interface ReadingContent {
 }
 
 const ReadingContent: FC<ReadingContentProps> = ({
-    lectureId,
-    courseId,
-    isCompleted = false,
-    onLessonCompleted,
-    courseSlug
-}) => {
+                                                     lectureId,
+                                                     isCompleted = false,
+                                                     onLessonCompleted,
+                                                     courseSlug
+                                                 }) => {
     const queryClient = useQueryClient();
     const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg' | 'xl'>('md');
     const [isLoading, setIsLoading] = useState(true);
-    const [lessonData, setLessonData] = useState<LessonDto | null>(null);
     const [readingContent, setReadingContent] = useState<ReadingContent | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isMarkingComplete, setIsMarkingComplete] = useState(false);
@@ -49,8 +46,6 @@ const ReadingContent: FC<ReadingContentProps> = ({
             try {
                 const data = await getLessonById(lectureId);
                 if (data) {
-                    setLessonData(data);
-
                     // Parse the content if it exists
                     if (data.content) {
                         try {
@@ -83,7 +78,7 @@ const ReadingContent: FC<ReadingContentProps> = ({
         };
 
         if (lectureId) {
-            fetchLessonData();
+            fetchLessonData().then();
         }
     }, [lectureId]);
 
@@ -99,8 +94,8 @@ const ReadingContent: FC<ReadingContentProps> = ({
 
                 // Invalidate React Query cache to refresh course data
                 if (courseSlug) {
-                    queryClient.invalidateQueries({
-                        queryKey: ['lecture', courseSlug]
+                    await queryClient.invalidateQueries({
+                        queryKey: LESSON_KEYS.listByCourse(courseSlug)
                     });
                 }
 
@@ -160,12 +155,13 @@ const ReadingContent: FC<ReadingContentProps> = ({
     return (
         <div className="w-full px-4 sm:px-6">
             {/* Điều khiển đọc */}
-            <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 pt-4">
+            <div
+                className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 pt-4">
                 <h1 className="text-xl sm:text-2xl font-bold">{readingContent.title}</h1>
                 <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-end">
                     {localCompleted && (
-                    <span className="px-3 py-1 rounded-md text-sm bg-green-50 text-green-700 flex items-center">
-                        <CheckCircle size={14} className="mr-1" />
+                        <span className="px-3 py-1 rounded-md text-sm bg-green-50 text-green-700 flex items-center">
+                        <CheckCircle size={14} className="mr-1"/>
                         Đã hoàn thành
                     </span>
                     )}
@@ -204,7 +200,8 @@ const ReadingContent: FC<ReadingContentProps> = ({
             </div>
 
             {/* Nội dung đọc */}
-            <div className={`space-y-8 ${getFontSizeClass()} bg-white sm:border sm:border-gray-200 sm:rounded-lg sm:p-6 shadow-sm`}>
+            <div
+                className={`space-y-8 ${getFontSizeClass()} bg-white sm:border sm:border-gray-200 sm:rounded-lg sm:p-6 shadow-sm`}>
                 {readingContent.sections.map((section, index) => (
                     <div key={index} className="reading-section">
                         {section.heading !== readingContent.title && (
@@ -221,7 +218,8 @@ const ReadingContent: FC<ReadingContentProps> = ({
             </div>
 
             {/* Điều hướng */}
-            <div className="mt-8 mb-6 pt-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div
+                className="mt-8 mb-6 pt-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                 {/* <button className="flex items-center text-blue-600 hover:text-blue-800 order-2 sm:order-1">
                     <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd"
@@ -238,18 +236,19 @@ const ReadingContent: FC<ReadingContentProps> = ({
                             onClick={handleMarkComplete}
                             disabled={isMarkingComplete}
                             className={`px-4 py-2 rounded-md text-sm font-medium flex items-center w-full sm:w-auto justify-center ${isMarkingComplete
-                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                                    : 'bg-green-100 text-green-700 hover:bg-green-200'
-                                }`}
+                                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                                : 'bg-green-100 text-green-700 hover:bg-green-200'
+                            }`}
                         >
                             {isMarkingComplete ? (
                                 <>
-                                    <span className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin mr-2"></span>
+                                    <span
+                                        className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin mr-2"></span>
                                     Đang xử lý...
                                 </>
                             ) : (
                                 <>
-                                    <CheckCircle size={16} className="mr-1.5 text-green-600 animate-pulse" />
+                                    <CheckCircle size={16} className="mr-1.5 text-green-600 animate-pulse"/>
                                     <span className="font-medium">Đánh dấu hoàn thành</span>
                                 </>
                             )}

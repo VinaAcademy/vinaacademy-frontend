@@ -7,13 +7,15 @@ import UserMenu from "../user-dropdown/UserMenu";
 import ShoppingCart from "../shopping-cart/ShoppingCart";
 import NavigationLinks from "../other-link/NavigationLinks";
 import NotificationDropdown from "../notification-badge/NotificationDropdown";
+import { ChatBadge } from "@/components/chat/ChatBadge";
+import { useUnreadCount } from "@/context/ChatContext";
 import Link from "next/link";
-import ExploreDropdown from "../explore-dropdown/ExploreDropdown";
+import {useAuth} from "@/context/AuthContext";
+import {useEffect, useState} from "react";
 
 interface DesktopNavProps {
   categories: CategoryDto[];
   isLoading: boolean;
-  isAuthenticated: boolean;
   roleStaffAdmin: any;
   notifications: NotificationDTO[];
   totalUnread: number;
@@ -23,16 +25,24 @@ interface DesktopNavProps {
 }
 
 const DesktopNav = ({
-  categories,
-  isLoading,
-  isAuthenticated,
-  roleStaffAdmin,
-  notifications,
+                      roleStaffAdmin,
+                      notifications,
   totalUnread,
   cartItems,
   onRemoveFromCart,
   totalPrice,
 }: DesktopNavProps) => {
+  // Get unread chat count from ChatContext
+  const { isAuthenticated } = useAuth();
+  const totalChatUnread = useUnreadCount();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setUnreadCount(totalChatUnread);
+    }
+  }, [isAuthenticated, totalChatUnread]);
+  
   return (
     <>
       {/* Search bar */}
@@ -55,6 +65,16 @@ const DesktopNav = ({
               </Link>
             )}
             <UserLearning />
+            <div className="relative group">
+              <ChatBadge 
+                variant="icon" 
+                className="hover:bg-gray-100 transition-colors"
+                unreadCount={unreadCount}
+              />
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                Tin nhắn
+              </div>
+            </div>
             <NotificationDropdown
               notifications={notifications}
               totalUnread={totalUnread}

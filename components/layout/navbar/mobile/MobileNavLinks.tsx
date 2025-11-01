@@ -23,6 +23,15 @@ const MobileNavLinks = ({ isAuthenticated, roleStaffAdmin, onClose }: MobileNavL
       >
         Giảng viên
       </Link>
+      {isAuthenticated && (
+        <Link 
+          href="/conversations"
+          className="block py-3 font-medium hover:text-gray-800"
+          onClick={onClose}
+        >
+          Tin nhắn
+        </Link>
+      )}
       {isAuthenticated && roleStaffAdmin && (
         <Link 
           href="/requests"

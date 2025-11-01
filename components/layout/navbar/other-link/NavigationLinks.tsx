@@ -11,7 +11,6 @@ export const NavigationLinks = () => {
         : { href: "/instructors", label: "Trở thành Giảng viên" };
 
     const links = [
-        { href: "/blog", label: "Blog" },
         teachingLink,
     ];
 

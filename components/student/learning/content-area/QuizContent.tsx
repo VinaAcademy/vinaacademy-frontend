@@ -2,7 +2,7 @@
 
 import {FC, useState, useEffect, useRef} from 'react';
 import {ChevronLeft, ChevronRight, Check, Clock, AlertCircle} from 'lucide-react';
-import {Quiz, QuizQuestion as QuizQuestionType} from '@/types/lecture';
+import {Quiz} from '@/types/lecture';
 import QuizProgress from '../quiz/QuizProgress';
 import QuizQuestion from '../quiz/QuizQuestion';
 import QuizResults from '../quiz/QuizResults';
@@ -15,8 +15,9 @@ import {
     cacheQuizAnswer,
     getCachedAnswers
 } from '@/services/quizService';
-import {QuizDto, QuizSubmissionRequest, QuizSubmissionResultDto, UserAnswerRequest, QuizSession} from '@/types/quiz';
+import {QuizSubmissionRequest, QuizSubmissionResultDto, UserAnswerRequest, QuizSession} from '@/types/quiz';
 import {useQueryClient} from '@tanstack/react-query';
+import {LESSON_KEYS} from "@/config/query-keys.config";
 
 interface QuizContentProps {
     courseId: string;
@@ -26,7 +27,7 @@ interface QuizContentProps {
     isCompleted?: boolean;
 }
 
-const QuizContent: FC<QuizContentProps> = ({courseId, lectureId, onLessonCompleted, courseSlug, isCompleted}) => {
+const QuizContent: FC<QuizContentProps> = ({lectureId, onLessonCompleted, courseSlug, isCompleted}) => {
     const queryClient = useQueryClient();
     const [quiz, setQuiz] = useState<Quiz | null>(null);
     const [loading, setLoading] = useState(true);
@@ -39,7 +40,6 @@ const QuizContent: FC<QuizContentProps> = ({courseId, lectureId, onLessonComplet
     const [requireConfirmation, setRequireConfirmation] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [quizResult, setQuizResult] = useState<QuizSubmissionResultDto | null>(null);
-    const [previousSubmission, setPreviousSubmission] = useState<QuizSubmissionResultDto | null>(null);
     const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
     const [sessionExpired, setSessionExpired] = useState(false);
     const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -97,10 +97,6 @@ const QuizContent: FC<QuizContentProps> = ({courseId, lectureId, onLessonComplet
                 // First check if user has already submitted this quiz
                 if (isCompleted) {
                     latestSubmission = await getLatestSubmission(lectureId);
-
-                    if (latestSubmission) {
-                        setPreviousSubmission(latestSubmission);
-                    }
                 }
 
                 // Show previous results if quiz doesn't allow retakes and user has already taken it
@@ -203,7 +199,7 @@ const QuizContent: FC<QuizContentProps> = ({courseId, lectureId, onLessonComplet
             }
         };
 
-        fetchQuizData();
+        fetchQuizData().then();
 
         // Clean up timer on unmount
         return () => {
@@ -230,7 +226,7 @@ const QuizContent: FC<QuizContentProps> = ({courseId, lectureId, onLessonComplet
                     // Hết thời gian, tự động submit
                     clearInterval(timerIntervalRef.current!);
                     setSessionExpired(true);
-                    handleSubmitQuiz();
+                    handleSubmitQuiz().then();
                     return 0;
                 }
             });
@@ -281,8 +277,8 @@ const QuizContent: FC<QuizContentProps> = ({courseId, lectureId, onLessonComplet
             if (result.isPassed) {
                 // Invalidate React Query cache
                 if (courseSlug) {
-                    queryClient.invalidateQueries({
-                        queryKey: ['lecture', courseSlug]
+                    await queryClient.invalidateQueries({
+                        queryKey: LESSON_KEYS.listByCourse(courseSlug)
                     });
                 }
 
@@ -376,17 +372,6 @@ const QuizContent: FC<QuizContentProps> = ({courseId, lectureId, onLessonComplet
 
             cacheQuizAnswer(lectureId, answerRequest)
                 .catch(error => console.error("Failed to cache text answer:", error));
-        }
-    };
-
-    // Kiểm tra xem câu hỏi hiện tại đã được trả lời chưa
-    const isCurrentQuestionAnswered = () => {
-        if (!currentQuestion) return false;
-
-        if (currentQuestion.type === 'text') {
-            return textAnswers[currentQuestion.id || '']?.trim().length > 0;
-        } else {
-            return selectedAnswers[currentQuestion.id || '']?.length > 0;
         }
     };
 
@@ -487,12 +472,12 @@ const QuizContent: FC<QuizContentProps> = ({courseId, lectureId, onLessonComplet
     };
 
     // Mở xác nhận nộp bài
-    const handleConfirmSubmit = () => {
+    const handleConfirmSubmit = async () => {
         // Kiểm tra nếu tất cả câu hỏi bắt buộc đã được trả lời
         if (!areRequiredQuestionsAnswered()) {
             setRequireConfirmation(true);
         } else {
-            handleSubmitQuiz();
+            await handleSubmitQuiz();
         }
     };
 
@@ -744,11 +729,12 @@ const QuizContent: FC<QuizContentProps> = ({courseId, lectureId, onLessonComplet
             {/* Add some global styles - animate-fadeIn class will need to be added to your global CSS */}
             <style jsx global>{`
                 @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                .animate-fadeIn {
-                    animation: fadeIn 0.3s ease-in-out;
+                    from {
+                        opacity: 0;
+                    }
+                    to {
+                        opacity: 1;
+                    }
                 }
             `}</style>
         </div>

@@ -9,6 +9,8 @@ import {NotificationProvider} from "@/context/NotificationContext";
 import {CategoryProvider} from "@/context/CategoryContext";
 import {CartProvider} from "@/context/CartContext";
 import {Toaster} from "@/components/ui/sonner";
+import {WS_ENDPOINTS} from "@/config/api.endpoint";
+import {ChatProvider} from "@/context";
 
 /**
  * AppProvider - Centralized provider composition
@@ -33,7 +35,7 @@ interface AppProviderProps {
 }
 
 export default function AppProvider({children}: AppProviderProps) {
-    const wsUrl = process.env.NEXT_PUBLIC_NOTIFICATION_WS_URL;
+    const wsUrl = WS_ENDPOINTS.NOTIFICATION.URL;
     const debug = process.env.NODE_ENV === 'development';
 
     if (!wsUrl) {
@@ -46,6 +48,7 @@ export default function AppProvider({children}: AppProviderProps) {
                 ToastProvider,
                 AuthProvider,
                 wsUrl ? [NotificationProvider, {debug, wsUrl}] : null,
+                [ChatProvider, {debug, autoConnect: true}],
                 CategoryProvider,
                 CartProvider,
             ]}

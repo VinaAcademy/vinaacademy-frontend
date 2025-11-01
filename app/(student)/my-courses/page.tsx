@@ -1,25 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {useState, useEffect} from "react";
 import CourseCard from "@/components/student/progress/CourseCard";
-import { useFetchCourses } from "@/hooks/course/useFetchCourses";
-import { useFilterCourses } from "@/hooks/course/useFilterCourses";
-import { useSortCourses, SortOption } from "@/hooks/course/useSortCourses";
-import { usePagination } from "@/hooks/course/usePagination";
-import { useQueryClient } from "@tanstack/react-query";
+import {useFetchCourses} from "@/hooks/course/useFetchCourses";
+import {useFilterCourses} from "@/hooks/course/useFilterCourses";
+import {useSortCourses, SortOption} from "@/hooks/course/useSortCourses";
+import {usePagination} from "@/hooks/course/usePagination";
+import {useQueryClient} from "@tanstack/react-query";
+import {COURSE_KEYS} from "@/config/query-keys.config";
+import {APP_CONFIG} from "@/config/app.config";
 
 const MyCoursesPage = () => {
     // State for UI controls
     const [activeTab, setActiveTab] = useState<"all" | "inProgress" | "completed">("all");
     const [searchQuery, setSearchQuery] = useState("");
     const [sortOption, setSortOption] = useState<SortOption>("newest");
-    
+
     // Access the query client
     const queryClient = useQueryClient();
-    
+
     // Custom hook for pagination
-    const { 
-        currentPage, 
+    const {
+        currentPage,
         setCurrentPage,
         totalPages,
         setTotalPages,
@@ -30,14 +32,14 @@ const MyCoursesPage = () => {
     } = usePagination();
 
     // Custom hook for fetching courses with React Query
-    const { 
-        courses, 
-        isLoading, 
+    const {
+        courses,
+        isLoading,
         isError,
         error,
         totalPages: apiTotalPages,
         refetch
-    } = useFetchCourses(activeTab, currentPage, 10);
+    } = useFetchCourses(activeTab, currentPage, APP_CONFIG.COURSES.MY_COURSES_LIMIT);
 
     // Update total pages when API responds
     useEffect(() => {
@@ -50,16 +52,21 @@ const MyCoursesPage = () => {
     useEffect(() => {
         if (hasNextPage) {
             const nextPage = currentPage + 1;
-            const status = activeTab === "inProgress" ? "IN_PROGRESS" : 
-                          activeTab === "completed" ? "COMPLETED" : undefined;
-            
+            const status = activeTab === "inProgress" ? "IN_PROGRESS" :
+                activeTab === "completed" ? "COMPLETED" : undefined;
+
             queryClient.prefetchQuery({
-                queryKey: ['courses', activeTab, nextPage, 10, status],
+                queryKey: COURSE_KEYS.byTab({
+                    activeTab,
+                    currentPage: nextPage,
+                    pageSize: APP_CONFIG.COURSES.MY_COURSES_LIMIT,
+                    status
+                }),
                 queryFn: () => {
                     // Just declare it to trigger prefetching, implementation is in the hook
                     return Promise.resolve(null);
                 }
-            });
+            }).then(r => r);
         }
     }, [currentPage, activeTab, hasNextPage, queryClient]);
 
@@ -69,10 +76,10 @@ const MyCoursesPage = () => {
     }, [activeTab, setCurrentPage]);
 
     // Custom hook for filtering courses
-    const { filteredCourses } = useFilterCourses(courses, searchQuery);
+    const {filteredCourses} = useFilterCourses(courses, searchQuery);
 
     // Custom hook for sorting courses
-    const { sortedCourses } = useSortCourses(filteredCourses, sortOption);
+    const {sortedCourses} = useSortCourses(filteredCourses, sortOption);
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -92,7 +99,7 @@ const MyCoursesPage = () => {
                             className={`py-4 px-6 font-medium text-sm border-b-2 ${activeTab === "all"
                                 ? "border-black text-black"
                                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                                }`}
+                            }`}
                         >
                             Tất cả khóa học
                         </button>
@@ -101,7 +108,7 @@ const MyCoursesPage = () => {
                             className={`py-4 px-6 font-medium text-sm border-b-2 ${activeTab === "inProgress"
                                 ? "border-black text-black"
                                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                                }`}
+                            }`}
                         >
                             Đang học
                         </button>
@@ -110,7 +117,7 @@ const MyCoursesPage = () => {
                             className={`py-4 px-6 font-medium text-sm border-b-2 ${activeTab === "completed"
                                 ? "border-black text-black"
                                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                                }`}
+                            }`}
                         >
                             Hoàn thành
                         </button>
@@ -163,7 +170,7 @@ const MyCoursesPage = () => {
                         </div>
                     </div>
                 )}
-                
+
                 {/* Loading state */}
                 {isLoading ? (
                     <div className="flex justify-center items-center py-12">
@@ -207,7 +214,7 @@ const MyCoursesPage = () => {
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {sortedCourses.map((course) => (
-                                    <CourseCard key={course.id || String(course.enrollmentId)} course={course} />
+                                    <CourseCard key={course.id || String(course.enrollmentId)} course={course}/>
                                 ))}
                             </div>
                         )}
@@ -215,20 +222,25 @@ const MyCoursesPage = () => {
                         {/* Phân trang */}
                         {totalPages > 1 && (
                             <div className="flex justify-center mt-8">
-                                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                                     aria-label="Pagination">
                                     <button
                                         onClick={goToPreviousPage}
                                         disabled={!hasPreviousPage}
                                         className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${!hasPreviousPage ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                                     >
                                         <span className="sr-only">Previous</span>
-                                        <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 01-1.414 1.414l-4-4a1 1 010-1.414l4-4a1 1 011.414 0z" clipRule="evenodd" />
+                                        <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                             fill="currentColor" aria-hidden="true">
+                                            <path fillRule="evenodd"
+                                                  d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 01-1.414 1.414l-4-4a1 1 010-1.414l4-4a1 1 011.414 0z"
+                                                  clipRule="evenodd"/>
                                         </svg>
                                     </button>
 
                                     {/* Hiển thị trang hiện tại và tổng số trang */}
-                                    <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                    <span
+                                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
                                         Trang {currentPage + 1} / {totalPages}
                                     </span>
 
@@ -238,8 +250,11 @@ const MyCoursesPage = () => {
                                         className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${!hasNextPage ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                                     >
                                         <span className="sr-only">Next</span>
-                                        <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fillRule="evenodd" d="M7.293 14.707a1 1 010-1.414L10.586 10 7.293 6.707a1 1 011.414-1.414l4 4a1 1 010 1.414l-4 4a1 1 01-1.414 0z" clipRule="evenodd" />
+                                        <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                             fill="currentColor" aria-hidden="true">
+                                            <path fillRule="evenodd"
+                                                  d="M7.293 14.707a1 1 010-1.414L10.586 10 7.293 6.707a1 1 011.414-1.414l4 4a1 1 010 1.414l-4 4a1 1 01-1.414 0z"
+                                                  clipRule="evenodd"/>
                                         </svg>
                                     </button>
                                 </nav>
@@ -250,7 +265,8 @@ const MyCoursesPage = () => {
 
                 {/* Error State */}
                 {isError && error && (
-                    <div className="text-center py-12 bg-red-50 rounded-lg shadow-sm border border-red-200 text-red-600">
+                    <div
+                        className="text-center py-12 bg-red-50 rounded-lg shadow-sm border border-red-200 text-red-600">
                         <svg
                             className="mx-auto h-12 w-12"
                             fill="none"
@@ -265,7 +281,7 @@ const MyCoursesPage = () => {
                             />
                         </svg>
                         <h3 className="mt-2 text-lg font-medium">Đã xảy ra lỗi</h3>
-                        <p className="mt-1 text-sm">{error instanceof Error ? error.message : 'Lỗi không xác định'}</p>
+                        <p className="mt-1 text-sm">{error.message}</p>
                         <button
                             onClick={() => refetch()}
                             className="mt-4 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"

@@ -1,18 +1,72 @@
 # VinaAcademy Frontend - AI Coding Instructions
 
+<div style="background: linear-gradient(135deg, rgba(84, 180, 211, 1) 0%, rgba(57, 192, 237, 0.2) 100%); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+  <strong>🎯 Tech Stack:</strong> Next.js 15.2.4 • React 19 • TypeScript • App Router • TanStack Query • SockJS/STOMP WebSocket • Microservices • Role-based Access
+</div>
+
+## Quick Reference Card
+
+### ⚡ Critical Rules (Read First!)
+1. **NO DOCUMENTATION FILES** - Never create README.md, SETUP.md, GUIDE.md unless explicitly requested
+2. **ALL API ENDPOINTS** from `config/api.endpoint.ts` - never hardcode URLs (e.g., `API_ENDPOINTS.COURSE.BY_SLUG(slug)`)
+3. **ALL CONFIG VALUES** from `config/app.config.ts` - never hardcode magic numbers (e.g., `APP_CONFIG.COURSES.RECENT_COURSES_LIMIT`)
+4. **Query keys from `config/query-keys.config.ts`** - never create inline keys (e.g., `QUERY_KEYS.COURSE.bySlug(slug)`)
+5. **ALWAYS use `apiClient.ts`** - never use fetch() directly (handles auth + refresh on 401 automatically)
+6. **Services return `null` on errors** - UI handles via React Query loading/error states (don't throw)
+7. **Backend response unwrapping** - Always access `response.data.data` (double data property for all endpoints)
+8. **Windows PowerShell** - Join commands with `;` (e.g., `npm install; npm run dev`)
+
+### File When You Need To...
+| Need | File/Pattern | Example |
+|------|--------------|---------|
+| Add API endpoint | `config/api.endpoint.ts` | `API_ENDPOINTS.COURSE.BY_SLUG(slug)` |
+| Add app constant | `config/app.config.ts` | `APP_CONFIG.COURSES.RECENT_COURSES_LIMIT` |
+| Add query key | `config/query-keys.config.ts` | `QUERY_KEYS.COURSE.bySlug(slug)` in hooks |
+| Create service | `services/[entity]Service.ts` | Return `EntityDto \| null`, log errors |
+| Create hook | `hooks/use[Entity].ts` | Use TanStack Query with proper keys from config |
+| Add route protection | `middleware.ts` | Check `roles.includes('ROLE_admin')` (JWT parsing) |
+| Access auth | `useAuth()` from `context/AuthContext.tsx` | Get user, roles, login/logout |
+| Access notifications | `useWebSocketNotification()` | Get notifications, unreadCount, markAsRead |
+| Access chat | `useChat()` from `context/ChatContext.tsx` | sendTextMessage, loadMessages, conversations |
+| Show toast | `createSuccessToast()` / `createErrorToast()` | From `components/ui/toast-cus` |
+
+### Provider Nesting Order (CRITICAL)
+```
+AppProvider → ReactQuery → Toast → Auth → Notification WS → Chat WS → Category → Cart → LayoutWrapper
+```
+**Order matters!** WebSocket providers MUST be after Auth (need token), before feature contexts.
+
 ## General Guidelines
 
-**IMPORTANT**: Do NOT create markdown documentation files (e.g., README.md, SETUP.md, GUIDE.md, CHANGES.md) after completing tasks unless explicitly requested by the user. Focus on implementing the actual code changes requested. Provide a brief summary in the chat instead.
+> [!IMPORTANT]
+> **CRITICAL**: Do NOT create markdown documentation files (e.g., README.md, SETUP.md, GUIDE.md, CHANGES.md) after completing tasks unless explicitly requested by the user. Focus on implementing the actual code changes requested. Provide a brief summary in the chat instead.
+
+> [!TIP]
+> **WINDOWS POWERSHELL**: This project is developed on Windows with PowerShell. Join commands with `;` separator (e.g., `npm install; npm run dev`). Use forward slashes in paths when passing to Node tools.
+
+<details style="background: rgba(57, 192, 237, 0.2); padding: 12px; border-radius: 6px; border-left: 4px solid rgb(84, 180, 211);">
+<summary><strong>🔑 Key Architectural Principles</strong></summary>
+
+- **Route Groups** organize code without affecting URLs (e.g., `(admin)`, `(student)`, `(auth)`)
+- **API Proxy** handles CORS automatically via `next.config.ts` (all `/api/*` requests)
+- **Dual WebSocket** system separates Notifications from Chat (both auto-reconnect)
+- **JWT Auto-refresh** happens transparently on 401 errors (no user action needed)
+- **Centralized Endpoints** in `config/api.endpoint.ts` (never hardcode URLs)
+- **Provider Composition** via `ComposerProvider` pattern (eliminates provider hell)
+</details>
+
 
 ## Architecture Overview
 
-This is a **Next.js 14+ App Router** e-learning platform with role-based access and microservices integration. Key architectural patterns:
+This is a **Next.js 15.2.4 App Router** e-learning platform with role-based access and microservices integration. Key architectural patterns:
 
 - **Route Groups**: Uses Next.js route groups `(admin)`, `(instructor)`, `(student)`, `(auth)`, `(public)`, `(staff,admin)` for role-based layouts without affecting URLs
 - **API Proxy**: All backend calls proxy through `/api/*` → `${NEXT_PUBLIC_API_URL}/api/v1/*` via `next.config.ts` rewrites
 - **JWT + Cookie Auth**: Access/refresh tokens stored in httpOnly cookies (`access_token`, `refresh_token`), managed by `lib/apiClient.ts` with automatic refresh on 401
-- **Context Providers**: Nested via `providers/AppProvider.tsx` → ReactQuery → Toast → Auth → **WebSocket** → Category → Cart → LayoutWrapper
-- **Real-time Communications**: WebSocket notifications via SockJS + STOMP, globally available through `NotificationContext`
+- **Context Providers**: Nested via `providers/AppProvider.tsx` → ReactQuery → Toast → Auth → **WebSocket (Notifications + Chat)** → Category → Cart → LayoutWrapper
+- **Real-time Communications**: Dual WebSocket system via SockJS + STOMP
+  - **Notifications**: `NotificationContext` for system alerts (course reviews, payments, etc.)
+  - **Chat**: `ChatContext` for real-time messaging (private DMs + group conversations)
 - **Centralized Provider Composition**: `AppProvider.tsx` uses `ComposerProvider` for clean provider nesting
 
 ## Authentication & Authorization
@@ -23,7 +77,14 @@ This is a **Next.js 14+ App Router** e-learning platform with role-based access 
 // /admin/* → requires ROLE_admin
 // /instructor/* → requires ROLE_instructor  
 // /requests/* → requires ROLE_admin OR ROLE_staff
+// /cart, /learning, /my-courses, /payment → any authenticated user
 ```
+
+**Critical Notes**:
+- Route groups `(admin)`, `(instructor)`, `(student)`, etc. do NOT appear in URLs
+- Middleware checks happen BEFORE page loads - no client-side protection needed
+- Unauthorized access redirects to `/` (homepage), not login page
+- Use `pathname.startsWith('/path')` checks for sub-routes
 
 ### Token Management
 - Access tokens auto-refresh via `apiClient.ts` interceptors on 401 responses
@@ -48,10 +109,11 @@ export const useCourses = ({ page = 0, size = 8, status = "PUBLISHED" }) => {
 ### Context Providers (Global State)
 - `AuthContext`: User session, login/logout, role checks - accessed via `useAuth()` hook
 - `NotificationContext`: Real-time notifications via SockJS + STOMP (auto-connect on login) - accessed via `useWebSocketNotification()` hook
+- `ChatContext`: Real-time messaging (private + group chat) via SockJS + STOMP - accessed via `useChat()` hook from `context/ChatContext.tsx`
 - `CartContext`: Shopping cart state across sessions - accessed via `useCart()` hook  
 - `CategoryContext`: Category tree for navigation - accessed via `useCategories()` hook
 
-**Provider Order Matters**: WebSocket must be after Auth (requires token), before feature contexts.
+**Provider Order Matters**: Both WebSocket contexts (Notifications + Chat) must be after Auth (requires token), before feature contexts.
 
 **ComposerProvider Pattern**: `AppProvider.tsx` uses `ComposerProvider` utility for clean provider nesting without "provider hell". Providers can be passed as plain components or as tuples with props:
 ```typescript
@@ -65,7 +127,109 @@ ReactQueryProvider
 wsUrl ? [NotificationProvider, { debug, wsUrl }] : null
 ```
 
+**Dual WebSocket Architecture**:
+- **Notifications**: Uses `lib/websocket.ts` + `NotificationContext` for system-wide alerts
+- **Chat**: Uses `lib/chatWebSocket.ts` + `ChatContext` for peer-to-peer messaging
+- Both share the same SockJS + STOMP infrastructure but have separate connection management
+- Both auto-reconnect with token refresh on authentication errors
+
 ## Service Layer Architecture
+
+### Centralized Endpoint Configuration
+All API endpoints are defined in `config/api.endpoint.ts` for consistency and maintainability:
+
+```typescript
+// Define endpoints as constants
+export const API_ENDPOINTS = {
+  COURSE: {
+    LIST: '/courses',
+    BY_SLUG: (slug: string) => `/courses/by-slug/${slug}`,
+    BY_ID: (id: string) => `/courses/by-id/${id}`,
+  }
+};
+
+// WebSocket endpoints
+export const WS_ENDPOINTS = {
+  NOTIFICATION: { URL: `${WS_BASE_URL}/notification` },
+  CHAT: { URL: `${WS_BASE_URL}/chat` }
+};
+
+// Chat REST endpoints
+export const CHAT_ENDPOINTS = {
+  CONVERSATIONS: { LIST: '/conversations' },
+  MESSAGES: { BY_CONVERSATION: (id: string) => `/messages/conversation/${id}` }
+};
+```
+
+**Usage in Services**: Always import endpoints from config, never hardcode URLs:
+```typescript
+import { API_ENDPOINTS } from '@/config/api.endpoint';
+const response = await apiClient.get(API_ENDPOINTS.COURSE.BY_SLUG(slug));
+```
+
+### Application Configuration
+
+All application-wide constants and settings are centralized in `config/app.config.ts`:
+
+```typescript
+export const APP_CONFIG = {
+  APP_NAME: 'VinaAcademy',
+  APP_TITLE: 'VinaAcademy - Nền tảng học trực tuyến',
+  APP_DESCRIPTION: 'Học mọi lúc, mọi nơi với VinaAcademy',
+  APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  
+  COURSES: {
+    RECENT_COURSES_LIMIT: 5,
+    USER_LEARNING_LIMIT: 5
+  },
+  
+  HIDE_LAYOUT_ROUTES: [
+    "/conversations/",
+    "/instructor",
+    "/instructor/dashboard",
+    "/instructor/courses",
+    "/instructor/students",
+    "/instructor/earnings",
+    "/instructor/profile-settings",
+    "/instructors/become-instructor"
+  ],
+  
+  LOADING_IGNORE_ROUTES: [
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/reset-password"
+  ]
+}
+```
+
+**Key Configuration Sections**:
+- **APP_CONFIG.COURSES**: Business logic constants (pagination limits, display counts)
+- **APP_CONFIG.HIDE_LAYOUT_ROUTES**: Routes that should not show the default layout wrapper
+- **APP_CONFIG.LOADING_IGNORE_ROUTES**: Routes that skip global loading states
+
+**Usage Pattern**:
+```typescript
+import { APP_CONFIG } from '@/config/app.config';
+
+// Use in components
+const limit = APP_CONFIG.COURSES.RECENT_COURSES_LIMIT;
+
+// Check if route should hide layout
+const shouldHideLayout = APP_CONFIG.HIDE_LAYOUT_ROUTES.some(route => 
+  pathname.startsWith(route)
+);
+
+// Check if route should ignore loading indicator
+const ignoreLoading = APP_CONFIG.LOADING_IGNORE_ROUTES.includes(pathname);
+```
+
+**Best Practices**:
+- Always import from `@/config/app.config`, never hardcode magic numbers or route lists
+- Group related constants under namespaced objects (e.g., `COURSES`, `PAYMENT`)
+- Use environment variables for deployment-specific values, constants for business logic
+- Document route-based configurations with comments explaining the behavior
+- Keep route arrays consistent with `middleware.ts` protection patterns
 
 ### API Client Pattern
 ```typescript
@@ -151,6 +315,21 @@ npm run start   # Production server
 npm run lint    # ESLint checking
 ```
 
+**Common Development Commands (Windows PowerShell)**:
+```powershell
+# Start dev server and watch logs
+npm run dev; Pause
+
+# Build and start production locally
+npm run build; npm start
+
+# Run linting and build check
+npm run lint; npm run build
+
+# Specific feature development (e.g., chat)
+npm run dev  # Then navigate to /conversations to test chat context
+```
+
 **Windows/PowerShell Specific**:
 - Join commands with `;` separator: `npm install; npm run dev`
 - Use forward slashes in paths when passing to Node tools
@@ -172,11 +351,32 @@ NEXT_PUBLIC_NOTIFICATION_WS_URL=http://localhost:8080/ws/notification
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Configuration details:
-- **API Proxy**: All `/api/*` requests automatically proxy to `NEXT_PUBLIC_API_URL` via `next.config.ts` rewrites - this handles CORS automatically
+**Configuration details**:
+- **API Proxy**: All `/api/*` AND `/api/v1/*` requests automatically proxy to `NEXT_PUBLIC_API_URL` via `next.config.ts` rewrites - this handles CORS automatically
 - **Cookies**: `secure: true` in production only, `sameSite: 'strict'` always (see `lib/apiClient.ts`)
 - **Docker**: Uses `output: "standalone"` in `next.config.ts` for optimized container builds
 - **Images**: Wildcard `remotePatterns` in `next.config.ts` allows all remote images (backend serves user uploads)
+- **Default fallbacks**: If `NEXT_PUBLIC_API_URL` is missing, defaults to `http://localhost:8080/api/v1`
+
+### Testing & Development Patterns
+- **Mock Data**: Use files in `data/mock*.ts` for development (e.g., `mockCourses.ts`, `mockCourseData.ts`, `mockCartData.ts`, `mockInstructorCourse.ts`)
+- **Error Handling**: Services return `null` on errors for graceful degradation - React Query handles loading/error states
+- **WebSocket Debugging**: Enable debug mode in `AppProvider.tsx` by passing `[NotificationProvider, { debug: true }]` or `[ChatProvider, { debug: true, autoConnect: true }]`
+- **Component Testing**: Most features are testable through UI navigation - Chat WebSocket via `/conversations`, Notifications via bell icon
+- **API Interceptors**: `apiClient.ts` automatically logs all requests to console (check DevTools for `🔄 Request:` prefix)
+- **Token Debugging**: Check browser DevTools → Application → Cookies for `access_token` and `refresh_token` validation
+- **React Query**: DevTools enabled in development mode - check in DevTools or add `@tanstack/react-query-devtools` UI component
+
+### Practical Development Checklist
+When implementing new features:
+1. ✅ Add endpoint to `config/api.endpoint.ts` (never hardcode URLs)
+2. ✅ Add config constants to `config/app.config.ts` if needed (never hardcode magic numbers)
+3. ✅ Add query keys to `config/query-keys.config.ts` (enable proper cache invalidation)
+4. ✅ Create service in `services/[entity]Service.ts` (return `null` on error, use `apiClient`)
+5. ✅ Create/update hook in `hooks/use[Entity].ts` (use TanStack Query with proper keys)
+6. ✅ Test with actual backend or mock data from `data/mock*.ts`
+7. ✅ Verify WebSocket connections work if using real-time features (check browser console)
+8. ✅ Check middleware protection for new routes (if role-based access needed)
 
 ### Real-Time Notifications
 - WebSocket connects automatically when user logs in (has JWT token)
@@ -186,13 +386,89 @@ Configuration details:
 - Backend sends `NotificationDTO` matching `types/notification.ts`
 - Notification sound plays on new notifications (see `utils/notificationSound.ts`)
 
+### Real-Time Chat System
+**Architecture**: Separate WebSocket connection from notifications, managed by `ChatContext` + `lib/chatWebSocket.ts`
+
+**Key Endpoints** (defined in `config/api.endpoint.ts`):
+```typescript
+// WebSocket
+WS_ENDPOINTS.CHAT.URL                            // ws://localhost:8080/ws/chat
+WS_ENDPOINTS.CHAT.PRIVATE_MESSAGE_QUEUE          // /user/queue/pm
+WS_ENDPOINTS.CHAT.GROUP_MESSAGE_WEBSOCKET_TOPIC  // /topic/group/{conversationId}
+WS_ENDPOINTS.CHAT.SEND_PRIVATE_MESSAGE           // /app/pm
+WS_ENDPOINTS.CHAT.SEND_GROUP_MESSAGE             // /app/group
+
+// REST API (paginated message history)
+CHAT_ENDPOINTS.CONVERSATIONS.LIST                // GET /conversations
+CHAT_ENDPOINTS.CONVERSATIONS.DIRECT(userId)      // GET /conversations/direct/{userId}
+CHAT_ENDPOINTS.CONVERSATIONS.CREATE_GROUP        // POST /conversations/groups
+CHAT_ENDPOINTS.MESSAGES.BY_CONVERSATION(id)      // GET /messages/conversation/{id}?page=0&size=50
+```
+
+**Usage Pattern**:
+```typescript
+// 1. Access chat from ChatContext
+import { useChat } from '@/context/ChatContext';
+
+const {
+  connected,                              // WebSocket connection state
+  conversations,                          // All user's conversations
+  messages,                               // Record<conversationId, MessageDto[]>
+  sendTextMessage,                        // Send message via WebSocket
+  loadMessages,                           // Load paginated history via REST
+  startDirectConversation,               // Create/get direct chat
+  subscribeToGroup,                       // Subscribe to group topic
+} = useChat();
+
+// 2. Start a direct conversation (returns existing or creates new)
+const conversation = await startDirectConversation(userId);
+
+// 3. Load message history (paginated, newest first)
+await loadMessages(conversationId, page);
+
+// 4. Send real-time message
+sendTextMessage(conversationId, content, isGroup, recipientId);
+
+// 5. Subscribe to group updates (auto-done for new groups)
+subscribeToGroup(conversationId);
+```
+
+**Data Flow**:
+- **Outbound**: UI → `ChatContext.sendTextMessage()` → `chatWebSocket.ts` → STOMP publish → Backend
+- **Inbound**: Backend → STOMP subscription → `chatWebSocket.ts` message handler → Update `messages` state → UI re-renders
+- **History**: UI → `loadMessages()` → `chatService.ts` REST call → Backend paginated response → Prepend to `messages[conversationId]`
+
+**Token Refresh Integration**:
+- Chat WebSocket client includes `onTokenExpired` callback that auto-refreshes via `authService.refreshToken()`
+- On auth error from backend, triggers refresh and reconnects with new token automatically
+- Max 5 reconnect attempts with exponential backoff
+
+**Types** (see `types/chat.ts`):
+- `ConversationDto`: Conversation metadata (type: DIRECT | GROUP, members, last message)
+- `MessageDto`: Individual message (id, seq, senderId, type: TEXT | IMAGE | FILE, content, timestamp)
+- `MemberDto`: Conversation member with role (OWNER | MOD | MEMBER) and read status
+- `PrivateMessageRequest` / `GroupMessageRequest`: WebSocket send payloads
+
+**UI Components** (see `components/chat/` + `CHAT_QUICKSTART.md`):
+- `<StartChatButton userId={...} />` - Opens direct chat with user
+- `<ChatBadge variant="icon|button" />` - Shows unread count in navigation
+- `/conversations` page - Lists all conversations with search/filter
+- `/conversations/[id]` page - Full chat interface with message history
+
+**Key Differences from Notifications**:
+- **Bidirectional**: Chat allows sending, notifications are receive-only
+- **Paginated History**: Chat loads old messages via REST, notifications don't persist history in frontend
+- **Multiple Subscriptions**: Chat subscribes to multiple group topics dynamically, notifications only `/user/queue/notifications`
+- **Conversation Management**: Chat has CRUD operations for conversations, notifications don't have conversation concept
+
 ### Testing Patterns
 - Services return `null` on error for graceful degradation
 - React Query handles loading/error states
 - Use mock data from `data/mock*.ts` for development
 - `<NotificationDemo />` component for WebSocket testing
 - Mock data includes: `mockCourses.ts`, `mockCourseData.ts`, `mockCartData.ts`, `mockInstructorCourse.ts`
-- Test WebSocket by enabling debug mode in `AppProvider.tsx`: `[WebSocketProvider, { debug: true }]`
+- Test WebSocket by enabling debug mode in `AppProvider.tsx`: `[NotificationProvider, { debug: true }]`
+- Test Chat WebSocket with `[ChatProvider, { debug: true, autoConnect: true }]`
 
 ## Clean Architecture Structure
 
@@ -250,6 +526,41 @@ utils/
 UI Component → Custom Hook → Service Layer → API Client → Backend
            ← React Query ← Response Transform ← HTTP Response ←
 ```
+
+### Backend API Response Structure
+**All API responses follow this nested structure** - ALWAYS unwrap with `response.data.data`:
+
+```typescript
+// Single entity response
+interface ApiResponse<T> {
+  data: T;              // ← Actual data is wrapped in 'data' property
+  status: string;
+  message: string;
+  timestamp: string;
+}
+
+// Paginated responses (for list endpoints)
+interface PaginatedResponse<T> {
+  content: T[];         // Array of items
+  totalElements: number;
+  totalPages: number;
+  size: number;         // Items per page
+  number: number;       // Current page (0-indexed)
+  first: boolean;       // Is this the first page?
+  last: boolean;        // Is this the last page?
+}
+
+// Usage in services:
+const response = await apiClient.get('/courses');
+return response.data.data;        // ✅ Unwraps ApiResponse<T> → T
+const paginated = await apiClient.get('/courses?page=0&size=10');
+return response.data.data;        // ✅ Returns PaginatedResponse<CourseDto>
+```
+
+**Common Error Scenarios**:
+- Missing `response.data.data` unwrap → `TypeError: Cannot read property of undefined`
+- Assuming `response.data` is the entity → Gets ApiResponse wrapper instead of actual data
+- Wrong pagination index → Remember page is 0-indexed (page=0 is first page)
 
 ## Libraries and Frameworks
 
@@ -423,6 +734,73 @@ SYSTEM, PAYMENT_SUCCESS, COURSE_REVIEW, COURSE_APPROVAL,
 SUPPORT_REPLY, PROMOTION, FINANCIAL_ALERT, STAFF_REQUEST, INSTRUCTOR_REQUEST
 ```
 
+## Common Mistakes & Anti-Patterns
+
+### ❌ DON'T DO THIS
+```typescript
+// ❌ Hardcoded URLs
+const response = await fetch('http://localhost:8080/api/v1/courses');
+
+// ❌ Hardcoded config values
+const limit = 5; // What is this magic number?
+
+// ❌ Direct cookie access for auth
+const token = Cookies.get('access_token');
+
+// ❌ Throwing errors in services
+export async function getCourse(id: string): Promise<CourseDto> {
+  const response = await apiClient.get(`/courses/${id}`);
+  if (!response.data) throw new Error('Not found'); // ❌
+  return response.data.data;
+}
+
+// ❌ Client-side route protection
+if (!user?.roles.includes('ROLE_admin')) {
+  router.push('/'); // ❌ Too late - middleware should handle this
+}
+
+// ❌ Assuming numeric IDs
+const courseId: number = 12345; // ❌ Backend uses UUIDs as strings
+
+// ❌ Forgetting API response unwrapping
+return response.data; // ❌ Missing .data property
+```
+
+### ✅ DO THIS INSTEAD
+```typescript
+// ✅ Import from centralized config
+import { API_ENDPOINTS } from '@/config/api.endpoint';
+const response = await apiClient.get(API_ENDPOINTS.COURSE.LIST);
+
+// ✅ Use app config constants
+import { APP_CONFIG } from '@/config/app.config';
+const limit = APP_CONFIG.COURSES.RECENT_COURSES_LIMIT;
+
+// ✅ Use apiClient helper for auth
+import { getAccessToken } from '@/lib/apiClient';
+const token = getAccessToken(); // Handles cookies correctly
+
+// ✅ Return null on error, log details
+export async function getCourse(id: string): Promise<CourseDto | null> {
+  try {
+    const response = await apiClient.get(API_ENDPOINTS.COURSE.BY_ID(id));
+    return response.data.data; // ✅ Unwrap ApiResponse<T>
+  } catch (error) {
+    console.error(`getCourse error for id ${id}:`, error);
+    return null; // ✅ Let UI handle gracefully
+  }
+}
+
+// ✅ Let middleware handle route protection (already done)
+// Just use useAuth() to show/hide UI elements
+
+// ✅ UUIDs as strings
+const courseId: string = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+
+// ✅ Always unwrap response
+return response.data.data; // ✅ Access nested data property
+```
+
 ## Common Pitfalls
 
 1. **Route Groups**: Don't include parentheses in actual URLs - they're for organization only
@@ -431,10 +809,12 @@ SUPPORT_REPLY, PROMOTION, FINANCIAL_ALERT, STAFF_REQUEST, INSTRUCTOR_REQUEST
 4. **TypeScript**: Backend uses UUIDs as strings - don't assume numeric IDs
 5. **Pagination**: Spring Boot pagination is 0-indexed, match this in frontend calls
 6. **WebSocket**: Only connects after user login - check `isConnected` before assuming live connection
-7. **Provider Order**: WebSocket must be nested inside AuthProvider (requires token) but before feature contexts
+7. **Provider Order**: Both WebSocket providers must be nested inside AuthProvider (requires token) but before feature contexts
 8. **Toast Notifications**: Use `createSuccessToast()` / `createErrorToast()` from `components/ui/toast-cus`, not raw toast library
 9. **Auth Redirects**: Middleware redirects to `/login?redirect={pathname}` on 401, and redirects away from `/login` if already authenticated
 10. **API Response Unwrapping**: Backend wraps all responses in `ApiResponse<T>`, always access `response.data.data` not `response.data`
+11. **Chat vs Notifications**: These are two separate WebSocket connections - don't confuse `useChat()` with `useWebSocketNotification()`
+12. **Message Ordering**: Chat messages are newest-first from backend, but displayed oldest-first in UI - reverse in component rendering
 
 ## Debugging & Troubleshooting
 
@@ -500,6 +880,75 @@ const { user } = useAuth();
 const isAdmin = user?.roles?.includes('ROLE_admin');
 ```
 
+### Spring Boot Pagination Pattern
+Backend uses Spring Data pagination (0-indexed). Always respect:
+- `page`: 0-indexed (page=0 is first page)
+- `size`: items per page
+- `sort`: format is `{field},{direction}` (e.g., `sort=createdDate,desc`)
+- Response structure: `{ content: T[], totalElements, totalPages, number, first, last }`
+
+```typescript
+// services/courseService.ts - Real example
+const buildSort = (sortBy: string, sortDirection: 'asc' | 'desc') => `${sortBy},${sortDirection}`;
+
+export async function getCoursesPaginated(
+  page = 0,
+  size = 5,
+  sortBy = 'name',
+  sortDirection: 'asc' | 'desc' = 'asc'
+): Promise<PaginatedResponse<CourseDto> | null> {
+  try {
+    const response = await apiClient.get('/courses', {
+      params: {
+        page,
+        size,
+        sort: buildSort(sortBy, sortDirection), // ✅ Spring format
+      }
+    });
+    return response.data.data; // ✅ Unwrap ApiResponse<PaginatedResponse<T>>
+  } catch (error) {
+    console.error('getCoursesPaginated error:', error);
+    return null;
+  }
+}
+
+// hooks/useCourses.ts - Hook pattern
+export const useCourses = ({
+  page = 0,
+  size = 8,
+  sortBy = 'createdDate',
+  sortDirection = 'desc'
+}: UseCoursesProps = {}) => {
+  return useQuery({
+    queryKey: QUERY_KEYS.COURSE.list({ page, size, sortBy, sortDirection }),
+    queryFn: () => searchCourses(searchRequest, page, size, sortBy, sortDirection),
+  });
+};
+```
+
+### Adding Query Keys for New Features
+Query keys must be centralized in `config/query-keys.config.ts`. This ensures consistent cache invalidation:
+```typescript
+// config/query-keys.config.ts
+const MY_FEATURE_KEYS = {
+  all: ['myFeature'] as const,
+  list: (params) => ['myFeature', params.page, params.size] as const,
+  detail: (id: string) => ['myFeature', id] as const,
+} as const;
+
+// Then export and use in hooks
+export const QUERY_KEYS = {
+  // ... existing keys
+  MY_FEATURE: MY_FEATURE_KEYS,
+} as const;
+
+// In hook:
+useQuery({
+  queryKey: QUERY_KEYS.MY_FEATURE.detail(id),
+  queryFn: () => getMyFeature(id),
+});
+```
+
 ### File Upload Pattern
 ```typescript
 // Use imageService.ts for images, chunkUploadService.ts for videos
@@ -512,7 +961,91 @@ const imageUrl = await uploadImage(formData);
 
 ## Documentation Resources
 
-- **WebSocket Setup**: See `WEBSOCKET_SETUP.md` for quick start
-- **Full WebSocket Docs**: See `docs/WEBSOCKET_NOTIFICATION.md`
+- **Chat Quick Start**: See `CHAT_QUICKSTART.md` for implementing chat UI components
+- **Chat Setup Guide**: See `CHAT_SETUP.md` for full integration details
+- **Chat UI Guide**: See `CHAT_UI_GUIDE.md` for design patterns and component specs
+- **WebSocket Setup**: See `WEBSOCKET_SETUP.md` for notification system quick start
 - **Architecture**: This file
 - **Mock Data**: Check `data/mock*.ts` files for development examples
+
+## Chat/Conversations UI/UX Guidelines
+
+### Standard Component Sizes
+These sizes have been optimized for balance and readability across the chat interface:
+
+#### Page Container
+- Max width: `max-w-4xl` (optimal for conversation lists)
+- Padding: `py-6 px-4` (compact but breathable)
+- Background: `bg-gradient-to-br from-gray-50 via-white to-blue-50/20` (subtle gradient)
+
+#### Header Section
+- Icon container: `p-2.5` with `rounded-xl`
+- Icon size: `h-6 w-6`
+- Title: `text-2xl font-bold` with gradient text
+- Description: `text-sm text-gray-600`
+- Spacing: `gap-3 space-y-3`
+
+#### Status Indicators (Connection Status)
+- Padding: `px-3 py-2`
+- Font: `text-sm font-medium`
+- Status dot: `h-1.5 w-1.5` with `rounded-full`
+- Border radius: `rounded-lg`
+
+#### Search Bar
+- Height: `h-11` (comfortable tap target)
+- Icon size: `h-4 w-4`
+- Font: `text-sm`
+- Padding: `pl-10 pr-4`
+- Border: `border` (single, not border-2)
+- Focus ring: `ring-2` (not ring-4)
+- Border radius: `rounded-xl`
+
+#### Conversation List Container
+- Border radius: `rounded-xl` (consistent with other elements)
+- Shadow: `shadow-md` (moderate depth)
+- Background: `bg-white/80 backdrop-blur-sm`
+
+#### Conversation Item
+- Padding: `p-4` (balanced spacing)
+- Gap: `gap-3`
+- Avatar size: `size={48}` (readable but not overwhelming)
+- Online indicator: `h-3 w-3` (subtle presence indicator)
+- Ring on unread: `ring-2 ring-blue-400` (noticeable but not harsh)
+- Title font: `text-sm font-semibold`
+- Message preview: `text-xs`
+- Unread badge: `h-5 min-w-[20px] px-1.5` with `text-xs`
+- Hover effect: `hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/30`
+
+#### Empty States
+- Padding: `py-16 px-6` (centered attention)
+- Icon container: `p-6` with `rounded-full`
+- Icon size: `h-10 w-10`
+- Title: `text-xl font-bold`
+- Description: `text-sm`
+- Button: `px-4 py-2 rounded-lg`
+
+#### Loading Skeletons
+- Padding: `p-4`
+- Gap: `gap-3`
+- Avatar: `h-12 w-12`
+- Content spacing: `space-y-2`
+
+### Design Patterns
+- Use `backdrop-blur-sm` for glass morphism effect
+- Gradient overlays on hover: `from-blue-500/0 to-purple-500/0` → `from-blue-500/5 to-purple-500/5`
+- Ring effects for focus/unread: `ring-2` with appropriate color
+- Smooth transitions: `transition-all duration-300`
+- Staggered animations: `style={{ animationDelay: \`\${index * 30}ms\` }}`
+- Border radius consistency: `rounded-xl` for containers, `rounded-lg` for smaller elements
+- Status dots: `h-1.5 w-1.5` for compact indicators
+
+### Color Palette
+- Primary gradient: `from-blue-600 to-purple-600`
+- Hover states: `blue-50` to `purple-50` with low opacity
+- Unread highlight: `from-blue-50/60 to-transparent` with `border-l-4 border-l-blue-500`
+- Text hierarchy: 
+  - Primary: `text-gray-900` (headings)
+  - Secondary: `text-gray-800` (normal text)
+  - Tertiary: `text-gray-600` (descriptions)
+  - Muted: `text-gray-500` (timestamps)
+  - Active/Unread: `text-blue-600`
