@@ -1,27 +1,26 @@
 // components/lecture/content/quiz/QuizEditor.tsx
-import {useState, useEffect} from 'react';
-import {Quiz, QuizQuestion, QuizOption, Lecture, QuestionType as UIQuestionType} from '@/types/lecture';
+import React, {useEffect, useState} from 'react';
+import {Lecture, QuestionType as UIQuestionType, Quiz, QuizOption, QuizQuestion} from '@/types/lecture';
 import QuizHeader from './QuizHeader';
 import QuestionList from './QuestionList';
 import QuizSettings from './QuizSettings';
 import QuizPreview from './preview/QuizPreview';
 import QuizTips from './QuizTips';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import {useToast} from '@/hooks/use-toast';
+import {Loader2} from 'lucide-react';
 
 // Import our new hooks for quiz instructor APIs
-import { 
-    useQuizForInstructor,
-    useCreateQuestion,
-    useUpdateQuestion,
-    useDeleteQuestion,
+import {
     useCreateAnswer,
+    useCreateQuestion,
+    useDeleteAnswer,
+    useDeleteQuestion,
+    useQuizForInstructor,
     useUpdateAnswer,
-    useDeleteAnswer
+    useUpdateQuestion
 } from '@/hooks/instructor/useQuizInstructor';
-import { QuestionType as APIQuestionType } from '@/types/quiz'; // Import the QuestionType enum with alias
-import { quizDtoToQuiz } from '@/adapters/quizAdapter';
-import { v4 as uuidv4 } from 'uuid';
+import {QuestionType as APIQuestionType} from '@/types/quiz'; // Import the QuestionType enum with alias
+import {quizDtoToQuiz} from '@/adapters/quizAdapter';
 
 // Helper function to convert API question type to UI question type
 const apiToUIQuestionType = (apiType: APIQuestionType): UIQuestionType => {
@@ -32,8 +31,6 @@ const apiToUIQuestionType = (apiType: APIQuestionType): UIQuestionType => {
             return 'multiple_choice';
         case APIQuestionType.TRUE_FALSE:
             return 'true_false';
-        case APIQuestionType.TEXT:
-            return 'text';
         default:
             return 'single_choice';
     }
@@ -48,8 +45,6 @@ const uiToAPIQuestionType = (uiType: UIQuestionType): APIQuestionType => {
             return APIQuestionType.MULTIPLE_CHOICE;
         case 'true_false':
             return APIQuestionType.TRUE_FALSE;
-        case 'text':
-            return APIQuestionType.TEXT;
         default:
             return APIQuestionType.SINGLE_CHOICE;
     }
@@ -110,7 +105,7 @@ export default function QuizEditor({lecture, setLecture, sectionId}: QuizEditorP
 
     // Initialize default quiz if none exists
     const initializeDefaultQuiz = (): Quiz => {
-        const defaultQuiz: Quiz = {
+        return {
             questions: [],
             settings: {
                 randomizeQuestions: false,
@@ -121,8 +116,6 @@ export default function QuizEditor({lecture, setLecture, sectionId}: QuizEditorP
             },
             totalPoints: 0
         };
-        
-        return defaultQuiz;
     };
 
     // Safely get quiz object
@@ -312,11 +305,6 @@ export default function QuizEditor({lecture, setLecture, sectionId}: QuizEditorP
                         { text: 'Đúng', isCorrect: true },
                         { text: 'Sai', isCorrect: false }
                     ];
-                }
-                
-                // For text type, no options needed
-                if (type === APIQuestionType.TEXT) {
-                    options = [];
                 }
                 
                 return {...q, type: apiToUIQuestionType(type), options};

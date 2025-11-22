@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { QuizQuestion } from '@/types/lecture';
 import { QuestionType } from '@/types/quiz';  // Import the QuestionType enum
 import { Save, PenSquare } from 'lucide-react';
 
@@ -50,8 +49,6 @@ export default function QuestionForm({
                 return "bg-green-100 text-green-700 border-green-200";
             case QuestionType.TRUE_FALSE:
                 return "bg-amber-100 text-amber-700 border-amber-200";
-            case QuestionType.TEXT:
-                return "bg-purple-100 text-purple-700 border-purple-200";
             default:
                 return "bg-gray-100 text-gray-700 border-gray-200";
         }
@@ -99,14 +96,12 @@ export default function QuestionForm({
                             <option value={QuestionType.SINGLE_CHOICE}>Chọn một đáp án</option>
                             <option value={QuestionType.MULTIPLE_CHOICE}>Chọn nhiều đáp án</option>
                             <option value={QuestionType.TRUE_FALSE}>Đúng / Sai</option>
-                            <option value={QuestionType.TEXT}>Câu trả lời tự luận</option>
                         </select>
                     </div>
                     <div className={`mt-2 inline-block px-3 py-1 rounded-full text-xs font-medium ${getTypeClass()}`}>
                         {type === QuestionType.SINGLE_CHOICE && "Chọn một đáp án"}
                         {type === QuestionType.MULTIPLE_CHOICE && "Chọn nhiều đáp án"}
                         {type === QuestionType.TRUE_FALSE && "Đúng / Sai"}
-                        {type === QuestionType.TEXT && "Câu trả lời tự luận"}
                     </div>
                 </div>
 

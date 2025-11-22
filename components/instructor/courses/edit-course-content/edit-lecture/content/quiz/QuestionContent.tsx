@@ -1,7 +1,4 @@
 import {
-    ChevronUp,
-    ChevronDown,
-    Copy,
     Trash2,
     Lightbulb,
     ArrowUp,
@@ -13,7 +10,7 @@ import { QuestionType } from '@/types/quiz';  // Import the QuestionType enum
 import QuestionForm from './QuestionForm';
 import QuestionOptions from './QuestionOptions';
 import QuestionActions from './QuestionActions';
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 interface QuestionContentProps {
     question: QuizQuestion;
@@ -46,7 +43,6 @@ export default function QuestionContent({
                                             onToggleOptionCorrect,
                                             onUpdateExplanation,
                                             onUpdatePoints,
-                                            onToggleRequired,
                                             onDuplicate,
                                             onRemove,
                                             onMoveUp,
@@ -107,7 +103,7 @@ export default function QuestionContent({
                 text={question.text}
                 type={(question.type === 'single_choice' ? QuestionType.SINGLE_CHOICE :
                     question.type === 'multiple_choice' ? QuestionType.MULTIPLE_CHOICE :
-                    question.type === 'true_false' ? QuestionType.TRUE_FALSE : QuestionType.TEXT) as QuestionType}  // Updated type
+                        QuestionType.TRUE_FALSE) as QuestionType}  // Updated type
                 points={question.points}
                 onUpdateText={onUpdateText}
                 onUpdateType={onUpdateType}
@@ -120,7 +116,7 @@ export default function QuestionContent({
                     questionType={
                         question.type === 'single_choice' ? QuestionType.SINGLE_CHOICE :
                         question.type === 'multiple_choice' ? QuestionType.MULTIPLE_CHOICE :
-                        question.type === 'true_false' ? QuestionType.TRUE_FALSE : QuestionType.TEXT
+                            QuestionType.TRUE_FALSE
                     }
                     options={question.options || []}
                     onAddOption={onAddOption}
@@ -132,7 +128,7 @@ export default function QuestionContent({
 
             {/* Question Explanation */}
             <div className="bg-amber-50 p-5 rounded-lg border border-amber-100">
-                <label htmlFor={`explanation-${question.id}`} className="block text-sm font-medium text-amber-800 mb-2 flex items-center">
+                <label htmlFor={`explanation-${question.id}`} className="block text-sm font-medium text-amber-800 mb-2 items-center">
                     <Lightbulb className="h-4 w-4 mr-2 text-amber-600" />
                     Giải thích đáp án
                 </label>

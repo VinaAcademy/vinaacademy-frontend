@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { QuizOption } from '@/types/lecture';
 import { QuestionType } from '@/types/quiz';  // Import the QuestionType enum
@@ -21,14 +20,6 @@ export default function QuestionOptions({
                                             onUpdateOptionText,
                                             onToggleOptionCorrect
                                         }: QuestionOptionsProps) {
-    // Only show options for choice-based questions
-    if (questionType === QuestionType.TEXT) {
-        return (
-            <div className="p-4 bg-gray-50 rounded-md text-gray-600 text-sm italic">
-                Câu hỏi tự luận không có lựa chọn. Học viên sẽ nhập câu trả lời vào ô văn bản.
-            </div>
-        );
-    }
 
     return (
         <div>

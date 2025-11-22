@@ -1,11 +1,9 @@
 import { BaseDto } from "./api-response";
-import { LessonType } from "./course";
 import { LessonRequest } from "./lesson";
 
 export enum QuestionType {
   MULTIPLE_CHOICE = 'MULTIPLE_CHOICE',
   SINGLE_CHOICE = 'SINGLE_CHOICE',
-  TEXT = 'TEXT',
   TRUE_FALSE = 'TRUE_FALSE'
 }
 
