@@ -1,25 +1,23 @@
 import { Plus } from 'lucide-react';
 import { QuizOption } from '@/types/lecture';
-import { QuestionType } from '@/types/quiz';  // Import the QuestionType enum
+import { QuestionType } from '@/types/quiz';
 import OptionItem from './OptionItem';
+import { useQuizEdit } from '@/context/QuizEditContext';
 
 interface QuestionOptionsProps {
-    questionType: QuestionType;  // Updated type
+    questionId: string;
+    questionType: QuestionType;
     options: QuizOption[];
-    onAddOption: () => void;
-    onRemoveOption: (optionId: string) => void;
-    onUpdateOptionText: (optionId: string, text: string) => void;
-    onToggleOptionCorrect: (optionId: string) => void;
 }
 
 export default function QuestionOptions({
+                                            questionId,
                                             questionType,
-                                            options,
-                                            onAddOption,
-                                            onRemoveOption,
-                                            onUpdateOptionText,
-                                            onToggleOptionCorrect
+                                            options
                                         }: QuestionOptionsProps) {
+    const { 
+        onAddOption
+    } = useQuizEdit();
 
     return (
         <div>
@@ -31,7 +29,7 @@ export default function QuestionOptions({
                 {questionType !== QuestionType.TRUE_FALSE && (
                     <button
                         type="button"
-                        onClick={onAddOption}
+                        onClick={() => onAddOption(questionId)}
                         className="inline-flex items-center text-xs text-black hover:text-gray-900"
                     >
                         <Plus size={14} className="mr-1"/> Thêm lựa chọn
@@ -43,12 +41,10 @@ export default function QuestionOptions({
                 {options.map((option, index) => (
                     option.id ? <OptionItem
                         key={option.id}
+                        questionId={questionId}
                         option={option}
                         optionIndex={index}
                         questionType={questionType}
-                        onRemove={() => onRemoveOption(option.id || '')}
-                        onUpdateText={(text) => onUpdateOptionText(option.id || '', text)}
-                        onToggleCorrect={() => onToggleOptionCorrect(option.id || '')}
                         // For True/False or if there are only 2 options, don't allow removal
                         canRemove={questionType !== QuestionType.TRUE_FALSE && options.length > 2}
                     /> : null

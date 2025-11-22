@@ -6,48 +6,45 @@ import {
     Save
 } from 'lucide-react';
 import {QuizQuestion} from '@/types/lecture';
-import { QuestionType } from '@/types/quiz';  // Import the QuestionType enum
+import { QuestionType as QuizQuestionType } from '@/types/quiz';
 import QuestionForm from './QuestionForm';
 import QuestionOptions from './QuestionOptions';
-import QuestionActions from './QuestionActions';
 import React, { useState } from 'react';
+import { useQuizEdit } from '@/context/QuizEditContext';
+
+// Helper to convert lecture question type (string) to quiz question type (enum)
+const toQuizQuestionType = (type: string): QuizQuestionType => {
+    switch(type) {
+        case 'single_choice':
+            return QuizQuestionType.SINGLE_CHOICE;
+        case 'multiple_choice':
+            return QuizQuestionType.MULTIPLE_CHOICE;
+        case 'true_false':
+            return QuizQuestionType.TRUE_FALSE;
+        default:
+            return QuizQuestionType.SINGLE_CHOICE;
+    }
+};
 
 interface QuestionContentProps {
     question: QuizQuestion;
     index: number;
     totalQuestions: number;
-    onUpdateText: (text: string) => void;
-    onUpdateType: (type: QuestionType) => void;  // Updated type
-    onAddOption: () => void;
-    onRemoveOption: (optionId: string) => void;
-    onUpdateOptionText: (optionId: string, text: string) => void;
-    onToggleOptionCorrect: (optionId: string) => void;
-    onUpdateExplanation: (text: string) => void;
-    onUpdatePoints: (points: number) => void;
-    onToggleRequired: () => void;
-    onDuplicate: () => void;
-    onRemove: () => void;
-    onMoveUp: () => void;
-    onMoveDown: () => void;
 }
 
 export default function QuestionContent({
                                             question,
                                             index,
-                                            totalQuestions,
-                                            onUpdateText,
-                                            onUpdateType,
-                                            onAddOption,
-                                            onRemoveOption,
-                                            onUpdateOptionText,
-                                            onToggleOptionCorrect,
-                                            onUpdateExplanation,
-                                            onUpdatePoints,
-                                            onDuplicate,
-                                            onRemove,
-                                            onMoveUp,
-                                            onMoveDown
+                                            totalQuestions
                                         }: QuestionContentProps) {
+    const {
+        onUpdateQuestionText,
+        onUpdateQuestionType,
+        onUpdateExplanation,
+        onUpdatePoints,
+        onRemoveQuestion,
+        onMoveQuestion
+    } = useQuizEdit();
 
     const [explanation, setExplanation] = useState(question.explanation || '');
     const [isExplanationChanged, setIsExplanationChanged] = useState(false);
@@ -58,7 +55,7 @@ export default function QuestionContent({
     };
 
     const saveExplanation = () => {
-        onUpdateExplanation(explanation);
+        onUpdateExplanation(question.id || '', explanation);
         setIsExplanationChanged(false);
     };
 
@@ -69,7 +66,7 @@ export default function QuestionContent({
                 <div className="flex space-x-2">
                     <button
                         type="button"
-                        onClick={onMoveUp}
+                        onClick={() => onMoveQuestion(question.id || '', 'up')}
                         disabled={index === 0}
                         className={`p-2 text-gray-600 hover:bg-gray-100 rounded ${index === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                         title="Di chuyển lên"
@@ -78,7 +75,7 @@ export default function QuestionContent({
                     </button>
                     <button
                         type="button"
-                        onClick={onMoveDown}
+                        onClick={() => onMoveQuestion(question.id || '', 'down')}
                         disabled={index === totalQuestions - 1}
                         className={`p-2 text-gray-600 hover:bg-gray-100 rounded ${index === totalQuestions - 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
                         title="Di chuyển xuống"
@@ -89,7 +86,7 @@ export default function QuestionContent({
                 <div>
                     <button
                         type="button"
-                        onClick={onRemove}
+                        onClick={() => onRemoveQuestion(question.id || '')}
                         className="p-2 text-red-600 hover:bg-red-50 hover:text-red-700 rounded transition-colors"
                         title="Xóa câu hỏi"
                     >
@@ -101,28 +98,19 @@ export default function QuestionContent({
             {/* Question Form - Text & Type & Points */}
             <QuestionForm
                 text={question.text}
-                type={(question.type === 'single_choice' ? QuestionType.SINGLE_CHOICE :
-                    question.type === 'multiple_choice' ? QuestionType.MULTIPLE_CHOICE :
-                        QuestionType.TRUE_FALSE) as QuestionType}  // Updated type
+                type={toQuizQuestionType(question.type)}
                 points={question.points}
-                onUpdateText={onUpdateText}
-                onUpdateType={onUpdateType}
-                onUpdatePoints={onUpdatePoints}
+                onUpdateText={(text) => onUpdateQuestionText(question.id || '', text)}
+                onUpdateType={(type) => onUpdateQuestionType(question.id || '', type)}
+                onUpdatePoints={(points) => onUpdatePoints(question.id || '', points)}
             />
 
             {/* Question Options */}
             <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 transition-all hover:shadow-sm">
                 <QuestionOptions
-                    questionType={
-                        question.type === 'single_choice' ? QuestionType.SINGLE_CHOICE :
-                        question.type === 'multiple_choice' ? QuestionType.MULTIPLE_CHOICE :
-                            QuestionType.TRUE_FALSE
-                    }
+                    questionId={question.id || ''}
+                    questionType={toQuizQuestionType(question.type)}
                     options={question.options || []}
-                    onAddOption={onAddOption}
-                    onRemoveOption={onRemoveOption}
-                    onUpdateOptionText={onUpdateOptionText}
-                    onToggleOptionCorrect={onToggleOptionCorrect}
                 />
             </div>
 
@@ -151,16 +139,6 @@ export default function QuestionContent({
                     </button>
                 </div>
             </div>
-
-            {/* Question Actions */}
-            <QuestionActions
-                index={index}
-                totalQuestions={totalQuestions}
-                onDuplicate={onDuplicate}
-                onRemove={onRemove}
-                onMoveUp={onMoveUp}
-                onMoveDown={onMoveDown}
-            />
         </div>
     );
 }

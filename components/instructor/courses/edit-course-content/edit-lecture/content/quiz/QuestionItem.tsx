@@ -1,12 +1,9 @@
 import {
     ChevronUp,
     ChevronDown,
-    Copy,
-    Trash2,
     Edit,
     CheckCircle2
 } from 'lucide-react';
-import {QuestionType} from '@/types/quiz';
 import QuestionContent from './QuestionContent';
 import {QuizQuestion} from '@/types/lecture';
 import {useState} from 'react';
@@ -17,18 +14,6 @@ interface QuestionItemProps {
     isExpanded: boolean;
     onToggleExpand: () => void;
     totalQuestions: number;
-    onRemove: (id: string) => void;
-    onDuplicate: (id: string) => void;
-    onUpdateText: (id: string, text: string) => void;
-    onUpdateType: (id: string, type: QuestionType) => void;
-    onAddOption: (id: string) => void;
-    onRemoveOption: (questionId: string, optionId: string) => void;
-    onUpdateOptionText: (questionId: string, optionId: string, text: string) => void;
-    onToggleOptionCorrect: (questionId: string, optionId: string) => void;
-    onUpdateExplanation: (id: string, explanation: string) => void;
-    onUpdatePoints: (id: string, points: number) => void;
-    onToggleRequired: (id: string) => void;
-    onMove: (id: string, direction: 'up' | 'down') => void;
 }
 
 export default function QuestionItem({
@@ -36,23 +21,10 @@ export default function QuestionItem({
                                          index,
                                          isExpanded,
                                          onToggleExpand,
-                                         totalQuestions,
-                                         onRemove,
-                                         onDuplicate,
-                                         onUpdateText,
-                                         onUpdateType,
-                                         onAddOption,
-                                         onRemoveOption,
-                                         onUpdateOptionText,
-                                         onToggleOptionCorrect,
-                                         onUpdateExplanation,
-                                         onUpdatePoints,
-                                         onToggleRequired,
-                                         onMove
+                                         totalQuestions
                                      }: QuestionItemProps) {
     const [isHovered, setIsHovered] = useState(false);
-
-    // Check if question is valid
+// Check if question is valid
     const isValid = question.text &&
         (question.type === 'text' ||
             question.options.some(o => o.text && o.isCorrect));
@@ -145,19 +117,6 @@ export default function QuestionItem({
                     question={question}
                     index={index}
                     totalQuestions={totalQuestions}
-                    onUpdateText={(text) => onUpdateText(question.id || '', text)}
-                    onUpdateType={(type) => onUpdateType(question.id || '', type)}
-                    onAddOption={() => onAddOption(question.id || '')}
-                    onRemoveOption={(optionId) => onRemoveOption(question.id || '', optionId)}
-                    onUpdateOptionText={(optionId, text) => onUpdateOptionText(question.id || '', optionId, text)}
-                    onToggleOptionCorrect={(optionId) => onToggleOptionCorrect(question.id || '', optionId)}
-                    onUpdateExplanation={(text) => onUpdateExplanation(question.id || '', text)}
-                    onUpdatePoints={(points) => onUpdatePoints(question.id || '', points)}
-                    onToggleRequired={() => onToggleRequired(question.id || '')}
-                    onDuplicate={() => onDuplicate(question.id || '')}
-                    onRemove={() => onRemove(question.id || '')}
-                    onMoveUp={() => onMove(question.id || '', 'up')}
-                    onMoveDown={() => onMove(question.id || '', 'down')}
                 />
             )}
         </div>

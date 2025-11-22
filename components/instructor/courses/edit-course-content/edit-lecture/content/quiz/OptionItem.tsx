@@ -2,26 +2,29 @@ import { useState, useEffect } from 'react';
 import { Trash2, Check, Save, X } from 'lucide-react';
 import { QuizOption } from '@/types/lecture';
 import { QuestionType } from '@/types/quiz';
+import { useQuizEdit } from '@/context/QuizEditContext';
 
 interface OptionItemProps {
+    questionId: string;
     option: QuizOption;
     optionIndex: number;
     questionType: QuestionType;
-    onRemove: () => void;
-    onUpdateText: (text: string) => void;
-    onToggleCorrect: () => void;
     canRemove: boolean;
 }
 
 export default function OptionItem({
+                                       questionId,
                                        option,
                                        optionIndex,
                                        questionType,
-                                       onRemove,
-                                       onUpdateText,
-                                       onToggleCorrect,
                                        canRemove
                                    }: OptionItemProps) {
+    const { 
+        onRemoveOption, 
+        onUpdateOptionText, 
+        onToggleOptionCorrect 
+    } = useQuizEdit();
+    
     // Local state for option text
     const [localText, setLocalText] = useState(option.text);
     const [isEditing, setIsEditing] = useState(false);
@@ -34,7 +37,7 @@ export default function OptionItem({
 
     // Save option text changes
     const handleSaveText = () => {
-        onUpdateText(localText);
+        onUpdateOptionText(questionId, option.id || '', localText);
         setIsEditing(false);
     };
 
@@ -57,14 +60,14 @@ export default function OptionItem({
             <div>
                 {questionType === QuestionType.MULTIPLE_CHOICE ? (
                     <div 
-                        onClick={onToggleCorrect}
+                        onClick={() => onToggleOptionCorrect(questionId, option.id || '')}
                         className={`h-5 w-5 flex items-center justify-center border ${option.isCorrect ? 'border-green-500 bg-green-500' : 'border-gray-400'} rounded cursor-pointer transition-colors`}
                     >
                         {option.isCorrect && <Check size={14} className="text-white" />}
                     </div>
                 ) : (
                     <div 
-                        onClick={onToggleCorrect}
+                        onClick={() => onToggleOptionCorrect(questionId, option.id || '')}
                         className={`h-5 w-5 flex items-center justify-center border ${option.isCorrect ? 'border-green-500 bg-green-500' : 'border-gray-400'} rounded-full cursor-pointer transition-colors`}
                     >
                         {option.isCorrect && <div className="w-3 h-3 bg-white rounded-full"></div>}
@@ -119,7 +122,7 @@ export default function OptionItem({
                     isHovered && canRemove && (
                         <button
                             type="button"
-                            onClick={onRemove}
+                            onClick={() => onRemoveOption(questionId, option.id || '')}
                             className="inline-flex items-center p-1.5 text-sm text-white bg-red-500 hover:bg-red-600 rounded transition-colors"
                             title="Xóa lựa chọn"
                         >

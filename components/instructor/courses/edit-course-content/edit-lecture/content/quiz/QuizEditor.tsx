@@ -5,9 +5,9 @@ import QuizHeader from './QuizHeader';
 import QuestionList from './QuestionList';
 import QuizSettings from './QuizSettings';
 import QuizPreview from './preview/QuizPreview';
-import QuizTips from './QuizTips';
 import {useToast} from '@/hooks/use-toast';
 import {Loader2} from 'lucide-react';
+import { QuizEditProvider } from '@/context/QuizEditContext';
 
 // Import our new hooks for quiz instructor APIs
 import {
@@ -708,61 +708,64 @@ export default function QuizEditor({lecture, setLecture, sectionId}: QuizEditorP
     }
 
     return (
-        <div className="mt-6 space-y-8">
-            {/* 1. Tiêu đề Quiz với nút Xem trước */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-blue-100 transition-all hover:shadow-md">
-                <QuizHeader
-                    totalPoints={totalPoints}
-                    hasValidQuestions={hasValidQuestions}
-                    onPreview={() => setShowPreview(true)}
-                    lecture={lecture}
-                    sectionId={sectionId}
-                    onSaved={(updatedLecture) => setLecture(updatedLecture)}
-                />
-            </div>
+        <QuizEditProvider
+            value={{
+                // Question handlers
+                onAddQuestion: addQuestion,
+                onRemoveQuestion: removeQuestion,
+                onDuplicateQuestion: () => {}, // TODO: Implement duplicate functionality
+                onUpdateQuestionText: updateQuestionText,
+                onUpdateQuestionType: updateQuestionType,
+                onUpdateExplanation: updateExplanation,
+                onUpdatePoints: updatePoints,
+                onToggleRequired: toggleRequired,
+                onMoveQuestion: moveQuestion,
+                
+                // Option handlers
+                onAddOption: addOption,
+                onRemoveOption: removeOption,
+                onUpdateOptionText: updateOptionText,
+                onToggleOptionCorrect: toggleOptionCorrect,
+                
+                // Expansion state
+                expandedQuestion,
+                setExpandedQuestion
+            }}
+        >
+            <div className="mt-6 space-y-8">
+                {/* 1. Tiêu đề Quiz với nút Xem trước */}
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-blue-100 transition-all hover:shadow-md">
+                    <QuizHeader
+                        totalPoints={totalPoints}
+                        hasValidQuestions={hasValidQuestions}
+                        onPreview={() => setShowPreview(true)}
+                        lecture={lecture}
+                        sectionId={sectionId}
+                        onSaved={(updatedLecture) => setLecture(updatedLecture)}
+                    />
+                </div>
 
-            {/* 2. Danh sách câu hỏi */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 transition-all hover:shadow-md">
-                <QuestionList
-                    questions={questions}
-                    expandedQuestion={expandedQuestion}
-                    setExpandedQuestion={setExpandedQuestion}
-                    onAddQuestion={addQuestion}
-                    onRemoveQuestion={removeQuestion}
-                    onDuplicateQuestion={() => {}}
-                    onUpdateQuestionText={updateQuestionText}
-                    onUpdateQuestionType={updateQuestionType}
-                    onAddOption={addOption}
-                    onRemoveOption={removeOption}
-                    onUpdateOptionText={updateOptionText}
-                    onToggleOptionCorrect={toggleOptionCorrect}
-                    onUpdateExplanation={updateExplanation}
-                    onUpdatePoints={updatePoints}
-                    onToggleRequired={toggleRequired}
-                    onMoveQuestion={moveQuestion}
-                />
-            </div>
+                {/* 2. Danh sách câu hỏi */}
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 transition-all hover:shadow-md">
+                    <QuestionList questions={questions} />
+                </div>
 
-            {/* 3. Cài đặt Quiz */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-blue-100 transition-all hover:shadow-md">
-                <QuizSettings
-                    settings={quiz.settings}
-                    onUpdateSettings={updateSettings}
-                />
-            </div>
+                {/* 3. Cài đặt Quiz */}
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-blue-100 transition-all hover:shadow-md">
+                    <QuizSettings
+                        settings={quiz.settings}
+                        onUpdateSettings={updateSettings}
+                    />
+                </div>
 
-            {/* 4. Mẹo Quiz */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 shadow-sm border border-blue-100">
-                <QuizTips/>
+                {/* 5. Modal Xem trước Quiz */}
+                {showPreview && quiz && (
+                    <QuizPreview 
+                        quiz={quiz} 
+                        onClose={() => setShowPreview(false)}
+                    />
+                )}
             </div>
-
-            {/* 5. Modal Xem trước Quiz */}
-            {showPreview && quiz && (
-                <QuizPreview 
-                    quiz={quiz} 
-                    onClose={() => setShowPreview(false)}
-                />
-            )}
-        </div>
+        </QuizEditProvider>
     );
 }
