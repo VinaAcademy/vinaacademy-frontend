@@ -1,45 +1,15 @@
 import {Plus, BookOpen} from 'lucide-react';
 import {QuizQuestion} from '@/types/lecture';
 import QuestionItem from './QuestionItem';
-import {QuestionType} from '@/types/quiz';
+import { useQuizEdit } from '@/context/QuizEditContext';
 
 interface QuestionListProps {
     questions: QuizQuestion[];
-    expandedQuestion: string;
-    setExpandedQuestion: (id: string) => void;
-    onAddQuestion: () => void;
-    onRemoveQuestion: (id: string) => void;
-    onDuplicateQuestion: (id: string) => void;
-    onUpdateQuestionText: (id: string, text: string) => void;
-    onUpdateQuestionType: (id: string, type: QuestionType) => void;
-    onAddOption: (id: string) => void;
-    onRemoveOption: (questionId: string, optionId: string) => void;
-    onUpdateOptionText: (questionId: string, optionId: string, text: string) => void;
-    onToggleOptionCorrect: (questionId: string, optionId: string) => void;
-    onUpdateExplanation: (id: string, explanation: string) => void;
-    onUpdatePoints: (id: string, points: number) => void;
-    onToggleRequired: (id: string) => void;
-    onMoveQuestion: (id: string, direction: 'up' | 'down') => void;
 }
 
-export default function QuestionList({
-                                         questions,
-                                         expandedQuestion,
-                                         setExpandedQuestion,
-                                         onAddQuestion,
-                                         onRemoveQuestion,
-                                         onDuplicateQuestion,
-                                         onUpdateQuestionText,
-                                         onUpdateQuestionType,
-                                         onAddOption,
-                                         onRemoveOption,
-                                         onUpdateOptionText,
-                                         onToggleOptionCorrect,
-                                         onUpdateExplanation,
-                                         onUpdatePoints,
-                                         onToggleRequired,
-                                         onMoveQuestion
-                                     }: QuestionListProps) {
+export default function QuestionList({ questions }: QuestionListProps) {
+    const { expandedQuestion, setExpandedQuestion, onAddQuestion } = useQuizEdit();
+
     return (
         <div className="space-y-6">
             <h3 className="text-xl font-bold text-gray-800 flex items-center border-b border-gray-200 pb-4">
@@ -61,18 +31,6 @@ export default function QuestionList({
                             isExpanded={expandedQuestion === question.id}
                             onToggleExpand={() => setExpandedQuestion(expandedQuestion === question.id ? '' : (question.id || ''))}
                             totalQuestions={questions.length}
-                            onRemove={onRemoveQuestion}
-                            onDuplicate={onDuplicateQuestion}
-                            onUpdateText={onUpdateQuestionText}
-                            onUpdateType={onUpdateQuestionType}
-                            onAddOption={onAddOption}
-                            onRemoveOption={onRemoveOption}
-                            onUpdateOptionText={onUpdateOptionText}
-                            onToggleOptionCorrect={onToggleOptionCorrect}
-                            onUpdateExplanation={onUpdateExplanation}
-                            onUpdatePoints={onUpdatePoints}
-                            onToggleRequired={onToggleRequired}
-                            onMove={onMoveQuestion}
                         />
                     ))}
                 </div>

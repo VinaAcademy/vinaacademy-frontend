@@ -1,170 +1,142 @@
-import {
-    ChevronUp,
-    ChevronDown,
-    Copy,
-    Trash2,
-    Lightbulb,
-    ArrowUp,
-    ArrowDown,
-    Save
-} from 'lucide-react';
-import {QuizQuestion} from '@/types/lecture';
-import { QuestionType } from '@/types/quiz';  // Import the QuestionType enum
-import QuestionForm from './QuestionForm';
-import QuestionOptions from './QuestionOptions';
-import QuestionActions from './QuestionActions';
-import { useState } from 'react';
+import { Trash2, Lightbulb, ArrowUp, ArrowDown, Save } from 'lucide-react'
+import { QuizQuestion } from '@/types/lecture'
+import { QuestionType as QuizQuestionType } from '@/types/quiz'
+import QuestionForm from './QuestionForm'
+import QuestionOptions from './QuestionOptions'
+import React, { useState } from 'react'
+import { useQuizEdit } from '@/context/QuizEditContext'
+
+// Helper to convert lecture question type (string) to quiz question type (enum)
+const toQuizQuestionType = (type: string): QuizQuestionType => {
+  switch (type) {
+    case 'single_choice':
+      return QuizQuestionType.SINGLE_CHOICE
+    case 'multiple_choice':
+      return QuizQuestionType.MULTIPLE_CHOICE
+    case 'true_false':
+      return QuizQuestionType.TRUE_FALSE
+    default:
+      return QuizQuestionType.SINGLE_CHOICE
+  }
+}
 
 interface QuestionContentProps {
-    question: QuizQuestion;
-    index: number;
-    totalQuestions: number;
-    onUpdateText: (text: string) => void;
-    onUpdateType: (type: QuestionType) => void;  // Updated type
-    onAddOption: () => void;
-    onRemoveOption: (optionId: string) => void;
-    onUpdateOptionText: (optionId: string, text: string) => void;
-    onToggleOptionCorrect: (optionId: string) => void;
-    onUpdateExplanation: (text: string) => void;
-    onUpdatePoints: (points: number) => void;
-    onToggleRequired: () => void;
-    onDuplicate: () => void;
-    onRemove: () => void;
-    onMoveUp: () => void;
-    onMoveDown: () => void;
+  question: QuizQuestion
+  index: number
+  totalQuestions: number
 }
 
 export default function QuestionContent({
-                                            question,
-                                            index,
-                                            totalQuestions,
-                                            onUpdateText,
-                                            onUpdateType,
-                                            onAddOption,
-                                            onRemoveOption,
-                                            onUpdateOptionText,
-                                            onToggleOptionCorrect,
-                                            onUpdateExplanation,
-                                            onUpdatePoints,
-                                            onToggleRequired,
-                                            onDuplicate,
-                                            onRemove,
-                                            onMoveUp,
-                                            onMoveDown
-                                        }: QuestionContentProps) {
+  question,
+  index,
+  totalQuestions,
+}: QuestionContentProps) {
+  const {
+    onUpdateQuestionText,
+    onUpdateQuestionType,
+    onUpdateExplanation,
+    onUpdatePoints,
+    onRemoveQuestion,
+    onMoveQuestion,
+  } = useQuizEdit()
 
-    const [explanation, setExplanation] = useState(question.explanation || '');
-    const [isExplanationChanged, setIsExplanationChanged] = useState(false);
+  const [explanation, setExplanation] = useState(question.explanation || '')
+  const [isExplanationChanged, setIsExplanationChanged] = useState(false)
 
-    const handleExplanationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setExplanation(e.target.value);
-        setIsExplanationChanged(true);
-    };
+  const handleExplanationChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>,
+  ) => {
+    setExplanation(e.target.value)
+    setIsExplanationChanged(true)
+  }
 
-    const saveExplanation = () => {
-        onUpdateExplanation(explanation);
-        setIsExplanationChanged(false);
-    };
+  const saveExplanation = () => {
+    onUpdateExplanation(question.id || '', explanation)
+    setIsExplanationChanged(false)
+  }
 
-    return (
-        <div className="p-5 space-y-6 bg-gradient-to-b from-blue-50 to-white">
-            {/* Navigation controls */}
-            <div className="flex justify-between">
-                <div className="flex space-x-2">
-                    <button
-                        type="button"
-                        onClick={onMoveUp}
-                        disabled={index === 0}
-                        className={`p-2 text-gray-600 hover:bg-gray-100 rounded ${index === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        title="Di chuyển lên"
-                    >
-                        <ArrowUp size={16} />
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onMoveDown}
-                        disabled={index === totalQuestions - 1}
-                        className={`p-2 text-gray-600 hover:bg-gray-100 rounded ${index === totalQuestions - 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        title="Di chuyển xuống"
-                    >
-                        <ArrowDown size={16} />
-                    </button>
-                </div>
-                <div>
-                    <button
-                        type="button"
-                        onClick={onRemove}
-                        className="p-2 text-red-600 hover:bg-red-50 hover:text-red-700 rounded transition-colors"
-                        title="Xóa câu hỏi"
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                </div>
-            </div>
-
-            {/* Question Form - Text & Type & Points */}
-            <QuestionForm
-                text={question.text}
-                type={(question.type === 'single_choice' ? QuestionType.SINGLE_CHOICE :
-                    question.type === 'multiple_choice' ? QuestionType.MULTIPLE_CHOICE :
-                    question.type === 'true_false' ? QuestionType.TRUE_FALSE : QuestionType.TEXT) as QuestionType}  // Updated type
-                points={question.points}
-                onUpdateText={onUpdateText}
-                onUpdateType={onUpdateType}
-                onUpdatePoints={onUpdatePoints}
-            />
-
-            {/* Question Options */}
-            <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 transition-all hover:shadow-sm">
-                <QuestionOptions
-                    questionType={
-                        question.type === 'single_choice' ? QuestionType.SINGLE_CHOICE :
-                        question.type === 'multiple_choice' ? QuestionType.MULTIPLE_CHOICE :
-                        question.type === 'true_false' ? QuestionType.TRUE_FALSE : QuestionType.TEXT
-                    }
-                    options={question.options || []}
-                    onAddOption={onAddOption}
-                    onRemoveOption={onRemoveOption}
-                    onUpdateOptionText={onUpdateOptionText}
-                    onToggleOptionCorrect={onToggleOptionCorrect}
-                />
-            </div>
-
-            {/* Question Explanation */}
-            <div className="bg-amber-50 p-5 rounded-lg border border-amber-100">
-                <label htmlFor={`explanation-${question.id}`} className="block text-sm font-medium text-amber-800 mb-2 flex items-center">
-                    <Lightbulb className="h-4 w-4 mr-2 text-amber-600" />
-                    Giải thích đáp án
-                </label>
-                <textarea
-                    id={`explanation-${question.id}`}
-                    value={explanation}
-                    onChange={handleExplanationChange}
-                    rows={3}
-                    className="shadow-sm focus:ring-amber-500 focus:border-amber-500 block w-full text-base p-3 border-amber-200 rounded-md bg-white"
-                    placeholder="Nhập giải thích cho đáp án (hiển thị sau khi học viên trả lời)"
-                />
-                <div className="mt-2 flex justify-end">
-                    <button
-                        onClick={saveExplanation}
-                        disabled={!isExplanationChanged}
-                        className={`flex items-center px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-md hover:bg-amber-700 transition-colors ${!isExplanationChanged ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                        <Save className="h-4 w-4 mr-2" />
-                        Lưu giải thích
-                    </button>
-                </div>
-            </div>
-
-            {/* Question Actions */}
-            <QuestionActions
-                index={index}
-                totalQuestions={totalQuestions}
-                onDuplicate={onDuplicate}
-                onRemove={onRemove}
-                onMoveUp={onMoveUp}
-                onMoveDown={onMoveDown}
-            />
+  return (
+    <div className="p-3 space-y-3 bg-white border-t border-gray-100">
+      {/* Compact Navigation & Actions Bar */}
+      <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+        <div className="flex space-x-1">
+          <button
+            type="button"
+            onClick={() => onMoveQuestion(question.id || '', 'up')}
+            disabled={index === 0}
+            className={`p-1.5 text-gray-600 hover:bg-gray-100 rounded text-xs ${index === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+            title="Di chuyển lên"
+          >
+            <ArrowUp size={14} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onMoveQuestion(question.id || '', 'down')}
+            disabled={index === totalQuestions - 1}
+            className={`p-1.5 text-gray-600 hover:bg-gray-100 rounded text-xs ${index === totalQuestions - 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+            title="Di chuyển xuống"
+          >
+            <ArrowDown size={14} />
+          </button>
         </div>
-    );
+        <button
+          type="button"
+          onClick={() => onRemoveQuestion(question.id || '')}
+          className="p-1.5 text-red-600 hover:bg-red-50 hover:text-red-700 rounded transition-colors text-xs"
+          title="Xóa câu hỏi"
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
+
+      {/* Question Form - Text & Type & Points */}
+      <QuestionForm
+        text={question.text}
+        type={toQuizQuestionType(question.type)}
+        points={question.points}
+        onUpdateText={(text) => onUpdateQuestionText(question.id || '', text)}
+        onUpdateType={(type) => onUpdateQuestionType(question.id || '', type)}
+        onUpdatePoints={(points) => onUpdatePoints(question.id || '', points)}
+      />
+
+      {/* Question Options */}
+      <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+        <QuestionOptions
+          questionId={question.id || ''}
+          questionType={toQuizQuestionType(question.type)}
+          options={question.options || []}
+        />
+      </div>
+
+      {/* Question Explanation - Compact */}
+      <div className="bg-amber-50/50 p-3 rounded-md border border-amber-200">
+        <label
+          htmlFor={`explanation-${question.id}`}
+          className="flex items-center text-xs font-medium text-amber-800 mb-1.5"
+        >
+          <Lightbulb className="h-3.5 w-3.5 mr-1.5 text-amber-600" />
+          Giải thích đáp án
+        </label>
+        <textarea
+          id={`explanation-${question.id}`}
+          value={explanation}
+          onChange={handleExplanationChange}
+          rows={2}
+          className="shadow-sm focus:ring-amber-500 focus:border-amber-500 block w-full text-sm p-2 border-amber-200 rounded-md bg-white"
+          placeholder="Nhập giải thích cho đáp án..."
+        />
+        {isExplanationChanged && (
+          <div className="mt-1.5 flex justify-end">
+            <button
+              onClick={saveExplanation}
+              className="flex items-center px-3 py-1.5 bg-amber-600 text-white text-xs font-medium rounded-md hover:bg-amber-700 transition-colors"
+            >
+              <Save className="h-3.5 w-3.5 mr-1" />
+              Lưu
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }

@@ -1,68 +1,57 @@
-import { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
-import { QuizOption } from '@/types/lecture';
-import { QuestionType } from '@/types/quiz';  // Import the QuestionType enum
-import OptionItem from './OptionItem';
+import { Plus } from 'lucide-react'
+import { QuizOption } from '@/types/lecture'
+import { QuestionType } from '@/types/quiz'
+import OptionItem from './OptionItem'
+import { useQuizEdit } from '@/context/QuizEditContext'
 
 interface QuestionOptionsProps {
-    questionType: QuestionType;  // Updated type
-    options: QuizOption[];
-    onAddOption: () => void;
-    onRemoveOption: (optionId: string) => void;
-    onUpdateOptionText: (optionId: string, text: string) => void;
-    onToggleOptionCorrect: (optionId: string) => void;
+  questionId: string
+  questionType: QuestionType
+  options: QuizOption[]
 }
 
 export default function QuestionOptions({
-                                            questionType,
-                                            options,
-                                            onAddOption,
-                                            onRemoveOption,
-                                            onUpdateOptionText,
-                                            onToggleOptionCorrect
-                                        }: QuestionOptionsProps) {
-    // Only show options for choice-based questions
-    if (questionType === QuestionType.TEXT) {
-        return (
-            <div className="p-4 bg-gray-50 rounded-md text-gray-600 text-sm italic">
-                Câu hỏi tự luận không có lựa chọn. Học viên sẽ nhập câu trả lời vào ô văn bản.
-            </div>
-        );
-    }
+  questionId,
+  questionType,
+  options,
+}: QuestionOptionsProps) {
+  const { onAddOption } = useQuizEdit()
 
-    return (
-        <div>
-            <div className="mb-2 flex justify-between items-center">
-                <label className="block text-sm font-medium text-gray-700">
-                    Các lựa chọn
-                </label>
-                {/* Only show add button for multiple choice and single choice */}
-                {questionType !== QuestionType.TRUE_FALSE && (
-                    <button
-                        type="button"
-                        onClick={onAddOption}
-                        className="inline-flex items-center text-xs text-black hover:text-gray-900"
-                    >
-                        <Plus size={14} className="mr-1"/> Thêm lựa chọn
-                    </button>
-                )}
-            </div>
+  return (
+    <div>
+      <div className="mb-2 flex justify-between items-center">
+        <label className="block text-xs font-medium text-gray-700">
+          Các lựa chọn
+        </label>
+        {/* Only show add button for multiple choice and single choice */}
+        {questionType !== QuestionType.TRUE_FALSE && (
+          <button
+            type="button"
+            onClick={() => onAddOption(questionId)}
+            className="inline-flex items-center text-xs text-blue-600 hover:text-blue-800 font-medium"
+          >
+            <Plus size={12} className="mr-0.5" /> Thêm
+          </button>
+        )}
+      </div>
 
-            <div className="space-y-2">
-                {options.map((option, index) => (
-                    option.id ? <OptionItem
-                        key={option.id}
-                        option={option}
-                        optionIndex={index}
-                        questionType={questionType}
-                        onRemove={() => onRemoveOption(option.id || '')}
-                        onUpdateText={(text) => onUpdateOptionText(option.id || '', text)}
-                        onToggleCorrect={() => onToggleOptionCorrect(option.id || '')}
-                        // For True/False or if there are only 2 options, don't allow removal
-                        canRemove={questionType !== QuestionType.TRUE_FALSE && options.length > 2}
-                    /> : null
-                ))}
-            </div>
-        </div>
-    );
+      <div className="space-y-1.5">
+        {options.map((option, index) =>
+          option.id ? (
+            <OptionItem
+              key={option.id}
+              questionId={questionId}
+              option={option}
+              optionIndex={index}
+              questionType={questionType}
+              // For True/False or if there are only 2 options, don't allow removal
+              canRemove={
+                questionType !== QuestionType.TRUE_FALSE && options.length > 2
+              }
+            />
+          ) : null,
+        )}
+      </div>
+    </div>
+  )
 }
