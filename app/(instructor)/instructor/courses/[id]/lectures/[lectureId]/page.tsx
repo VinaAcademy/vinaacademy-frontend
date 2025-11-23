@@ -17,7 +17,7 @@ import Header from '@/components/instructor/courses/edit-course-content/edit-lec
 import TabNavigation from '@/components/instructor/courses/edit-course-content/edit-lecture/TabNavigation'
 import ContentTab from '@/components/instructor/courses/edit-course-content/edit-lecture/tabs/ContentTab'
 import ResourcesTab from '@/components/instructor/courses/edit-course-content/edit-lecture/tabs/ResourcesTab'
-import SettingsTab from '@/components/instructor/courses/edit-course-content/edit-lecture/tabs/SettingsTab'
+import SubmissionsTab from '@/components/instructor/courses/edit-course-content/edit-lecture/tabs/SubmissionsTab'
 import Footer from '@/components/instructor/courses/edit-course-content/edit-lecture/LectureFooter'
 
 // Create a default lecture object to initialize the state
@@ -41,7 +41,7 @@ function LectureEditor() {
   const lectureId = params.lectureId as string
 
   const [activeTab, setActiveTab] = useState<
-    'content' | 'resources' | 'settings'
+    'content' | 'resources' | 'settings' | 'submissions'
   >('content')
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
@@ -152,14 +152,24 @@ function LectureEditor() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
           <div className="bg-white shadow rounded-lg overflow-hidden">
-            <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
+            <TabNavigation
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              lectureType={lecture.type}
+            />
 
             <div className="p-6">
               {activeTab === 'content' && <ContentTab />}
 
-              {activeTab === 'resources' && <ResourcesTab />}
+              {activeTab === 'resources' && lecture.type === 'reading' && (
+                <ResourcesTab />
+              )}
 
-              {activeTab === 'settings' && <SettingsTab />}
+              {activeTab === 'submissions' && lecture.type === 'quiz' && (
+                <SubmissionsTab />
+              )}
+
+              {/*{activeTab === 'settings' && <SettingsTab />}*/}
             </div>
 
             <Footer
