@@ -11,6 +11,7 @@ import {
   QuizStudentAttemptsDto,
 } from '@/types/quiz'
 import { AxiosResponse } from 'axios'
+import { API_ENDPOINTS } from '@/config/api.endpoint'
 
 /**
  * Get a quiz for a student
@@ -20,7 +21,7 @@ import { AxiosResponse } from 'axios'
 export async function getQuiz(id: string): Promise<QuizDto | null> {
   try {
     const response: AxiosResponse<ApiResponse<QuizDto>> = await apiClient.get(
-      `/quiz/${id}`,
+      API_ENDPOINTS.QUIZ.BY_ID(id),
     )
     return response.data.data
   } catch (error) {
@@ -37,7 +38,7 @@ export async function getQuiz(id: string): Promise<QuizDto | null> {
 export async function startQuiz(quizId: string): Promise<QuizSession | null> {
   try {
     const response: AxiosResponse<ApiResponse<QuizSession>> =
-      await apiClient.post(`/quiz/${quizId}/start`)
+      await apiClient.post(API_ENDPOINTS.QUIZ.START(quizId))
     return response.data.data
   } catch (error) {
     console.error(`Error starting quiz session for quiz ${quizId}:`, error)
@@ -55,7 +56,7 @@ export async function submitQuiz(
 ): Promise<QuizSubmissionResultDto | null> {
   try {
     const response: AxiosResponse<ApiResponse<QuizSubmissionResultDto>> =
-      await apiClient.post('/quiz/submit', request)
+      await apiClient.post(API_ENDPOINTS.QUIZ.SUBMIT, request)
     return response.data.data
   } catch (error) {
     console.error('Error submitting quiz:', error)
@@ -73,7 +74,7 @@ export async function getLatestSubmission(
 ): Promise<QuizSubmissionResultDto | null> {
   try {
     const response: AxiosResponse<ApiResponse<QuizSubmissionResultDto>> =
-      await apiClient.get(`/quiz/${quizId}/submission/latest`)
+      await apiClient.get(API_ENDPOINTS.QUIZ.LATEST_SUBMISSION(quizId))
     return response.data.data
   } catch (error) {
     console.error(`Error fetching latest submission for quiz ${quizId}:`, error)
@@ -91,7 +92,7 @@ export async function getSubmissionHistory(
 ): Promise<QuizSubmissionResultDto[] | null> {
   try {
     const response: AxiosResponse<ApiResponse<QuizSubmissionResultDto[]>> =
-      await apiClient.get(`/quiz/${quizId}/submissions`)
+      await apiClient.get(API_ENDPOINTS.QUIZ.SUBMISSION_HISTORY(quizId))
     return response.data.data
   } catch (error) {
     console.error(
@@ -113,7 +114,7 @@ export async function cacheQuizAnswer(
   answer: UserAnswerRequest,
 ): Promise<boolean> {
   try {
-    await apiClient.post(`/quiz/${quizId}/cache-answer`, answer)
+    await apiClient.post(API_ENDPOINTS.QUIZ.CACHE_ANSWER(quizId), answer)
     return true
   } catch (error) {
     console.error(`Error caching answer for quiz ${quizId}:`, error)
@@ -135,7 +136,7 @@ export async function getCachedAnswers(
     const response: AxiosResponse<
       ApiResponse<Record<string, UserAnswerRequest>>
     > = await apiClient.get(
-      `/quiz/${quizId}/cached-answers?sessionId=${sessionId}`,
+      API_ENDPOINTS.QUIZ.GET_CACHED_ANSWERS(quizId, sessionId),
     )
     return response.data.data
   } catch (error) {
@@ -154,7 +155,7 @@ export async function getStudentAttempts(
 ): Promise<QuizStudentAttemptsDto[] | null> {
   try {
     const response: AxiosResponse<ApiResponse<QuizStudentAttemptsDto[]>> =
-      await apiClient.get(`/instructor/quiz/${quizId}/student-attempts`)
+      await apiClient.get(API_ENDPOINTS.QUIZ.STUDENT_ATTEMPTS(quizId))
     return response.data.data
   } catch (error) {
     console.error(`Error fetching student attempts for quiz ${quizId}:`, error)
