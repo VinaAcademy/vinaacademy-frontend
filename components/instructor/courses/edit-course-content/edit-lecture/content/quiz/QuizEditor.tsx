@@ -166,27 +166,10 @@ export default function QuizEditor() {
       isRequired: true,
     }
 
-    // Add the question to local state first (for immediate UI update)
-    const updatedQuestions = [...questions, newQuestion]
-    const totalPoints = updatedQuestions.reduce((sum, q) => sum + q.points, 0)
-
-    const updatedQuiz = {
-      ...quiz,
-      questions: updatedQuestions,
-      totalPoints,
-    }
-
-    setLecture({
-      ...lecture,
-      quiz: updatedQuiz,
-    })
-
-    setExpandedQuestion(newQuestion.id || '')
-
     // If we have a quiz ID, create the question in the backend
     if (lecture.id) {
       try {
-        await createQuestionMutation.mutateAsync({
+        const { question } = await createQuestionMutation.mutateAsync({
           quizId: lecture.id,
           question: {
             id: newQuestion.id || '',
@@ -200,6 +183,8 @@ export default function QuizEditor() {
             })),
           },
         })
+        await quizQuery.refetch()
+        setExpandedQuestion(question.id || '')
       } catch (error) {
         console.error('Error creating question:', error)
         // We don't revert the UI since the user may have already started editing
@@ -411,27 +396,6 @@ export default function QuizEditor() {
 
   // Remove an option from a question
   const removeOption = async (questionId: string, optionId: string) => {
-    // Update local state first
-    const updatedQuestions = questions.map((q) => {
-      if (q.id === questionId) {
-        if (q.options.length <= 2) {
-          return q // Don't remove if only 2 options left
-        }
-        return { ...q, options: q.options.filter((o) => o.id !== optionId) }
-      }
-      return q
-    })
-
-    const updatedQuiz = {
-      ...quiz,
-      questions: updatedQuestions,
-    }
-
-    setLecture({
-      ...lecture,
-      quiz: updatedQuiz,
-    })
-
     // Delete option in backend
     if (lecture.id) {
       try {
@@ -440,6 +404,8 @@ export default function QuizEditor() {
           questionId,
           quizId: lecture.id,
         })
+        // refresh quiz data
+        await quizQuery.refetch()
       } catch (error) {
         console.error('Error deleting option:', error)
       }
