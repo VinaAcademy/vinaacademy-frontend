@@ -14,7 +14,8 @@ import {
     ChevronsLeft,
     ChevronsRight,
     ChartBarStacked,
-    Dot
+    Dot,
+    TrendingUp
 } from "lucide-react";
 
 interface SidebarProps {
@@ -55,6 +56,7 @@ const navigation = [
             {name: 'Báo cáo thu nhập', href: '/admin/payments/reports'},
         ]
     },
+    {name: 'Quản lý doanh thu', href: '/admin/revenue', icon: TrendingUp},
     {name: 'Báo cáo', href: '/admin/reports', icon: BarChart3},
     {name: 'Danh mục', href: '/admin/category', icon: ChartBarStacked},
     {
