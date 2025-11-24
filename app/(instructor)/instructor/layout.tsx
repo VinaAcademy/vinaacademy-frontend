@@ -16,7 +16,8 @@ import {
     X,
     ChevronDown,
     LogOut,
-    User as UserIcon
+    User as UserIcon,
+    DollarSign
 } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -64,6 +65,7 @@ export default function InstructorLayout({ children }: InstructorLayoutProps) {
         { path: '/instructor/dashboard', icon: <BarChart2 className="w-5 h-5 mr-3" />, label: 'Tổng quan' },
         { path: '/instructor/courses', icon: <Layers className="w-5 h-5 mr-3" />, label: 'Khóa học của tôi' },
         { path: '/instructor/courses/new', icon: <Plus className="w-5 h-5 mr-3" />, label: 'Tạo khóa học mới' },
+        { path: '/instructor/revenue', icon: <DollarSign className="w-5 h-5 mr-3" />, label: 'Doanh thu' },
         { path: '/instructor/communication', icon: <MessageSquare className="w-5 h-5 mr-3" />, label: 'Tin nhắn' },
         { path: '/instructor/content', icon: <Video className="w-5 h-5 mr-3" />, label: 'Thư viện nội dung' },
         { path: '/instructor/students', icon: <Users className="w-5 h-5 mr-3" />, label: 'Học viên' },
