@@ -20,6 +20,9 @@ export interface NavItemWithChildren extends NavItem {
     items: NavItemWithChildren[]; // Bắt buộc có danh sách children, cho phép lồng các mục dưới cấp
 }
 
+// Export revenue related types
+export * from './revenue';
+
 // Interface NavItemWithOptionalChildren: mở rộng NavItem, nhưng children có thể có hoặc không
 export interface NavItemWithOptionalChildren extends NavItem {
     items?: NavItemWithChildren[]; // Danh sách các mục con tùy chọn
