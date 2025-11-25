@@ -16,6 +16,24 @@ export function formatDate(
   return date.toLocaleDateString('vi-VN', options)
 }
 
+export function formatDateTime(
+  dateString: string,
+  options: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  },
+): string {
+  if (!dateString) return ''
+
+  const date = new Date(dateString)
+  return date.toLocaleDateString('vi-VN', options)
+}
+
 export const formatMessageTime = (timestamp: string): string => {
   const date = new Date(timestamp)
   const now = new Date()

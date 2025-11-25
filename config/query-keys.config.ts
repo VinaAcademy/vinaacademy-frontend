@@ -20,6 +20,7 @@ const COURSE_KEYS = {
   list: (params: {
     keyword?: string
     categorySlug?: string
+    categorieSlugs?: string[] // Support multiple categories filter
     instructorId?: string
     level?: string
     language?: string
@@ -36,6 +37,7 @@ const COURSE_KEYS = {
       'courses',
       params.keyword,
       params.categorySlug,
+      params.categorieSlugs,
       params.instructorId,
       params.level,
       params.language,

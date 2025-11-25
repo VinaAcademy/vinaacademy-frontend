@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/common/spinner'
 import { getImageUrl } from '@/utils/imageUtils'
 import { useCourses } from '@/hooks/useCourses'
+import { formatCurrency } from '@/utils/commonUtils'
 
 export default function PublicInstructorPage() {
   const { instructorId } = useParams()
@@ -433,9 +434,7 @@ export default function PublicInstructorPage() {
                         {course.level}
                       </span>
                       <span className="font-bold text-gray-900 text-base">
-                        {course.price === 0
-                          ? 'Miễn phí'
-                          : `${Math.round(Number(course.price)).toLocaleString('vi-VN')} VNĐ`}
+                        {formatCurrency(course.price)}
                       </span>
                     </div>
                   </div>

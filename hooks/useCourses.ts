@@ -6,6 +6,7 @@ import { COURSE_KEYS } from '@/config/query-keys.config'
 interface UseCoursesProps {
   keyword?: string
   categorySlug?: string
+  categorieSlugs?: string[] // Support multiple categories filter
   instructorId?: string
   level?: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'
   language?: string
@@ -22,6 +23,7 @@ interface UseCoursesProps {
 export const useCourses = ({
   keyword,
   categorySlug,
+  categorieSlugs,
   instructorId,
   level,
   language,
@@ -37,6 +39,7 @@ export const useCourses = ({
   const searchRequest: CourseSearchRequest = {
     keyword,
     categorySlug,
+    categorieSlugs,
     instructorId,
     level,
     language,
@@ -50,6 +53,7 @@ export const useCourses = ({
     queryKey: COURSE_KEYS.list({
       keyword,
       categorySlug,
+      categorieSlugs,
       instructorId,
       level,
       language,
