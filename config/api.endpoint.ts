@@ -84,6 +84,14 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/lessons/${id}`,
     DELETE: (id: string) => `/lessons/${id}`,
     PROGRESS: (lessonId: string) => `/lessons/${lessonId}/progress`,
+
+    // Attachments
+    ATTACHMENTS: (lessonId: string) => `/lessons/${lessonId}/attachments`,
+    ATTACH_DOCUMENTS: (lessonId: string) => `/lessons/${lessonId}/attachments`,
+    REMOVE_ATTACHMENT: (lessonId: string, fileId: string) =>
+      `/lessons/${lessonId}/attachments/${fileId}`,
+    ATTACHMENT_DOWNLOAD_URL: (lessonId: string, attachmentId: string) =>
+      `/lessons/${lessonId}/attachments/${attachmentId}/download-url`,
   },
 
   // ==================== LESSON PROGRESS ====================
@@ -241,6 +249,13 @@ export const API_ENDPOINTS = {
   // ==================== IMAGE ====================
   IMAGE: {
     UPLOAD: '/images/upload',
+  },
+
+  // ==================== DOCUMENT ====================
+  DOCUMENT: {
+    UPLOAD: '/documents/upload',
+    BY_ID: (id: string) => `/documents/${id}`,
+    DOWNLOAD: (id: string) => `/documents/${id}/download`,
   },
 
   // ==================== CHUNK UPLOAD ====================
