@@ -161,9 +161,7 @@ function LectureEditor() {
             <div className="p-6">
               {activeTab === 'content' && <ContentTab />}
 
-              {activeTab === 'resources' && lecture.type === 'reading' && (
-                <ResourcesTab />
-              )}
+              {activeTab === 'resources' && <ResourcesTab />}
 
               {activeTab === 'submissions' && lecture.type === 'quiz' && (
                 <SubmissionsTab />
