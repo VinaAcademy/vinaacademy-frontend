@@ -91,12 +91,12 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          password: ${{ secrets.VPS_PASSWORD }}
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
-            cd /home/${{ secrets.VPS_USER }}/ms-ci-cd
-            sudo docker compose -f docker-compose.dev.yml pull vinaacademy-frontend
-            sudo docker compose -f docker-compose.dev.yml up -d vinaacademy-frontend
+            cd /${{ secrets.VPS_USER }}/ms-ci-cd
+            sudo docker compose -f services/docker-compose.yml pull vinaacademy-frontend
+            sudo docker compose -f services/docker-compose.yml --env-file .env.services up -d vinaacademy-frontend
             sudo docker image prune -f
             sleep 10
-            sudo docker compose -f docker-compose.dev.yml ps vinaacademy-frontend
+            sudo docker compose -f services/docker-compose.yml ps vinaacademy-frontend
