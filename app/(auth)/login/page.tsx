@@ -35,7 +35,7 @@ function LoginContent() {
 
     const redirectToTarget = React.useCallback(() => {
         const redirectUrl = searchParams.get('redirect');
-        router.push(redirectUrl || document.referrer || '/');
+        router.push(redirectUrl || '/');
     }, [router, searchParams]);
 
     useEffect(() => {
