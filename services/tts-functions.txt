@@ -1,0 +1,72 @@
+// TTS Functions to append to lessonService.ts
+
+// 🔊 Text-to-Speech Functions
+
+/**
+ * Generate audio for a Reading lesson
+ * Returns audio as base64 encoded string
+ */
+export const generateLessonAudio = async (
+  lessonId: string,
+  request?: TTSRequestDto
+): Promise<TTSResponseDto | null> => {
+  try {
+    const payload: TTSRequestDto = {
+      voice: request?.voice || 'vi-VN-HoaiMyNeural',
+      speed: request?.speed || '1.0',
+      pitch: request?.pitch || '0Hz',
+      format: request?.format || 'base64'
+    };
+
+    const response: AxiosResponse<ApiResponse<TTSResponseDto>> = await apiClient.post(
+      `/lessons/${lessonId}/tts`,
+      payload
+    );
+
+    if (response.data.success) {
+      return response.data.data;
+    } else {
+      console.error('TTS generation failed:', response.data.message);
+      return null;
+    }
+  } catch (error: any) {
+    console.error('generateLessonAudio error:', error);
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    }
+    throw new Error('Không thể tạo audio. Vui lòng thử lại sau.');
+  }
+};
+
+/**
+ * Get streaming audio URL for a Reading lesson
+ * Returns URL that can be used directly in <audio> element
+ */
+export const getStreamingAudioUrl = (
+  lessonId: string,
+  voice: string = 'vi-VN-HoaiMyNeural'
+): string => {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+  return `${baseUrl}/api/v1/lessons/${lessonId}/tts/stream?voice=${encodeURIComponent(voice)}`;
+};
+
+/**
+ * Get available TTS voices
+ */
+export const getAvailableTTSVoices = async (): Promise<any> => {
+  try {
+    return {
+      vietnamese: [
+        { name: 'vi-VN-HoaiMyNeural', gender: 'Female', description: 'Giọng nữ tự nhiên' },
+        { name: 'vi-VN-NamMinhNeural', gender: 'Male', description: 'Giọng nam tự nhiên' }
+      ],
+      english: [
+        { name: 'en-US-JennyNeural', gender: 'Female', description: 'US English Female' },
+        { name: 'en-US-GuyNeural', gender: 'Male', description: 'US English Male' }
+      ]
+    };
+  } catch (error) {
+    console.error('getAvailableTTSVoices error:', error);
+    return null;
+  }
+};
