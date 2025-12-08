@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Lecture, LectureType } from '@/types/lecture'
 import { toast } from 'react-toastify'
@@ -19,6 +19,10 @@ import ContentTab from '@/components/instructor/courses/edit-course-content/edit
 import ResourcesTab from '@/components/instructor/courses/edit-course-content/edit-lecture/tabs/ResourcesTab'
 import SubmissionsTab from '@/components/instructor/courses/edit-course-content/edit-lecture/tabs/SubmissionsTab'
 import Footer from '@/components/instructor/courses/edit-course-content/edit-lecture/LectureFooter'
+import VideoUploader from '@/components/instructor/courses/edit-course-content/edit-lecture/content/VideoUploader'
+import TextEditor from '@/components/instructor/courses/edit-course-content/edit-lecture/content/TextEditor'
+import QuizEditor from '@/components/instructor/courses/edit-course-content/edit-lecture/content/quiz/QuizEditor'
+import AssignmentEditor from '@/components/instructor/courses/edit-course-content/edit-lecture/content/AssignmentEditor'
 
 // Create a default lecture object to initialize the state
 const createDefaultLecture = (): Lecture => ({
@@ -159,7 +163,17 @@ function LectureEditor() {
             />
 
             <div className="p-6">
-              {activeTab === 'content' && <ContentTab />}
+              {activeTab === 'content' && (
+                <ContentTab>
+                  {lecture.type === 'video' && <VideoUploader />}
+
+                  {lecture.type === 'reading' && <TextEditor />}
+
+                  {lecture.type === 'quiz' && <QuizEditor />}
+
+                  {lecture.type === 'assignment' && <AssignmentEditor />}
+                </ContentTab>
+              )}
 
               {activeTab === 'resources' && <ResourcesTab />}
 

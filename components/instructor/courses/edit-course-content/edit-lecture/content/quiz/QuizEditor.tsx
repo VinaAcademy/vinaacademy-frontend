@@ -732,7 +732,11 @@ export default function QuizEditor() {
 
         {/* 2. Danh sách câu hỏi */}
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 transition-all hover:shadow-md">
-          <QuestionList questions={questions} />
+          <QuestionList
+            questions={questions}
+            quizId={lecture.id}
+            onAIQuestionsGenerated={() => quizQuery.refetch()}
+          />
         </div>
 
         {/* 3. Cài đặt Quiz */}

@@ -288,6 +288,11 @@ export const API_ENDPOINTS = {
     // Online users
     ONLINE_USERS: '/chat/online-users',
   },
+
+  // ==================== AI ====================
+  AI: {
+    GENERATE_QUIZ: '/ai/quiz/create',
+  },
 } as const
 
 const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080/ws'
