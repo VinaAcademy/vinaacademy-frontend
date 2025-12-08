@@ -87,3 +87,28 @@ export interface LessonProgressDto {
   lessonId: string // UUID
   completed: boolean
 }
+
+// Text-to-Speech Types
+export interface TTSRequestDto {
+  voice?: string // Voice name (e.g., "vi-VN-HoaiMyNeural")
+  speed?: string // Speech speed (e.g., "1.0")
+  pitch?: string // Pitch adjustment (e.g., "0Hz")
+  format?: 'base64' | 'stream' // Response format
+}
+
+export interface TTSResponseDto {
+  audioBase64?: string // Base64 encoded audio data
+  audioUrl?: string // URL to audio file (if saved)
+  format?: string // Audio format (e.g., "audio/mpeg")
+  duration?: number // Duration in milliseconds
+  lessonId?: string // UUID
+  status?: 'success' | 'error' // Status of the request
+  message?: string // Error message if status is error
+}
+
+export interface TTSVoiceOption {
+  name: string
+  gender: 'Male' | 'Female'
+  description: string
+  language: string
+}
