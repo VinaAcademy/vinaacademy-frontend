@@ -1,21 +1,21 @@
 // components/lecture/tabs/ContentTab.tsx
-import VideoUploader from '../content/VideoUploader'
-import TextEditor from '../content/TextEditor'
-import QuizEditor from '../content/quiz/QuizEditor'
-import AssignmentEditor from '../content/AssignmentEditor'
 import {
-  Video,
+  AlertCircle,
   FileText,
+  Info,
   MessageSquare,
   Monitor,
   Sparkles,
-  Info,
-  AlertCircle,
+  Video,
 } from 'lucide-react'
 import React from 'react'
 import { useLectureEdit } from '@/context/LectureEditContext'
 
-export default function ContentTab() {
+export default function ContentTab({
+  children,
+}: {
+  children?: React.ReactNode
+}) {
   const { lecture, setLecture } = useLectureEdit()
 
   const handleInputChange = (
@@ -202,13 +202,7 @@ export default function ContentTab() {
           </div>
           <div className="p-6">
             {/* Content based on type */}
-            {lecture.type === 'video' && <VideoUploader />}
-
-            {lecture.type === 'reading' && <TextEditor />}
-
-            {lecture.type === 'quiz' && <QuizEditor />}
-
-            {lecture.type === 'assignment' && <AssignmentEditor />}
+            {children}
           </div>
         </div>
       </div>
