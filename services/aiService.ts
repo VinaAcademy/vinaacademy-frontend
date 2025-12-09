@@ -12,7 +12,7 @@ export async function createQuiz(
   try {
     const response: AxiosResponse = await apiClient.post(
       API_ENDPOINTS.AI.GENERATE_QUIZ,
-      { prompt, quizId },
+      { prompt, quiz_id: quizId },
     )
     return response.data['data']
   } catch (error) {
