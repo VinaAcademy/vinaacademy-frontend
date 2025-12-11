@@ -5,19 +5,19 @@ import {
   Search,
   FileQuestion,
   CheckCircle2,
-  MessageSquare,
   ListChecks,
   LucideIcon,
+  Loader2,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { LoadingStep } from '@/hooks/quiz/useAIQuizGenerator'
 
 // Icon mapping for loading steps
 const STEP_ICONS: Record<LoadingStep['id'], LucideIcon> = {
+  pending: Loader2,
   analyze: Search,
   questions: FileQuestion,
   answers: ListChecks,
-  explanations: MessageSquare,
   finalize: CheckCircle2,
 }
 

@@ -8,9 +8,15 @@ import AILoadingStep from './AILoadingStep'
 
 interface AILoadingViewProps {
   currentStep: number
+  progress: number
+  statusMessage: string
 }
 
-export default function AILoadingView({ currentStep }: AILoadingViewProps) {
+export default function AILoadingView({
+  currentStep,
+  progress,
+  statusMessage,
+}: AILoadingViewProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -50,7 +56,7 @@ export default function AILoadingView({ currentStep }: AILoadingViewProps) {
                 duration: 3,
                 repeat: Infinity,
                 ease: 'linear',
-                delay: i * 1,
+                delay: i,
               }}
               style={{
                 transformOrigin: '40px 40px',
@@ -60,13 +66,15 @@ export default function AILoadingView({ currentStep }: AILoadingViewProps) {
         </motion.div>
       </div>
 
-      {/* Progress text */}
+      {/* Status message from backend */}
       <motion.p
-        className="text-center text-sm text-gray-500 mb-4"
-        animate={{ opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 2, repeat: Infinity }}
+        className="text-center text-sm text-gray-600 mb-4 font-medium"
+        key={statusMessage}
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
       >
-        AI đang xử lý yêu cầu của bạn...
+        {statusMessage || 'AI đang xử lý yêu cầu của bạn...'}
       </motion.p>
 
       {/* Loading Steps */}
@@ -89,13 +97,13 @@ export default function AILoadingView({ currentStep }: AILoadingViewProps) {
             className="h-full bg-gradient-to-r from-purple-500 via-violet-500 to-indigo-500"
             initial={{ width: '0%' }}
             animate={{
-              width: `${((currentStep + 1) / LOADING_STEPS.length) * 100}%`,
+              width: `${progress}%`,
             }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
           />
         </div>
         <p className="text-xs text-gray-400 text-center mt-2">
-          Bước {currentStep + 1} / {LOADING_STEPS.length}
+          {progress}% hoàn thành
         </p>
       </div>
     </motion.div>

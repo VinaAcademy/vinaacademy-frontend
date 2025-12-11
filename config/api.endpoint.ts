@@ -292,6 +292,7 @@ export const API_ENDPOINTS = {
   // ==================== AI ====================
   AI: {
     GENERATE_QUIZ: '/ai/quiz/create',
+    QUIZ_PROGRESS: (quizId: string) => `/ai/quiz/progress/${quizId}`,
   },
 } as const
 

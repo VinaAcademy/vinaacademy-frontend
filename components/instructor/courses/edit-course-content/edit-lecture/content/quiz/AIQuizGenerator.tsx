@@ -4,7 +4,6 @@ import React from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { useAIQuizGenerator } from '@/hooks/quiz/useAIQuizGenerator'
-import { QuestionDto } from '@/types/quiz'
 import {
   AIQuizTriggerButton,
   AIQuizFormContent,
@@ -13,7 +12,7 @@ import {
 
 interface AIQuizGeneratorProps {
   quizId: string
-  onQuestionsGenerated: (questions: QuestionDto[]) => void
+  onQuestionsGenerated: () => void
 }
 
 export default function AIQuizGenerator({
@@ -28,6 +27,8 @@ export default function AIQuizGenerator({
     setPrompt,
     isGenerating,
     currentLoadingStep,
+    progress,
+    statusMessage,
     handleGenerate,
   } = useAIQuizGenerator({
     quizId,
@@ -42,7 +43,11 @@ export default function AIQuizGenerator({
         <DialogContent className="sm:max-w-lg">
           <AnimatePresence mode="wait">
             {isGenerating ? (
-              <AILoadingContent currentStep={currentLoadingStep} />
+              <AILoadingContent
+                currentStep={currentLoadingStep}
+                progress={progress}
+                statusMessage={statusMessage}
+              />
             ) : (
               <AIQuizFormContent
                 prompt={prompt}

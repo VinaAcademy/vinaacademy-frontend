@@ -8,10 +8,14 @@ import AILoadingView from './AILoadingView'
 
 interface AILoadingContentProps {
   currentStep: number
+  progress: number
+  statusMessage: string
 }
 
 export default function AILoadingContent({
   currentStep,
+  progress,
+  statusMessage,
 }: AILoadingContentProps) {
   return (
     <motion.div
@@ -30,7 +34,11 @@ export default function AILoadingContent({
           </span>
         </DialogTitle>
       </DialogHeader>
-      <AILoadingView currentStep={currentStep} />
+      <AILoadingView
+        currentStep={currentStep}
+        progress={progress}
+        statusMessage={statusMessage}
+      />
     </motion.div>
   )
 }
