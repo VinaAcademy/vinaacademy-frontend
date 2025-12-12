@@ -10,7 +10,7 @@ interface CourseCardProps {
 
 export default function CourseCard({ course }: CourseCardProps) {
   return (
-    <div className="bg-white overflow-hidden shadow rounded-lg">
+    <div className="bg-white overflow-hidden shadow rounded-lg flex flex-col h-full">
       <div className="relative">
         <CourseImage
           className="h-48 w-full object-cover"
@@ -25,9 +25,9 @@ export default function CourseCard({ course }: CourseCardProps) {
         {/* Sử dụng hàm renderStatus với status từ API */}
         {renderStatus(course.status)}
       </div>
-      <div className="px-4 py-4">
+      <div className="px-4 py-4 flex-grow flex flex-col">
         <Link href={`/instructor/courses/${course.id}/edit`}>
-          <div className="text-lg font-medium text-gray-900 hover:text-gray-600 line-clamp-2 mb-2">
+          <div className="text-lg font-medium text-gray-900 hover:text-gray-600 line-clamp-2 mb-2 min-h-[3.5rem]">
             {course.title}
           </div>
         </Link>
@@ -53,7 +53,7 @@ export default function CourseCard({ course }: CourseCardProps) {
           {course.income > 0 && <div>{formatVND(course.income)}k đ</div>}
         </div>
       </div>
-      <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+      <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 mt-auto">
         <div className="flex items-center justify-between gap-4">
           <Link href={`/instructor/courses/${course.id}/analytics`}>
             <div className="text-sm font-medium text-blue-600 hover:text-blue-800">

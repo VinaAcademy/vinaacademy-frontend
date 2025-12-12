@@ -1,262 +1,405 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
-import { Search } from "lucide-react";
-import { CoursesPagination } from "@/components/courses/all-courses/CoursesPagination";
-import { getInstructorCourses } from "@/services/courseService";
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import {
-    StudentProgressDto,
-    getStudentsProgress,
-    getStatusFromDisplayText
-} from "@/services/studentProgressService";
-import toast from "react-hot-toast";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts'
+import {
+  Users,
+  GraduationCap,
+  TrendingUp,
+  BookOpen,
+  Search,
+} from 'lucide-react'
+import { instructorStudentsService } from '@/services/instructorStudentsService'
+import {
+  StudentsOverview,
+  StudentDetail,
+  StudentsProgressChart,
+  TimeRange,
+  ProgressStatus,
+} from '@/types/instructor/students'
 
 export default function InstructorStudentsPage() {
-    // State cho dữ liệu học viên và phân trang
-    const [students, setStudents] = useState<StudentProgressDto[]>([]);
-    const [courses, setCourses] = useState<{ id: string; name: string }[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  const [timeRange, setTimeRange] = useState<TimeRange>('MONTH')
+  const [overview, setOverview] = useState<StudentsOverview | null>(null)
+  const [students, setStudents] = useState<StudentDetail[]>([])
+  const [chartData, setChartData] = useState<StudentsProgressChart | null>(null)
+  const [loading, setLoading] = useState(true)
 
-    // State cho các tham số lọc
-    const [search, setSearch] = useState("");
-    const [courseFilter, setCourseFilter] = useState<string>("Tất cả");
-    const [progressFilter, setProgressFilter] = useState<string>("Tất cả");
+  // Filters
+  const [keyword, setKeyword] = useState('')
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
 
-    // State cho phân trang
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(4);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalItems, setTotalItems] = useState(0);
+  // Load overview data
+  useEffect(() => {
+    const fetchOverview = async () => {
+      try {
+        const data =
+          await instructorStudentsService.getStudentsOverview(timeRange)
+        setOverview(data)
+      } catch (error) {
+        console.error('Failed to fetch overview:', error)
+      }
+    }
+    fetchOverview()
+  }, [timeRange])
 
-    // State để tạm lưu các lọc hiện tại trước khi gọi API
-    const [courseId, setCourseId] = useState<string | undefined>(undefined);
-    const [status, setStatus] = useState<'IN_PROGRESS' | 'COMPLETED' | 'DROPPED' | undefined>(undefined);
+  // Load students list
+  useEffect(() => {
+    const fetchStudents = async () => {
+      setLoading(true)
+      try {
+        const filters: any = { page, size: 10 }
+        // Status filter removed - backend now shows all enrollments per user
+        if (keyword) filters.keyword = keyword
 
-    // Load danh sách khóa học của instructor
-    useEffect(() => {
-        async function loadInstructorCourses() {
-            try {
-                const coursesData = await getInstructorCourses(0, 100); // Lấy tất cả khóa học
-                if (coursesData && coursesData.content) {
-                    const coursesList = coursesData.content.map(course => ({
-                        id: course.id,
-                        name: course.name
-                    }));
-                    setCourses(coursesList);
-                }
-            } catch (err) {
-                console.error("Lỗi khi lấy danh sách khóa học:", err);
-                setError("Không thể tải danh sách khóa học");
-            }
-        }
+        const data = await instructorStudentsService.getStudentsList(filters)
+        setStudents(data.content)
+        setTotalPages(data.totalPages)
+        setTotalElements(data.totalElements)
+      } catch (error) {
+        console.error('Failed to fetch students:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchStudents()
+  }, [page, keyword]) // Removed statusFilter dependency
 
-        loadInstructorCourses();
-    }, []);
+  // Load chart data
+  useEffect(() => {
+    const fetchChart = async () => {
+      try {
+        const data =
+          await instructorStudentsService.getStudentsProgressChart(timeRange)
+        setChartData(data)
+      } catch (error) {
+        console.error('Failed to fetch chart:', error)
+      }
+    }
+    fetchChart()
+  }, [timeRange])
 
-    // Load danh sách học viên với các tham số
-    useEffect(() => {
-        async function loadStudentsProgress() {
-            setLoading(true);
-            try {
-                // API page bắt đầu từ 0, UI page bắt đầu từ 1
-                const apiPage = currentPage - 1;
-
-                const result = await getStudentsProgress(
-                    apiPage,
-                    pageSize,
-                    courseId,
-                    search.trim() || undefined,
-                    status,
-                    'startAt',
-                    'desc'
-                );
-
-                if (result) {
-                    setStudents(result.content);
-                    setTotalPages(result.totalPages);
-                    setTotalItems(result.totalElements);
-                } else {
-                    setStudents([]);
-                    setTotalPages(1);
-                    setTotalItems(0);
-                }
-            } catch (err) {
-                console.error("Lỗi khi lấy danh sách học viên:", err);
-                setError("Không thể tải danh sách học viên");
-                toast.error("Không thể tải danh sách học viên");
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        loadStudentsProgress();
-    }, [currentPage, pageSize, courseId, status, search]);
-
-    // Khi người dùng chọn một khóa học từ dropdown
-    const handleCourseFilterChange = (selectedCourseName: string) => {
-        setCourseFilter(selectedCourseName);
-
-        if (selectedCourseName === "Tất cả") {
-            setSearch(""); // Xóa tìm kiếm nếu chọn "Tất cả"
-        } else {
-            setSearch(selectedCourseName); // Đặt tên khóa học làm từ khóa tìm kiếm
-        }
-
-        setCurrentPage(1); // Reset về trang 1 khi thay đổi bộ lọc
-    };
-
-    // Xử lý khi người dùng thay đổi bộ lọc trạng thái tiến độ
-    const handleProgressFilterChange = (selectedProgressFilter: string) => {
-        setProgressFilter(selectedProgressFilter);
-        setStatus(getStatusFromDisplayText(selectedProgressFilter));
-        setCurrentPage(1); // Reset về trang 1 khi thay đổi bộ lọc
-    };
-
-    // Xử lý khi người dùng thay đổi tìm kiếm
-    const handleSearchChange = (value: string) => {
-        setSearch(value);
-        // Không gọi API ngay lập tức mà đợi người dùng ngừng gõ
-        // API sẽ được gọi ở useEffect dựa trên thay đổi của search
-    };
-
-    // Xử lý chuyển trang
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    };
-
+  const getStatusBadge = (status: ProgressStatus) => {
+    const variants: Record<ProgressStatus, { label: string; variant: any }> = {
+      IN_PROGRESS: { label: 'Đang học', variant: 'default' },
+      COMPLETED: { label: 'Hoàn thành', variant: 'default' },
+    }
+    const config = variants[status]
     return (
-        <div className="container mx-auto py-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Quản lý học viên</h1>
-                    <p className="text-gray-600 mt-1">Xem tiến độ học tập của học viên trong các khóa học của bạn.</p>
-                </div>
-                <div className="relative w-full md:w-72">
-                    <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                    <input
-                        type="text"
-                        placeholder="Tìm kiếm tên, email..."
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md bg-white text-black focus:outline-none focus:ring-2 focus:ring-gray-300 transition"
-                        value={search}
-                        onChange={(e) => handleSearchChange(e.target.value)}
-                    />
-                </div>
-            </div>
+      <Badge
+        variant={config.variant}
+        className={status === 'COMPLETED' ? 'bg-green-500' : ''}
+      >
+        {config.label}
+      </Badge>
+    )
+  }
 
-            {/* Bộ lọc nâng cao */}
-            <div className="flex flex-col md:flex-row gap-4 mb-4">
-                <div>
-                    <label className="mr-2 font-medium">Khóa học:</label>
-                    <select
-                        className="border border-gray-300 rounded-md px-2 py-1 bg-white text-black focus:outline-none focus:ring-2 focus:ring-gray-300 transition"
-                        value={courseFilter}
-                        onChange={(e) => handleCourseFilterChange(e.target.value)}
-                    >
-                        <option value="Tất cả">Tất cả</option>
-                        {courses.map((course) => (
-                            <option key={course.id} value={course.name}>
-                                {course.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="mr-2 font-medium">Tiến độ:</label>
-                    <select
-                        className="border border-gray-300 rounded-md px-2 py-1 bg-white text-black focus:outline-none focus:ring-2 focus:ring-gray-300 transition"
-                        value={progressFilter}
-                        onChange={(e) => handleProgressFilterChange(e.target.value)}
-                    >
-                        <option value="Tất cả">Tất cả</option>
-                        <option value="Đã hoàn thành">Đã hoàn thành</option>
-                        <option value="Đang học">Đang học</option>
-                        <option value="Chưa bắt đầu">Lâu chưa truy cập</option>
-                    </select>
-                </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow overflow-x-auto">
-                <Table>
-                    <TableHeader>
-                        <TableRow className="bg-gray-50 border-b-2 border-gray-200">
-                            <TableHead className="text-center">Học viên</TableHead>
-                            <TableHead className="text-center">Email</TableHead>
-                            <TableHead className="text-center">Khóa học</TableHead>
-                            <TableHead className="text-center">Tiến độ</TableHead>
-                            <TableHead className="text-center">Trạng thái</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {loading ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center text-gray-500 py-8">
-                                    Đang tải dữ liệu...
-                                </TableCell>
-                            </TableRow>
-                        ) : error ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center text-red-500 py-8">
-                                    {error}
-                                </TableCell>
-                            </TableRow>
-                        ) : students.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center text-gray-500 py-8">
-                                    Không tìm thấy học viên nào.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            students.map((student) => (
-                                <TableRow
-                                    key={`${student.studentId}-${student.courseId}`}
-                                    className="hover:bg-blue-50 transition-colors cursor-pointer"
-                                >
-                                    <TableCell className="py-4 text-center">
-                                        <span className="font-medium">{student.studentName}</span>
-                                    </TableCell>
-                                    <TableCell className="text-center">{student.studentEmail}</TableCell>
-                                    <TableCell className="text-center">{student.courseName}</TableCell>
-                                    <TableCell className="text-center">
-                                        <div className="flex items-center gap-2 justify-center">
-                                            <Progress value={student.progress} className="w-28 h-2" />
-                                            <span className="text-sm font-semibold text-gray-700">{student.progress}%</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                        {student.status === 'COMPLETED' && (
-                                            <span className="px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs font-semibold shadow">Hoàn thành</span>
-                                        )}
-                                        {student.status === 'IN_PROGRESS' && (
-                                            <span className="px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold shadow">Đang học</span>
-                                        )}
-                                        {student.status === 'DROPPED' && (
-                                            <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 text-xs font-semibold shadow">Đã dừng học</span>
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-
-            {/* Hiển thị phân trang chỉ khi có dữ liệu */}
-            {!loading && !error && students.length > 0 && (
-                <div className="mt-4">
-                    <CoursesPagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={handlePageChange}
-                    />
-                    <div className="text-center text-sm text-gray-500 mt-2">
-                        Hiển thị {students.length} trong tổng số {totalItems} học viên
-                    </div>
-                </div>
-            )}
+  return (
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Quản lý Học viên</h1>
+          <p className="text-muted-foreground">
+            Theo dõi và quản lý học viên của bạn
+          </p>
         </div>
-    );
+        <Select
+          value={timeRange}
+          onValueChange={(v) => setTimeRange(v as TimeRange)}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="WEEK">7 ngày qua</SelectItem>
+            <SelectItem value="MONTH">30 ngày qua</SelectItem>
+            <SelectItem value="QUARTER">3 tháng qua</SelectItem>
+            <SelectItem value="YEAR">1 năm qua</SelectItem>
+            <SelectItem value="ALL">Tất cả</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Overview Cards */}
+      {overview && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Tổng Học viên
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {overview.totalStudents.count}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                +{overview.newStudents.count} học viên mới
+                {overview.newStudents.growthRate &&
+                  ` (${Number(overview.newStudents.growthRate).toFixed(1)}%)`}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Đang hoạt động
+              </CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {overview.completionStats.inProgress}
+              </div>
+              <p className="text-xs text-muted-foreground">Học viên đang học</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Hoàn thành</CardTitle>
+              <GraduationCap className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {overview.completionStats.completed}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {Number(overview.completionStats.averageCompletionRate).toFixed(
+                  1,
+                )}
+                % tỷ lệ hoàn thành
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Tiến độ TB</CardTitle>
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {Number(overview.completionStats.averageCompletionRate).toFixed(
+                  1,
+                )}
+                %
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Tỷ lệ hoàn thành trung bình
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Top Courses */}
+      {overview && overview.topCoursesByStudents.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Top 5 Khóa học nhiều học viên nhất</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {overview.topCoursesByStudents.map((course) => (
+                <div key={course.courseId} className="flex items-center gap-4">
+                  <img
+                    src={course.courseThumbnail || '/placeholder-course.jpg'}
+                    alt={course.courseTitle}
+                    className="w-16 h-16 rounded object-cover"
+                  />
+                  <div className="flex-1">
+                    <p className="font-medium">{course.courseTitle}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {course.studentCount} học viên
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Progress Chart */}
+      {chartData && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Biểu đồ Tiến độ Học viên</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={chartData.data}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="inProgress"
+                  stroke="#3b82f6"
+                  name="Đang học"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="completed"
+                  stroke="#10b981"
+                  name="Hoàn thành"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="newEnrollments"
+                  stroke="#f59e0b"
+                  name="Mới đăng ký"
+                  strokeWidth={2}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Students Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="mb-2">Danh sách Học viên</CardTitle>
+          <div className="flex gap-4 mt-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Tìm kiếm theo tên hoặc email..."
+                value={keyword}
+                onChange={(e) => {
+                  setKeyword(e.target.value)
+                  setPage(0)
+                }}
+                className="pl-8"
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8">Đang tải...</div>
+          ) : students.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Không có học viên nào
+            </div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Học viên</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Số khóa học</TableHead>
+                    <TableHead>Tiến độ TB</TableHead>
+                    <TableHead>Hoạt động gần nhất</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {students.map((student) => (
+                    <TableRow key={student.userId}>
+                      <TableCell>
+                        <p className="font-medium">
+                          {student.fullName || 'Người dùng chưa đặt tên'}
+                        </p>
+                      </TableCell>
+                      <TableCell>{student.email}</TableCell>
+                      <TableCell>
+                        {student.enrollments?.length || 0} khóa
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-sm">
+                            <span>{student.averageProgress.toFixed(1)}%</span>
+                          </div>
+                          <Progress
+                            value={student.averageProgress}
+                            className="h-2"
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {student.lastActive
+                          ? new Date(student.lastActive).toLocaleDateString(
+                              'vi-VN',
+                            )
+                          : 'Chưa có'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {/* Pagination */}
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-muted-foreground">
+                  Hiển thị {page * 10 + 1} -{' '}
+                  {Math.min((page + 1) * 10, totalElements)} trong tổng{' '}
+                  {totalElements} học viên
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(page - 1)}
+                    disabled={page === 0}
+                  >
+                    Trước
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(page + 1)}
+                    disabled={page >= totalPages - 1}
+                  >
+                    Sau
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
 }
