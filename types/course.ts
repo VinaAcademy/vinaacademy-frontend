@@ -108,8 +108,8 @@ export interface CourseReviewDto {
   review: string
   userId: string
   userFullName: string
-  createdDate: string
-  updatedDate: string
+  createdDate: string | number[] // Support both ISO string and Spring Boot array format
+  updatedDate: string | number[] // Support both ISO string and Spring Boot array format
 }
 
 /**

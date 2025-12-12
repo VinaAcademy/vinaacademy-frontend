@@ -1,8 +1,53 @@
 import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
 
+/**
+ * Parse date from various formats including Spring Boot LocalDateTime array
+ * Spring Boot serializes LocalDateTime as [year, month, day, hour, minute, second, nano]
+ * or as string "YYYY-MM-DD HH:mm:ss"
+ */
+function parseDate(
+  dateInput: string | number[] | Date | null | undefined,
+): Date | null {
+  if (!dateInput) return null
+
+  // Already a Date object
+  if (dateInput instanceof Date) return dateInput
+
+  // Handle array format from Spring Boot [year, month, day, hour, minute, second]
+  if (Array.isArray(dateInput) && dateInput.length >= 3) {
+    const [year, month, day, hour = 0, minute = 0, second = 0] = dateInput
+    return new Date(year, month - 1, day, hour, minute, second)
+  }
+
+  // Handle string format
+  if (typeof dateInput === 'string') {
+    // Try parsing "YYYY-MM-DD HH:mm:ss" format from Spring Boot
+    const match = dateInput.match(
+      /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/,
+    )
+    if (match) {
+      const [, year, month, day, hour, minute, second] = match
+      return new Date(
+        parseInt(year),
+        parseInt(month) - 1,
+        parseInt(day),
+        parseInt(hour),
+        parseInt(minute),
+        parseInt(second),
+      )
+    }
+
+    // Try standard date parsing
+    const date = new Date(dateInput)
+    if (!isNaN(date.getTime())) return date
+  }
+
+  return null
+}
+
 export function formatDate(
-  dateString: string,
+  dateInput: string | number[] | Date | null | undefined,
   options: Intl.DateTimeFormatOptions = {
     weekday: 'long',
     month: 'short',
@@ -10,14 +55,14 @@ export function formatDate(
     year: 'numeric',
   },
 ): string {
-  if (!dateString) return ''
+  const date = parseDate(dateInput)
+  if (!date || isNaN(date.getTime())) return 'Không rõ'
 
-  const date = new Date(dateString)
   return date.toLocaleDateString('vi-VN', options)
 }
 
 export function formatDateTime(
-  dateString: string,
+  dateInput: string | number[] | Date | null | undefined,
   options: Intl.DateTimeFormatOptions = {
     weekday: 'long',
     month: 'short',
@@ -28,9 +73,9 @@ export function formatDateTime(
     hour12: true,
   },
 ): string {
-  if (!dateString) return ''
+  const date = parseDate(dateInput)
+  if (!date || isNaN(date.getTime())) return 'Không rõ'
 
-  const date = new Date(dateString)
   return date.toLocaleDateString('vi-VN', options)
 }
 
