@@ -1,34 +1,40 @@
-"use client";
+'use client'
 
-import WelcomeSection from "@/components/layout/home/WelcomeSection";
-import BannerSection from "@/components/layout/home/BannerSection";
-import RecentCoursesSection from "@/components/layout/home/RecentCoursesSection";
-import LearningRecommendations from "@/components/layout/home/LearningRecommendations";
-import TopRatedCourses from "@/components/layout/home/TopRatedCourses";
-import NewCoursesSection from "@/components/layout/home/NewCoursesSection";
-import PopularCoursesSection from "@/components/layout/home/PopularCoursesSection";
-import { useAuth } from "@/context/AuthContext";
-import { useEffect, useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { motion } from "framer-motion";
-import Link from "next/link";
+import WelcomeSection from '@/components/layout/home/WelcomeSection'
+import BannerSection from '@/components/layout/home/BannerSection'
+import RecentCoursesSection from '@/components/layout/home/RecentCoursesSection'
+import LearningRecommendations from '@/components/layout/home/LearningRecommendations'
+import TopRatedCourses from '@/components/layout/home/TopRatedCourses'
+import NewCoursesSection from '@/components/layout/home/NewCoursesSection'
+import PopularCoursesSection from '@/components/layout/home/PopularCoursesSection'
+import { useAuth } from '@/context/AuthContext'
+import { useEffect, useState } from 'react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { motion } from 'framer-motion'
+import Link from 'next/link'
+import TestSection from '@/components/layout/home/TestSection'
+import HeroSection from '@/components/layout/home/HeroSection'
+import PopularCourseFeatures from '@/components/layout/home/PopularCourseFeatures'
+import ImageSection from '@/components/layout/home/ImageSection'
+import InstructorSection from '@/components/layout/home/InstructorSection'
+import SupportChat from '@/components/layout/home/SupportChat'
 
-const userAvatar = "";
+const userAvatar = ''
 
 export default function Home() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const [contentLoading, setContentLoading] = useState(true);
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const [contentLoading, setContentLoading] = useState(true)
   const username =
-    user?.fullName || user?.email || user?.username || "Người dùng";
+    user?.fullName || user?.email || user?.username || 'Người dùng'
 
   // Simulate content loading
   useEffect(() => {
     const timer = setTimeout(() => {
-      setContentLoading(false);
-    }, 1500);
+      setContentLoading(false)
+    }, 1500)
 
-    return () => clearTimeout(timer);
-  }, []);
+    return () => clearTimeout(timer)
+  }, [])
 
   // Enhanced animation variants with smoother transitions
   const containerVariants = {
@@ -40,18 +46,18 @@ export default function Home() {
         delayChildren: 0.1,
       },
     },
-  };
-//   if (isAuthenticated) {
-//     const notificationData = {
-//       title: `Bạn là gì test`,
-//       content: `Lí do: test`,
-//       targetUrl: `/instructor/courses`,
-//       userId: user?.id||"undefined",
-//       type: NotificationType.SYSTEM,
-//     };
+  }
+  //   if (isAuthenticated) {
+  //     const notificationData = {
+  //       title: `Bạn là gì test`,
+  //       content: `Lí do: test`,
+  //       targetUrl: `/instructor/courses`,
+  //       userId: user?.id||"undefined",
+  //       type: NotificationType.SYSTEM,
+  //     };
 
-//     createNotification(notificationData);
-//   }
+  //     createNotification(notificationData);
+  //   }
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -59,17 +65,19 @@ export default function Home() {
       opacity: 1,
       y: 0,
       transition: {
-        type: "spring",
+        type: 'spring',
         stiffness: 100,
         damping: 12,
         duration: 0.4,
       },
     },
-  };
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 px-2 sm:px-4 py-4 sm:py-6">
-      <div className="w-full max-w-6xl">
+    <div className="flex flex-col items-center justify-center min-h-screen bg=transparent px-2 sm:px-4">
+      {/* bg-gradient-to-b from-gray-50 to-gray-100 */}
+      <div className="w-full">
+        <HeroSection />
         {authLoading ? (
           <div className="w-full">
             <Skeleton className="h-16 sm:h-20 w-full rounded-lg mb-4 shadow-sm" />
@@ -94,7 +102,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="mb-5"
+            className="mb-5 flex items-center justify-center mx-auto"
           >
             <BannerSection />
           </motion.div>
@@ -122,7 +130,7 @@ export default function Home() {
           </div>
         ) : (
           <motion.div
-            className="space-y-8 sm:space-y-10 mt-3"
+            className="space-y-8 sm:space-y-10 mt-3 max-w-7xl flex justify-center flex-col mx-auto"
             variants={containerVariants}
             initial="hidden"
             animate="show"
@@ -173,7 +181,18 @@ export default function Home() {
             </Link>
           </div>
         )}
+        <TestSection />
+        <div className="w-full">
+          <ImageSection />
+        </div>
+        <div className="w-full">
+          <InstructorSection />
+        </div>
+        <div className="w-full">
+          <PopularCourseFeatures />
+        </div>
       </div>
+      <SupportChat />
     </div>
-  );
+  )
 }

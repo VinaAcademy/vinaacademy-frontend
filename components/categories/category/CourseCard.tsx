@@ -21,7 +21,7 @@ export function CourseCard({ course }: CourseCardProps) {
                     />
                 </div>
                 <div className="p-3">
-                    <h3 className="font-bold text-base mb-1 line-clamp-2">{course.name}</h3>
+                    <h3 className="font-bold text-base mb-1 line-clamp-2 min-h-[48px]">{course.name}</h3>
                     <p className="text-sm text-gray-600 mb-1">{course.categoryName}</p>
                     <div className="flex items-center gap-1 mb-1">
                         <span className="text-amber-700 font-bold">{course.rating.toFixed(1)}</span>

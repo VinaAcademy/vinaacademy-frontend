@@ -152,7 +152,7 @@ export default function CategoryPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-transparent">
             <div className="container mx-auto px-4 py-8">
                 {/* Title section */}
                 <CategoryHeader

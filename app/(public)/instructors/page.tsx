@@ -112,7 +112,7 @@ export default function InstructorsPage() {
             <section className="relative bg-gray-900 text-white">
                 <div className="absolute inset-0 opacity-20">
                     <Image
-                        src="/images/instructor-hero-bg.jpg"
+                        src="/images/instructor/hero_instructor.jpg"
                         alt="Background"
                         fill
                         className="object-cover"
