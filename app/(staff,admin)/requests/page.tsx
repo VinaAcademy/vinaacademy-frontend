@@ -163,7 +163,7 @@ const CourseApprovalPage = () => {
         return;
       }
 
-      const check = await updateStatusCourse(course.id, CourseStatus.PUBLISHED);
+      const check = await updateStatusCourse(course.id, CourseStatus.PUBLISHED, "");
 
       if (check) {
         toast({

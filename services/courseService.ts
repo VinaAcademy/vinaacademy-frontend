@@ -402,11 +402,12 @@ export async function submitCourseForReview(
 export async function updateStatusCourse(
   id: string,
   status: CourseStatus,
+  content: string
 ): Promise<boolean> {
   try {
     const response: AxiosResponse<ApiResponse<boolean>> = await apiClient.patch(
       `/courses/by-id/${id}/status`,
-      { status },
+      { status, content },
     )
     // Some backends return {data:true}, others return updated object; normalize to boolean
     return !!response.data?.data || response.status === 200
