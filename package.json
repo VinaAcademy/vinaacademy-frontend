@@ -59,6 +59,7 @@
     "@tiptap/starter-kit": "^2.11.9",
     "@types/hls.js": "^0.13.3",
     "@types/js-cookie": "^3.0.6",
+    "aos": "^2.3.4",
     "axios": "^1.8.1",
     "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",
@@ -100,6 +101,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/aos": "^3.0.7",
     "@types/node": "^20",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19",

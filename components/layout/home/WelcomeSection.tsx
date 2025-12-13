@@ -7,7 +7,7 @@ interface WelcomeSectionProps {
 
 const WelcomeSection = ({userName, userAvatar}: WelcomeSectionProps) => {
     return (
-        <div className="flex items-center justify-start gap-4 py-6 mt-4 sm:mt-6 md:mt-8 w-full max-w-6xl px-5">
+        <div className="flex items-center justify-start gap-4 py-6 mt-4 sm:mt-6 md:mt-8 w-full px-5">
             {/* Avatar */}
             {userAvatar ? (
                 <img
