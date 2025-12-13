@@ -24,7 +24,7 @@ interface CourseCardProps {
 export default function CourseCard({course}: CourseCardProps) {
     return (
         <Link href={`/courses/${course.id}`}>
-            <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+            <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow ">
                 <div className="flex flex-col md:flex-row">
                     <div className="relative h-48 md:h-auto md:w-2/5">
                         <Image
@@ -41,7 +41,7 @@ export default function CourseCard({course}: CourseCardProps) {
                         )}
                     </div>
                     <div className="p-4 md:w-3/5">
-                        <h3 className="text-lg font-semibold mb-1 line-clamp-2">{course.title}</h3>
+                        <h3 className="text-lg font-semibold mb-1 line-clamp-2 min-h-[48px]">{course.title}</h3>
                         <p className="text-sm text-gray-600 mb-2">{course.instructor}</p>
                         <div className="flex items-center gap-1 mb-2">
                             <Star size={16} className="text-yellow-500 fill-yellow-500"/>

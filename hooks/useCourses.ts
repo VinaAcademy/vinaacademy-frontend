@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { CourseSearchRequest } from '@/types/course'
-import { searchCourses } from '@/services/courseService'
+import { aiSearchCourses, searchCourses } from '@/services/courseService'
 import { COURSE_KEYS } from '@/config/query-keys.config'
 
 interface UseCoursesProps {
@@ -18,6 +18,7 @@ interface UseCoursesProps {
   size?: number
   sortBy?: string
   sortDirection?: 'asc' | 'desc'
+  aiSearchEnabled?: boolean
 }
 
 export const useCourses = ({
@@ -48,7 +49,7 @@ export const useCourses = ({
     minRating,
     status,
   }
-
+  
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: COURSE_KEYS.list({
       keyword,
@@ -66,9 +67,11 @@ export const useCourses = ({
       sortBy,
       sortDirection,
     }),
-    queryFn: () =>
-      searchCourses(searchRequest, page, size, sortBy, sortDirection),
+    queryFn: () => 
+      searchCourses(searchRequest, page, size, sortBy, sortDirection)
+    ,
     staleTime: 5 * 60 * 1000, // 5 minutes
+   
   })
 
   return {
