@@ -36,7 +36,6 @@ export const useCourses = ({
   size = 8,
   sortBy = 'createdDate',
   sortDirection = 'desc',
-  aiSearchEnabled = false,
 }: UseCoursesProps = {}) => {
   const searchRequest: CourseSearchRequest = {
     keyword,
@@ -50,9 +49,6 @@ export const useCourses = ({
     minRating,
     status,
   }
-  console.log('useCourses - AI Search Enabled:', aiSearchEnabled)
-  console.log('useCourses - Keyword:', keyword)
-  console.log('useCourses - Page:', page)
   
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: COURSE_KEYS.list({
@@ -70,18 +66,10 @@ export const useCourses = ({
       size,
       sortBy,
       sortDirection,
-      aiSearchEnabled,
     }),
-    queryFn: () => {
-      console.log('QueryFn executing with aiSearchEnabled:', aiSearchEnabled)
-      if (aiSearchEnabled) {
-        console.log('Fetching courses with AI search...')
-        return aiSearchCourses(searchRequest, page, size)
-      } else {
-        console.log('Fetching courses with standard search...')
-        return searchCourses(searchRequest, page, size, sortBy, sortDirection)
-      }
-    },
+    queryFn: () => 
+      searchCourses(searchRequest, page, size, sortBy, sortDirection)
+    ,
     staleTime: 5 * 60 * 1000, // 5 minutes
    
   })
