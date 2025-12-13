@@ -230,9 +230,9 @@ const CourseApprovalPage = () => {
     recipid: string
   ) => {
     setIsLoading(true);
-
+    
     try {
-      const check = await updateStatusCourse(id,CourseStatus.REJECTED);
+      const check = await updateStatusCourse(id,CourseStatus.REJECTED, comment);
 
       if (check) {
         toast({

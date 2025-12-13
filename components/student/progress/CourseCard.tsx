@@ -3,12 +3,14 @@ import Link from "next/link";
 import { LearningCourse } from "@/types/navbar";
 import { getCourseSlugById } from "@/services/courseService";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface CourseCardProps {
     course: LearningCourse;
 }
 
 const CourseCard = ({ course }: CourseCardProps) => {
+    const router = useRouter();
     const isCompleted = course.progress === 100;
     const title = course.name;
     const [courseSlug, setCourseSlug] = useState<string | null>(null);
@@ -87,7 +89,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
                 )}
             </div>
             <div className="p-4">
-                <h3 className="font-bold text-lg mb-2 text-gray-900">{title}</h3>
+                <h3 className="font-bold text-lg mb-2 text-gray-900" onClick={() => router.push(`/learning/${courseSlug}`)}>{title}</h3>
                 <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-gray-500">
                         {course.instructor || ""}

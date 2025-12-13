@@ -31,7 +31,7 @@ const LearningHeader: FC<LearningHeaderProps> = ({courseTitle, progress, courseS
                 </Link>
 
                 <div className="flex flex-col mr-2 sm:mr-8 min-w-0">
-                    <Link href={`/learning/${courseSlug}`} className="hover:text-gray-300">
+                    <Link href={`/courses/${courseSlug}`} className="hover:text-gray-300">
                         <h1 className="text-sm sm:text-lg font-medium truncate max-w-[150px] sm:max-w-[250px] md:max-w-sm">{courseTitle}</h1>
                     </Link>
                     <div className="flex items-center">
