@@ -312,7 +312,7 @@ export default function EditCoursePage() {
             }
             
             // Update the course
-            const updatedCourse = await updateCourse(courseData.slug, courseRequest);
+            const updatedCourse = await updateCourse(courseId, courseRequest);
             
             if (updatedCourse) {
                 toast({
