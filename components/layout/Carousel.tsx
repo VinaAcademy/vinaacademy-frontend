@@ -87,7 +87,7 @@ const Carousel = ({
                             <Link
                                 href={`/courses/${course.slug || course.id}`}
                                 key={course.id}
-                                className="flex-1 w-[280px]"
+                                className="mr-3"
                             >
                                 <Card className="flex flex-col h-full w-[280px] hover:shadow-md transition-shadow">
                                     {/* Card header with image */}
