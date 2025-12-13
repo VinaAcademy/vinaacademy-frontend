@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { CourseType } from '@/types/instructor-course'
 import { CourseStatus } from '@/types/course'
 import Image from 'next/image'
+import { getImageUrl } from '@/utils/imageUtils'
 
 interface CourseListViewProps {
   courses: CourseType[]
@@ -63,7 +64,7 @@ export default function CourseListView({ courses }: CourseListViewProps) {
                     <Image
                       width={12}
                       height={12}
-                      src={course.thumbnail}
+                      src={getImageUrl(course.thumbnail || '')}
                       alt=""
                       className="h-full w-full object-cover"
                     />
