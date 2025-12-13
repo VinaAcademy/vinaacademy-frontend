@@ -118,6 +118,7 @@ export default function TestSection() {
                 data-aos-delay={index * 100}
                 className="
                   group relative flex flex-col items-center justify-center p-6 rounded-3xl cursor-pointer transition-all duration-300 bg-white text-slate-600 hover:shadow-lg hover:-translate-y-1"
+                onClick={() => router.push(`/categories/${cat.slug}`)}
               >
                 <div className={`mb-4 p-3 rounded-full ${cat.bg}`}>
                   <div className={cat.color}>{cat.icon}</div>
