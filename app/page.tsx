@@ -77,6 +77,7 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center min-h-screen bg=transparent px-2 sm:px-4">
       {/* bg-gradient-to-b from-gray-50 to-gray-100 */}
       <div className="w-full">
+        <WelcomeSection userName={username} userAvatar={userAvatar} />
         <HeroSection />
         {authLoading ? (
           <div className="w-full">
@@ -90,7 +91,7 @@ export default function Home() {
               transition={{ duration: 0.4 }}
               className="mb-4"
             >
-              <WelcomeSection userName={username} userAvatar={userAvatar} />
+              
             </motion.div>
           )
         )}

@@ -23,11 +23,11 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
-  const roleStaffAdmin =
+  const roleStaff =
     user?.roles.findLast(
-      (role) => role.name === "admin" || role.name === "staff"
+      (role) => role.name === "staff"
     ) || null;
-
+  const isAdmin = user?.roles.some((role) => role.name === "admin") || false;
   // Handle logout function
   const handleLogout = () => {
     setMobileMenuOpen(false);
@@ -104,7 +104,8 @@ const Navbar = () => {
           <DesktopNav
             categories={categories}
             isLoading={isLoading}
-            roleStaffAdmin={roleStaffAdmin}
+            roleStaff={roleStaff}
+            roleAdmin={isAdmin}
             notifications={notifications}
             totalUnread={unreadCount}
             cartItems={formattedCartItems}
@@ -145,7 +146,8 @@ const Navbar = () => {
         categories={categories}
         isLoading={isLoading}
         isAuthenticated={isAuthenticated}
-        roleStaffAdmin={roleStaffAdmin}
+        roleStaff={roleStaff}
+        roleAdmin={isAdmin}
         cartItems={formattedCartItems}
         totalUnread={unreadCount}
         onClose={() => setMobileMenuOpen(false)}

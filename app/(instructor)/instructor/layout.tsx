@@ -24,6 +24,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '@/context/AuthContext'
 import { getCurrentUser } from '@/services/authService'
 import { User } from '@/types/auth'
+import HomeLink from '@/components/layout/HomeLink'
 
 interface InstructorLayoutProps {
   children: ReactNode
@@ -173,10 +174,13 @@ export default function InstructorLayout({ children }: InstructorLayoutProps) {
                   Giảng viên
                 </div>
               </div>
-
+              <HomeLink className="flex items-center">
+                <span className="hidden sm:inline">Vina Academy</span>
+              </HomeLink>
               {/* Right side elements */}
               <div className="flex items-center space-x-4">
                 {/* Return to Home (visible on mobile) */}
+                
                 <div className="md:hidden">
                   <Link href="/">
                     <button className="bg-gray-900 hover:bg-gray-800 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors">

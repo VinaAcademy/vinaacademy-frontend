@@ -1,7 +1,16 @@
 import { DiscussionDto } from "@/types/discussion";
 import { getImageUrl } from "@/utils/imageUtils";
 import { Reply, ThumbsUp, Trash2 } from "lucide-react";
-import { FC, memo } from "react";
+import { FC, memo, useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ReplyItemProps {
   reply: DiscussionDto;
@@ -19,6 +28,7 @@ const ReplyItem: FC<ReplyItemProps> = memo(({
   onReply, 
   formatRelativeTime 
 }) => {
+  const [openDelete, setOpenDelete] = useState(false);
   return (
     <div className="bg-gray-50 rounded-md p-2 sm:p-3">
       {/* Reply header */}
@@ -47,7 +57,7 @@ const ReplyItem: FC<ReplyItemProps> = memo(({
           </div>
         </div>
         <button
-          onClick={() => onDelete(reply.id)}
+          onClick={() => setOpenDelete(true)}
           className="text-gray-400 hover:text-red-600"
           aria-label="Xóa phản hồi"
         >
@@ -87,6 +97,29 @@ const ReplyItem: FC<ReplyItemProps> = memo(({
           <span>Trả lời</span>
         </button>
       </div>
+      {/* Confirm delete reply dialog */}
+      <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xóa phản hồi?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Thao tác này không thể hoàn tác. Phản hồi sẽ bị xóa vĩnh viễn.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-2">
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => {
+                onDelete(reply.id);
+                setOpenDelete(false);
+              }}
+            >
+              Xóa
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 });

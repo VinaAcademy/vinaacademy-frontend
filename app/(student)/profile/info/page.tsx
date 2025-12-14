@@ -11,7 +11,6 @@ import { profileFormSchema } from "@/lib/profile-schema";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { vi } from "date-fns/locale";
 import {
   Form,
   FormControl,
@@ -56,6 +55,7 @@ import {
 } from "@/components/ui/toast-cus";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { Dropdown } from "react-day-picker";
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
@@ -162,9 +162,10 @@ export default function Home() {
         fullName: data.fullName,
         phone: data.phone || null,
         avatarUrl: avatarId,
-        dateOfBirth: data.dateOfBirth || null,
+        birthday: data.dateOfBirth || null,
         description: data.description || null,
       };
+      requestData.birthday?.setHours(16,0,0,0);
 
       // Send update request using the provided function
       const updatedUser = await updateUserInfo(requestData);
@@ -308,25 +309,21 @@ export default function Home() {
                                 </Button>
                               </FormControl>
                             </PopoverTrigger>
-                            <PopoverContent
-                              className="w-auto p-0"
+                            <PopoverContent 
+                              className="w-auto p-0 overflow-hidden"
                               align="start"
                             >
                               <Calendar
+                                
                                 mode="single"
-                                locale={vi}
+                                
                                 selected={field.value}
                                 onSelect={field.onChange}
                                 disabled={(date) =>
                                   date > new Date() ||
                                   date < new Date("1900-01-01")
                                 }
-                                initialFocus
-                                classNames={{
-                                  caption: "capitalize",
-                                  head_cell:
-                                    "text-muted-foreground font-normal text-xs",
-                                }}
+                                captionLayout="dropdown"
                               />
                             </PopoverContent>
                           </Popover>

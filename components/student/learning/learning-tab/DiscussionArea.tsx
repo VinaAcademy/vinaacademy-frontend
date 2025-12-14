@@ -10,7 +10,24 @@ import {
 } from "@/services/discussionService";
 import { DiscussionDto, DiscussionRequest } from "@/types/discussion";
 import CommentItem from "./discussion/CommentItem";
+import CommentInput from "./CommentInput";
 import { createSuccessToast } from "@/components/ui/toast-cus";
+
+// Helpers to avoid duplicate keys when merging pages or switching sort
+const uniqueById = (items: DiscussionDto[]): DiscussionDto[] => {
+  const seen = new Set<string>();
+  return items.filter((it) => {
+    if (seen.has(it.id)) return false;
+    seen.add(it.id);
+    return true;
+  });
+};
+
+const appendUnique = (prev: DiscussionDto[], next: DiscussionDto[]): DiscussionDto[] => {
+  const existing = new Set(prev.map((c) => c.id));
+  const dedupedNext = next.filter((c) => !existing.has(c.id));
+  return [...prev, ...dedupedNext];
+};
 
 interface DiscussionAreaProps {
   courseId: string;
@@ -21,7 +38,6 @@ interface DiscussionAreaProps {
 const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
   const [comments, setComments] = useState<DiscussionDto[]>([]);
   const [loading, setLoading] = useState(false);
-  const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [newReply, setNewReply] = useState("");
   const [filter, setFilter] = useState<"newest" | "popular">("newest");
@@ -38,16 +54,17 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
         const result = await getRootCommentsPaginated(
           lectureId,
           pageNum,
-          10,
+          5,
           sortBy,
           "DESC"
         );
 
         if (result) {
+          const pageItems = uniqueById(result.content);
           if (pageNum === 0) {
-            setComments(result.content);
+            setComments(pageItems);
           } else {
-            setComments((prev) => [...prev, ...result.content]);
+            setComments((prev) => appendUnique(prev, pageItems));
           }
           setTotalPages(result.totalPages);
         }
@@ -63,7 +80,6 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
   // Create new comment or reply
   const createNewComment = useCallback(
     async (content: string, parentId?: string) => {
-      setSubmitting(true);
       try {
         const request: DiscussionRequest = {
           lessonId: lectureId,
@@ -84,7 +100,7 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
               )
             );
           } else {
-            // It's a root comment - add to top
+            // it is a root comment - add to top
             setComments((prev) => [result, ...prev]);
           }
           return true;
@@ -92,8 +108,6 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
       } catch (error) {
         console.error("Error creating comment:", error);
         return false;
-      } finally {
-        setSubmitting(false);
       }
       return false;
     },
@@ -136,27 +150,26 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
 
   // Delete comment
   const handleDeleteComment = useCallback(async (commentId: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa bình luận này?")) {
-      try {
-        const success = await deleteDiscussion(commentId);
-        console.log("delete", success);
-        if (success) {
-          // Remove from root comments
-          setComments((prev) =>
-            prev.filter((comment) => comment.id !== commentId)
-          );
-          createSuccessToast("Xóa bình luận thành công");
-        }
-      } catch (error) {
-        console.error("Error deleting comment:", error);
+    try {
+      const success = await deleteDiscussion(commentId);
+      console.log("delete", success);
+      if (success) {
+        // Remove from root comments
+        setComments((prev) =>
+          prev.filter((comment) => comment.id !== commentId)
+        );
+        createSuccessToast("Xóa bình luận thành công");
       }
+    } catch (error) {
+      console.error("Error deleting comment:", error);
     }
   }, []);
 
   // Format relative time
   const formatRelativeTime = useCallback((dateString: string): string => {
-    const date = new Date(dateString);
+    const date = new Date(dateString); 
     const now = new Date();
+    console.log("BEFORE "+date, "AFTER "+now);
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
     if (diffInSeconds < 60) return `${diffInSeconds} giây trước`;
@@ -171,14 +184,12 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
   }, []);
 
   // Submit new comment
-  const submitComment = useCallback(async () => {
-    if (!newComment.trim()) return;
-
-    const success = await createNewComment(newComment);
-    if (success) {
-      setNewComment("");
-    }
-  }, [newComment, createNewComment]);
+  const submitComment = useCallback(
+    async (content: string) => {
+      return await createNewComment(content);
+    },
+    [createNewComment]
+  );
 
   // Load more comments
   const loadMore = useCallback(() => {
@@ -191,8 +202,10 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
   useEffect(() => {
     // Khi filter hoặc lectureId đổi, reset về 0 và load ngay trang 0
     setPage(0);
+    // Clear current list to avoid key duplication when new sort arrives
+    setComments([]);
     loadComments(0);
-    console.log(page+" tren 1")
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lectureId, filter]);
 
   useEffect(() => {
@@ -202,7 +215,7 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
       loadComments(page);
       console.log(page+" tren 2")
     }
-  }, [page]);
+  }, [page, loadComments]);
 
   return (
     <div className="flex flex-col h-full px-2 sm:px-4 md:px-6 py-4 md:py-6">
@@ -235,35 +248,7 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
       </div>
 
       {/* Comment input */}
-      <div className="mb-6 bg-gray-50 rounded-lg p-3 sm:p-4">
-        <h3 className="text-base md:text-lg font-medium mb-2 sm:mb-3 text-gray-800">
-          Thêm bình luận vào thảo luận
-        </h3>
-        <textarea
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          className="w-full p-2 sm:p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-gray-300"
-          placeholder="Chia sẻ suy nghĩ của bạn với các học viên khác..."
-          rows={4}
-          maxLength={2000}
-        ></textarea>
-        <div className="flex justify-between items-center mt-2 sm:mt-3">
-          <span className="text-xs text-gray-500">
-            {newComment.length}/2000
-          </span>
-          <button
-            onClick={submitComment}
-            disabled={!newComment.trim() || submitting}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-          >
-            {submitting ? (
-              <Loader className="animate-spin w-4 h-4" />
-            ) : (
-              "Đăng bình luận"
-            )}
-          </button>
-        </div>
-      </div>
+      <CommentInput onSubmit={submitComment} />
 
       {/* Comments list */}
       <div className="flex-1 overflow-y-auto">

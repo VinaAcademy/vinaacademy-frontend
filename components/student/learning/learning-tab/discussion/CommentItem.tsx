@@ -3,7 +3,17 @@ import { DiscussionDto } from "@/types/discussion";
 import { ChevronDown, ChevronUp, Loader, MoreHorizontal, Reply, ThumbsUp, Trash2 } from "lucide-react";
 import { FC, memo, useCallback, useState } from "react";
 import ReplyItem from "./ReplyItem";
+import ReplyInput from "../ReplyInput";
 import { getImageUrl } from "@/utils/imageUtils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface CommentItemProps {
   comment: DiscussionDto;
@@ -36,6 +46,7 @@ const CommentItem: FC<CommentItemProps> = memo(({
   submitting
 }) => {
   const [expandedReplies, setExpandedReplies] = useState(false);
+  const [openDeleteComment, setOpenDeleteComment] = useState(false);
   const [replies, setReplies] = useState<DiscussionDto[]>([]);
   const [repliesPage, setRepliesPage] = useState(0);
   const [repliesTotalPages, setRepliesTotalPages] = useState(0);
@@ -90,32 +101,32 @@ const CommentItem: FC<CommentItemProps> = memo(({
   }, [expandedReplies, loadReplies]);
 
   // Handle reply submission
-  const handleSubmitReply = useCallback(async () => {
-    if (!newReply.trim()) return;
+  const handleSubmitReply = useCallback(async (content: string): Promise<boolean> => {
+    if (!content.trim()) return false;
     
-    const success = await onCreateReply(newReply, comment.id);
+    const success = await onCreateReply(content, comment.id);
     if (success) {
-      setNewReply("");
       setReplyingTo(null);
       // Reload replies to show the new one
       if (expandedReplies) {
         await loadReplies();
       }
     }
-  }, [newReply, comment.id, onCreateReply, setNewReply, setReplyingTo, expandedReplies, loadReplies]);
+    return success;
+  }, [comment.id, onCreateReply, setReplyingTo, expandedReplies, loadReplies]);
 
   // Handle reply to reply submission  
-  const handleSubmitReplyToReply = useCallback(async () => {
-    if (!newReply.trim()) return;
+  const handleSubmitReplyToReply = useCallback(async (content: string): Promise<boolean> => {
+    if (!content.trim()) return false;
     
-    const success = await onCreateReply(newReply, comment.id);
+    const success = await onCreateReply(content, comment.id);
     if (success) {
-      setNewReply("");
       setReplyingTo(null);
       // Reload replies to show the new one
       await loadReplies();
     }
-  }, [newReply, comment.id, onCreateReply, setNewReply, setReplyingTo, loadReplies]);
+    return success;
+  }, [comment.id, onCreateReply, setReplyingTo, loadReplies]);
 
   // Handle like toggle for replies
   const handleReplyLikeToggle = useCallback(async (replyId: string, isLiked: boolean) => {
@@ -147,6 +158,7 @@ const CommentItem: FC<CommentItemProps> = memo(({
   }, [repliesPage, repliesTotalPages]);
 
   return (
+    <>
     <div className="border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
       <div className="p-3 sm:p-4">
         {/* Comment header */}
@@ -176,7 +188,7 @@ const CommentItem: FC<CommentItemProps> = memo(({
           </div>
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => onDelete(comment.id)}
+              onClick={() => setOpenDeleteComment(true)}
               className="text-gray-400 hover:text-red-600"
               aria-label="Xóa bình luận"
             >
@@ -245,43 +257,16 @@ const CommentItem: FC<CommentItemProps> = memo(({
 
         {/* Reply input */}
         {replyingTo === comment.id && (
-          <div className="mt-3 sm:mt-4 pl-2 sm:pl-4 border-l-2 border-blue-200">
-            <textarea
-              value={newReply}
-              onChange={(e) => setNewReply(e.target.value)}
-              className="w-full p-2 sm:p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-gray-300"
-              placeholder="Trả lời bình luận này..."
-              rows={3}
-              maxLength={2000}
-            ></textarea>
-            <div className="flex justify-between items-center mt-2">
-              <span className="text-xs text-gray-500">
-                {newReply.length}/2000
-              </span>
-              <div className="space-x-2">
-                <button
-                  onClick={() => {
-                    setReplyingTo(null);
-                    setNewReply("");
-                  }}
-                  className="px-2 sm:px-3 py-1 text-xs sm:text-sm text-gray-600 hover:text-gray-800"
-                >
-                  Hủy
-                </button>
-                <button
-                  onClick={handleSubmitReply}
-                  disabled={!newReply.trim() || submitting}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-2 sm:px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
-                >
-                  {submitting ? (
-                    <Loader className="animate-spin w-3 h-3" />
-                  ) : (
-                    "Trả lời"
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
+          <ReplyInput
+            onSubmit={handleSubmitReply}
+            onCancel={() => {
+              setReplyingTo(null);
+              setNewReply("");
+            }}
+            submitting={submitting}
+            placeholder="Trả lời bình luận này..."
+            rows={3}
+          />
         )}
 
         {/* Replies */}
@@ -299,43 +284,16 @@ const CommentItem: FC<CommentItemProps> = memo(({
                 
                 {/* Reply to reply input */}
                 {replyingTo === reply.id && (
-                  <div className="mt-3 pl-2 border-l-2 border-blue-200">
-                    <textarea
-                      value={newReply}
-                      onChange={(e) => setNewReply(e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-gray-300"
-                      placeholder="Trả lời..."
-                      rows={2}
-                      maxLength={2000}
-                    ></textarea>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-xs text-gray-500">
-                        {newReply.length}/2000
-                      </span>
-                      <div className="space-x-2">
-                        <button
-                          onClick={() => {
-                            setReplyingTo(null);
-                            setNewReply("");
-                          }}
-                          className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800"
-                        >
-                          Hủy
-                        </button>
-                        <button
-                          onClick={handleSubmitReplyToReply}
-                          disabled={!newReply.trim() || submitting}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-xs"
-                        >
-                          {submitting ? (
-                            <Loader className="animate-spin w-3 h-3" />
-                          ) : (
-                            "Trả lời"
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                  <ReplyInput
+                    onSubmit={handleSubmitReplyToReply}
+                    onCancel={() => {
+                      setReplyingTo(null);
+                      setNewReply("");
+                    }}
+                    submitting={submitting}
+                    placeholder="Trả lời..."
+                    rows={2}
+                  />
                 )}
               </div>
             ))}
@@ -365,6 +323,31 @@ const CommentItem: FC<CommentItemProps> = memo(({
         )}
       </div>
     </div>
+
+    {/* Confirm delete comment dialog */}
+    <AlertDialog open={openDeleteComment} onOpenChange={setOpenDeleteComment}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Xóa bình luận?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Hành động này không thể hoàn tác. Bình luận sẽ bị xóa vĩnh viễn.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="flex justify-end gap-2">
+          <AlertDialogCancel>Hủy</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-red-600 hover:bg-red-700"
+            onClick={() => {
+              onDelete(comment.id);
+              setOpenDeleteComment(false);
+            }}
+          >
+            Xóa
+          </AlertDialogAction>
+        </div>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 });
 

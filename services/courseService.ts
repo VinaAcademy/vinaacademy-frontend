@@ -115,11 +115,13 @@ export async function aiSearchCourses(
       'size:',
       size,
     )
+    const semantic = true;
     const response: AxiosResponse = await apiClient.get('/courses/aisearch', {
       params: {
         ...search,
         page,
         size,
+        semantic,
       },
     })
     return response.data.data
