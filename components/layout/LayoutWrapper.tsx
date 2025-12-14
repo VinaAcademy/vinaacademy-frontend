@@ -8,6 +8,7 @@ import LogoClickHandler from './LogoClickHandler'
 import { APP_CONFIG } from '@/config/app.config'
 import React from 'react'
 import { Chatbot } from '@/components/chatbot'
+import { useAuth } from '@/providers'
 
 export default function LayoutWrapper({
   children,
@@ -15,6 +16,7 @@ export default function LayoutWrapper({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const { isAuthenticated } = useAuth()
 
   // Danh sách từ khóa để ẩn layout nếu đường dẫn chứa bất kỳ từ nào trong đây, trừ việc loại bỏ "/instructor"
   const hiddenKeywords = ['/dashboard', '/admin', '/learning']
@@ -43,7 +45,7 @@ export default function LayoutWrapper({
         {children}
       </div>
       {!shouldHideLayout && <Footer />}
-      <Chatbot />
+      {isAuthenticated && <Chatbot />}
     </div>
   )
 }
