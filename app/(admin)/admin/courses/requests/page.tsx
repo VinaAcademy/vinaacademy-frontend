@@ -165,7 +165,11 @@ const AdminCourseRequestsPage = () => {
         return
       }
 
-      const check = await updateStatusCourse(course.id, CourseStatus.PUBLISHED)
+      const check = await updateStatusCourse(
+        course.id,
+        CourseStatus.PUBLISHED,
+        '',
+      )
 
       if (check) {
         toast({
@@ -234,7 +238,7 @@ const AdminCourseRequestsPage = () => {
     setIsLoading(true)
 
     try {
-      const check = await updateStatusCourse(id, CourseStatus.REJECTED)
+      const check = await updateStatusCourse(id, CourseStatus.REJECTED, comment)
 
       if (check) {
         toast({
