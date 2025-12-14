@@ -29,7 +29,7 @@ import { NotificationType } from '@/types/notification-type'
 import LessonDialogPreview from '@/components/staff/ui/LessonPreview'
 import { CourseStatus } from '@/types/new-course'
 
-const CourseApprovalPage = () => {
+const AdminCourseRequestsPage = () => {
   const { toast } = useToast()
 
   const [slugOpen, setSlugOpen] = useState<string | null>(null)
@@ -42,6 +42,10 @@ const CourseApprovalPage = () => {
   const [lessonType, setLessonType] = useState<string | ''>('')
   const [videoDuration, setVideoDuration] = useState<number | null>(0)
   const [readingContent, setReadingContent] = useState<string | ''>('')
+  const [lessonAttachments, setLessonAttachments] = useState<any[]>([])
+  const [lessonUpdatedDate, setLessonUpdatedDate] = useState<
+    string | number[] | null
+  >(null)
 
   const [isDialogOpenReject, setIsDialogOpenReject] = useState(false)
   const [filter, setFilter] = useState('all')
@@ -341,6 +345,16 @@ const CourseApprovalPage = () => {
         />
 
         <div className="space-y-8 max-w-7xl mx-auto">
+          {/* Page Header */}
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Phê duyệt khóa học
+            </h1>
+            <p className="mt-2 text-sm text-gray-600">
+              Xem xét và phê duyệt các yêu cầu khóa học từ giảng viên
+            </p>
+          </div>
+
           <DashboardStats
             totalRequests={total}
             pendingRequests={coursesCount?.totalPending || 0}
@@ -498,6 +512,8 @@ const CourseApprovalPage = () => {
           lessonType,
           videoDuration,
           readingContent,
+          attachments,
+          updatedDate,
         ) => {
           setLessonId(lessonId)
           setLessonType(lessonType)
@@ -505,6 +521,8 @@ const CourseApprovalPage = () => {
           setIsPreviewLesson(true)
           setVideoDuration(videoDuration || 0)
           setReadingContent(readingContent || '')
+          setLessonAttachments(attachments || [])
+          setLessonUpdatedDate(updatedDate || null)
         }}
       />
       <LessonDialogPreview
@@ -513,10 +531,24 @@ const CourseApprovalPage = () => {
         lessonType={lessonType}
         videoDuration={videoDuration || 0}
         readingContent={readingContent}
+        attachments={lessonAttachments}
+        updatedDate={
+          lessonUpdatedDate
+            ? Array.isArray(lessonUpdatedDate)
+              ? new Date(
+                  lessonUpdatedDate[0],
+                  lessonUpdatedDate[1] - 1,
+                  lessonUpdatedDate[2],
+                  lessonUpdatedDate[3] || 0,
+                  lessonUpdatedDate[4] || 0,
+                ).toISOString()
+              : lessonUpdatedDate
+            : undefined
+        }
         onClose={() => setIsPreviewLesson(false)}
       />
     </div>
   )
 }
 
-export default CourseApprovalPage
+export default AdminCourseRequestsPage

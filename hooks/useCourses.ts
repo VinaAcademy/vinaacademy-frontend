@@ -49,7 +49,7 @@ export const useCourses = ({
     minRating,
     status,
   }
-  
+
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: COURSE_KEYS.list({
       keyword,
@@ -67,11 +67,9 @@ export const useCourses = ({
       sortBy,
       sortDirection,
     }),
-    queryFn: () => 
-      searchCourses(searchRequest, page, size, sortBy, sortDirection)
-    ,
+    queryFn: () =>
+      searchCourses(searchRequest, page, size, sortBy, sortDirection),
     staleTime: 5 * 60 * 1000, // 5 minutes
-   
   })
 
   return {

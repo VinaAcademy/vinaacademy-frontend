@@ -54,13 +54,15 @@ function SearchPageContent() {
   const currentPage = parseInt(pageParam) - 1 // Convert to 0-based for API
   const pageSize = 9
   const sortBy = searchParams.get('sortBy') || 'name'
-  const sortDirection = (searchParams.get('sortDirection') || 'asc') as 'asc' | 'desc'
+  const sortDirection = (searchParams.get('sortDirection') || 'asc') as
+    | 'asc'
+    | 'desc'
   const aiSearchEnabled = searchParams.get('ai') === 'true'
 
   // UI state (only for UI, not for data fetching)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [selectedTopics, setSelectedTopics] = useState<string[]>(topics)
-  
+
   // Data state
   const [courses, setCourses] = useState<CourseDto[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -91,7 +93,7 @@ function SearchPageContent() {
   useEffect(() => {
     const fetchCourses = async () => {
       setIsLoading(true)
-      
+
       const searchRequest: CourseSearchRequest = {
         keyword: query || undefined,
         categorieSlugs: categories.length > 0 ? categories : undefined,
@@ -105,11 +107,17 @@ function SearchPageContent() {
       try {
         console.log('Fetching with AI:', aiSearchEnabled)
         let result
-        
+
         if (aiSearchEnabled) {
           result = await aiSearchCourses(searchRequest, currentPage, pageSize)
         } else {
-          result = await searchCourses(searchRequest, currentPage, pageSize, sortBy, sortDirection)
+          result = await searchCourses(
+            searchRequest,
+            currentPage,
+            pageSize,
+            sortBy,
+            sortDirection,
+          )
         }
 
         if (result) {
@@ -128,7 +136,18 @@ function SearchPageContent() {
     }
 
     fetchCourses()
-  }, [query, categoriesParam, levelsParam, minPrice, maxPrice, minRating, currentPage, sortBy, sortDirection, aiSearchEnabled])
+  }, [
+    query,
+    categoriesParam,
+    levelsParam,
+    minPrice,
+    maxPrice,
+    minRating,
+    currentPage,
+    sortBy,
+    sortDirection,
+    aiSearchEnabled,
+  ])
 
   // Ensure we have a valid coursesData object
   const normalizedCoursesData: PaginatedResponse<CourseDto> = {

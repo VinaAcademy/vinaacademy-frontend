@@ -299,6 +299,22 @@ export const API_ENDPOINTS = {
   CHATBOT: {
     CHAT_STREAM: '/chatbot/chat/stream',
   },
+
+  // ==================== ADMIN ====================
+  ADMIN: {
+    USERS: {
+      LIST: '/admin/users',
+      STATISTICS: '/admin/users/statistics',
+      CREATE: '/admin/users',
+      BY_ID: (userId: string) => `/admin/users/${userId}`,
+      UPDATE_STATUS: (userId: string) => `/admin/users/${userId}/status`,
+      UPDATE_ROLES: (userId: string) => `/admin/users/${userId}/roles`,
+      UPDATE_COLLABORATOR: (userId: string) =>
+        `/admin/users/${userId}/collaborator`,
+      DELETE: (userId: string) => `/admin/users/${userId}`,
+      UNLOCK: (userId: string) => `/admin/users/${userId}/unlock`,
+    },
+  },
 } as const
 
 const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080/ws'
