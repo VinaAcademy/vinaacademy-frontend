@@ -235,7 +235,7 @@ const LearningTabs: FC<LearningTabsProps> = ({
         )}
 
         {activeTab === 'discussion' && (
-          <DiscussionArea courseId={courseSlug} lectureId={lecture.id} />
+          <DiscussionArea courseId={courseId} lectureId={lecture.id} />
         )}
 
         {activeTab === 'announcements' && (

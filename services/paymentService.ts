@@ -93,3 +93,13 @@ export async function getOrders({
     return null;
   }
 }
+
+export async function getOrderDetail(orderId: string): Promise<OrderDto | null> {
+  try {
+    const response: AxiosResponse = await apiClient.get(`/order/detail/${orderId}`);
+    return response.data.data;
+  } catch (error) {
+    console.error("Get order detail error:", error);
+    return null;
+  }
+}

@@ -54,12 +54,12 @@ export default function HeroSection() {
             {/* <Button className="bg-indigo-500 hover:bg-indigo-700 text-white text-lg px-8 py-6 rounded-xl shadow-lg shadow-indigo-200 transition-transform hover:scale-105">
               Đăng ký ngay
             </Button> */}
-            <button className="flex items-center gap-2 text-slate-700 font-medium hover:text-indigo-600 transition-colors group">
+            {/* <button className="flex items-center gap-2 text-slate-700 font-medium hover:text-indigo-600 transition-colors group">
               <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
                 <PlayCircle className="w-5 h-5 text-indigo-600" />
               </div>
               Tìm hiểu lộ trình
-            </button>
+            </button> */}
           </div>
         </div>
 

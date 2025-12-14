@@ -200,6 +200,8 @@ export interface ModerationActionRequest {
   action: 'approve' | 'reject'
   notes: string
   deleteReview?: boolean
+  userId: string
+  reviewId: number
 }
 
 export interface ModerationStatistics {

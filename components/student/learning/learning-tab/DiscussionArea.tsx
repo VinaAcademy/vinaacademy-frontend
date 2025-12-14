@@ -85,6 +85,7 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
           lessonId: lectureId,
           comment: content,
           parentCommentId: parentId || undefined,
+          courseId: courseId,
         };
 
         const result = await createDiscussion(request);

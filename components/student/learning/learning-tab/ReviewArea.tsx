@@ -501,13 +501,7 @@ const ReviewsArea: React.FC<ReviewsAreaProps> = ({
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">Đánh giá từ học viên</h2>
 
-        {/* Debug info */}
-        {!mainPage && (
-          <div className="text-xs text-gray-400">
-            canReview: {canReview.toString()} | hasUserOwnReview:{' '}
-            {(!!userOwnReview).toString()}
-          </div>
-        )}
+        
 
         {/* Chỉ hiển thị nút Viết đánh giá nếu chưa có review */}
         {canReview && !userOwnReview && (

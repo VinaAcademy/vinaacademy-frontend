@@ -175,7 +175,7 @@ const LecturePage: FC<LecturePageProps> = ({params}) => {
     };
 
     return (
-        <div className="flex flex-col h-screen bg-white text-black">
+        <div className="flex flex-col min-h-screen bg-white text-black">
             <LearningHeader
                 courseTitle={courseData.title}
                 progress={courseData.progress}
