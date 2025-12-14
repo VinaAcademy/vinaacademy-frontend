@@ -20,7 +20,12 @@ export interface SSEEvent {
 
 export interface ChatRequest {
   message: string
-  conversation_history: Array<{ role: 'user' | 'assistant'; content: string }>
+  conversation_history: Array<ConversationMessage>
+}
+
+export interface ConversationMessage {
+  role: 'user' | 'assistant'
+  content: string
 }
 
 export interface StreamCallbacks {
@@ -40,6 +45,31 @@ export const chatbotService = {
       prompt,
     })
     return response.data
+  },
+
+  /**
+   * Get chat history
+   */
+  async getChatHistory(): Promise<ConversationMessage[]> {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.CHATBOT.HISTORY)
+      return response.data.data
+    } catch (error) {
+      console.error('getChatHistory error:', error)
+      return []
+    }
+  },
+
+  /**
+   * Clear chat history
+   */
+  async clearChatHistory(): Promise<void> {
+    try {
+      await apiClient.delete(API_ENDPOINTS.CHATBOT.HISTORY)
+    } catch (error) {
+      console.error('clearChatHistory error:', error)
+      throw error
+    }
   },
 
   /**

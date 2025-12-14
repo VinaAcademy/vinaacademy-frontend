@@ -298,6 +298,7 @@ export const API_ENDPOINTS = {
   // ==================== CHATBOT ====================
   CHATBOT: {
     CHAT_STREAM: '/chatbot/chat/stream',
+    HISTORY: '/chatbot/history',
   },
 
   // ==================== ADMIN ====================

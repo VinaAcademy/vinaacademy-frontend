@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React from 'react'
 import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
 import {
@@ -13,176 +13,30 @@ import {
   Send,
   User,
   X,
+  Trash2,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
-import type { ChatRequest, StreamCallbacks } from '@/services/chatbotService'
-import { chatbotService } from '@/services/chatbotService'
 import { cn } from '@/lib/utils'
+import { useChatbot } from '@/hooks/chatbot/useChatbot'
+import { ChatMessage } from './ChatMessage'
 import './Chatbot.css'
 
-interface Turn {
-  id: string | number
-  user: string | null
-  tools: string[]
-  thinking: string | null
-  assistant: string
-  error: string | null
-}
-
-interface ConversationMessage {
-  role: 'user' | 'assistant'
-  content: string
-}
-
 export function Chatbot() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [isMinimized, setIsMinimized] = useState(false)
-  const [input, setInput] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [conversationHistory, setConversationHistory] = useState<
-    ConversationMessage[]
-  >([])
-
-  const [turns, setTurns] = useState<Turn[]>([
-    {
-      id: 'init',
-      user: null,
-      tools: [],
-      thinking: null,
-      assistant:
-        'Xin chào! Tôi là trợ lý AI của VinaAcademy. Tôi có thể giúp gì cho bạn hôm nay?',
-      error: null,
-    },
-  ])
-
-  const chatBoxRef = useRef<HTMLDivElement>(null)
-  const abortControllerRef = useRef<AbortController | null>(null)
-
-  useEffect(() => {
-    if (chatBoxRef.current) {
-      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight
-    }
-  }, [turns, isOpen, isMinimized])
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(e.target.value)
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !isLoading) {
-      sendMessage().then((r) => r)
-    }
-  }
-
-  const sendMessage = async () => {
-    if (!input.trim()) return
-
-    const message = input.trim()
-    setInput('')
-    setIsLoading(true)
-
-    // Add new turn
-    const newTurnId = Date.now()
-    setTurns((prev) => [
-      ...prev,
-      {
-        id: newTurnId,
-        user: message,
-        tools: [],
-        thinking: null,
-        assistant: '',
-        error: null,
-      },
-    ])
-
-    const payload: ChatRequest = {
-      message: message,
-      conversation_history: conversationHistory,
-    }
-
-    let fullResponseText = ''
-
-    const callbacks: StreamCallbacks = {
-      onText: (text: string) => {
-        fullResponseText += text
-        setTurns((prev) =>
-          prev.map((turn) => {
-            if (turn.id === newTurnId) {
-              return {
-                ...turn,
-                assistant: turn.assistant + text,
-                thinking: null,
-              }
-            }
-            return turn
-          }),
-        )
-      },
-      onToolCall: (text: string) => {
-        setTurns((prev) =>
-          prev.map((turn) => {
-            if (turn.id === newTurnId) {
-              return { ...turn, tools: [...turn.tools, text], thinking: null }
-            }
-            return turn
-          }),
-        )
-      },
-      onToolCallChunk: (text: string) => {
-        setTurns((prev) =>
-          prev.map((turn) => {
-            if (turn.id === newTurnId) {
-              return { ...turn, thinking: text }
-            }
-            return turn
-          }),
-        )
-      },
-      onError: (error: string) => {
-        setTurns((prev) =>
-          prev.map((turn) => {
-            if (turn.id === newTurnId) {
-              return { ...turn, error: error }
-            }
-            return turn
-          }),
-        )
-      },
-      onComplete: () => {
-        setIsLoading(false)
-        setConversationHistory((prev) =>
-          [
-            ...prev,
-            { role: 'user' as const, content: message },
-            { role: 'assistant' as const, content: fullResponseText },
-          ].slice(-20),
-        )
-        abortControllerRef.current = null
-      },
-    }
-
-    abortControllerRef.current = await chatbotService.streamChatResponse(
-      payload,
-      callbacks,
-    )
-  }
-
-  const toggleChatbot = () => {
-    setIsOpen(!isOpen)
-    setIsMinimized(false)
-  }
-
-  const minimizeChatbot = () => {
-    setIsMinimized(!isMinimized)
-  }
-
-  const closeChatbot = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-    }
-    setIsOpen(false)
-    setIsMinimized(false)
-  }
+  const {
+    isOpen,
+    isMinimized,
+    input,
+    isLoading,
+    turns,
+    chatBoxRef,
+    handleInputChange,
+    handleKeyPress,
+    sendMessage,
+    toggleChatbot,
+    minimizeChatbot,
+    closeChatbot,
+    clearHistory,
+  } = useChatbot()
 
   return (
     <>
@@ -251,6 +105,17 @@ export function Chatbot() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
+                    clearHistory()
+                  }}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+                  aria-label="Clear history"
+                  title="Xóa lịch sử chat"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
                     minimizeChatbot()
                   }}
                   className="flex h-8 w-8 items-center justify-center rounded-lg text-white/80 transition-colors hover:bg-white/20 hover:text-white"
@@ -284,83 +149,7 @@ export function Chatbot() {
                 >
                   <div className="space-y-6">
                     {turns.map((turn) => (
-                      <motion.div
-                        key={turn.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="space-y-4"
-                      >
-                        {/* User Message */}
-                        {turn.user && (
-                          <div className="flex justify-end gap-3">
-                            <div className="chatbot-markdown max-w-[85%] rounded-2xl rounded-tr-sm bg-blue-600 px-4 py-2.5 text-sm text-white shadow-sm">
-                              <div
-                                dangerouslySetInnerHTML={{
-                                  __html: DOMPurify.sanitize(
-                                    marked.parse(turn.user) as string,
-                                  ),
-                                }}
-                              />
-                            </div>
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700">
-                              <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Tools & Thinking */}
-                        {(turn.tools.length > 0 || turn.thinking) && (
-                          <div className="ml-11 space-y-2">
-                            {turn.tools.map((tool, idx) => (
-                              <motion.div
-                                key={idx}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                className="flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50/50 px-3 py-1.5 text-xs text-blue-700 dark:border-blue-900/30 dark:bg-blue-900/20 dark:text-blue-300"
-                              >
-                                <Cpu className="h-3.5 w-3.5 animate-pulse" />
-                                <span className="font-medium">
-                                  Đang xử lý: {tool}
-                                </span>
-                              </motion.div>
-                            ))}
-
-                            {turn.thinking && (
-                              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                <span className="italic">{turn.thinking}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Assistant Message */}
-                        {turn.assistant && (
-                          <div className="flex gap-3">
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 shadow-sm">
-                              <Bot className="h-5 w-5 text-white" />
-                            </div>
-                            <div className="max-w-[85%] space-y-2">
-                              <div className="chatbot-markdown rounded-2xl rounded-tl-sm bg-white px-4 py-3 text-sm text-gray-800 shadow-sm ring-1 ring-gray-100 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700">
-                                <div
-                                  dangerouslySetInnerHTML={{
-                                    __html: DOMPurify.sanitize(
-                                      marked.parse(turn.assistant) as string,
-                                    ),
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Error Message */}
-                        {turn.error && (
-                          <div className="ml-11 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600 dark:border-red-900/30 dark:bg-red-900/20 dark:text-red-400">
-                            ⚠️ {turn.error}
-                          </div>
-                        )}
-                      </motion.div>
+                      <ChatMessage key={turn.id} turn={turn} />
                     ))}
 
                     {isLoading &&
