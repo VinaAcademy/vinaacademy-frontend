@@ -12,6 +12,39 @@ type CourseRequestProps = {
   courseDto: CourseDetailsResponse;
 };
 
+const formatUpdatedDate = (
+  updatedDate?: string | number[],
+) => {
+  if (!updatedDate) return ''
+
+  try {
+    let date: Date
+    if (Array.isArray(updatedDate)) {
+      // Spring Boot array format: [year, month, day, hour, minute, second]
+      date = new Date(
+        updatedDate[0],
+        updatedDate[1] - 1,
+        updatedDate[2],
+        updatedDate[3] || 0,
+        updatedDate[4] || 0,
+      )
+    } else {
+      // ISO string format
+      date = new Date(updatedDate)
+    }
+
+    return date.toLocaleString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  } catch (error) {
+    return ''
+  }
+}
+
 const CourseRequestCard = ({
   courseDto,
   onApprove,
@@ -21,7 +54,7 @@ const CourseRequestCard = ({
   
 
   const instructor = courseDto.ownerInstructor?.fullName || "Không xác định";
-  const createdAt = new Date(courseDto.createdDate).toLocaleDateString("vi-VN");
+  const updateDate = new Date(courseDto.updatedDate).toLocaleDateString("vi-VN");
   const category = courseDto.categoryName;
 
   const statusColor: Record<string, string> = {
@@ -73,8 +106,8 @@ const CourseRequestCard = ({
             </p>
             <div className="flex justify-between items-center">
               <p className="text-sm">
-                <span className="text-muted-foreground">Ngày tạo:</span>{" "}
-                {createdAt}
+                <span className="text-muted-foreground">Ngày cập nhật:</span>{" "}
+                {formatUpdatedDate(courseDto.updatedDate)}
               </p>
               <Badge variant="outline" className="rounded-md px-3 bg-slate-300">
                 {levelText[courseDto.level]}

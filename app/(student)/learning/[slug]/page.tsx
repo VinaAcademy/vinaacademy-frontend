@@ -16,6 +16,39 @@ interface CoursePageProps {
     }>;
 }
 
+const formatUpdatedDate = (
+    updatedDate?: string | number[],
+) => {
+    if (!updatedDate) return ''
+
+    try {
+        let date: Date
+        if (Array.isArray(updatedDate)) {
+            // Spring Boot array format: [year, month, day, hour, minute, second]
+            date = new Date(
+                updatedDate[0],
+                updatedDate[1] - 1,
+                updatedDate[2],
+                updatedDate[3] || 0,
+                updatedDate[4] || 0,
+            )
+        } else {
+            // ISO string format
+            date = new Date(updatedDate)
+        }
+
+        return date.toLocaleString('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        })
+    } catch (error) {
+        return ''
+    }
+}
+
 const CoursePage: FC<CoursePageProps> = ({params}) => {
     // Unwrap the params Promise
     const unwrappedParams = use(params);
@@ -221,13 +254,13 @@ const CoursePage: FC<CoursePageProps> = ({params}) => {
                                 </div>
                                 <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-orange-500"/>
                             </div>
-                            <div className="p-3 sm:p-4 bg-purple-50 rounded-lg flex items-center justify-between">
+                            {/* <div className="p-3 sm:p-4 bg-purple-50 rounded-lg flex items-center justify-between">
                                 <div>
                                     <p className="text-xs sm:text-sm text-purple-700">Bài tập</p>
                                     <p className="text-lg sm:text-xl font-bold text-purple-900">{countLecturesByType('assignment')}</p>
                                 </div>
                                 <PenSquare className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500"/>
-                            </div>
+                            </div> */}
                         </div>
 
                         {/* Danh sách các phần */}
@@ -247,6 +280,7 @@ const CoursePage: FC<CoursePageProps> = ({params}) => {
                                                 href={`/learning/${slug}/lecture/${lecture.id}`}
                                                 className="flex items-center p-3 sm:p-4 hover:bg-gray-50 transition"
                                             >
+                                                
                                                 <div className="w-6 sm:w-8 text-center text-gray-500 mr-1 sm:mr-2 flex-shrink-0">
                                                     {lecture.isCompleted ? (
                                                         <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mx-auto"/>
@@ -269,6 +303,11 @@ const CoursePage: FC<CoursePageProps> = ({params}) => {
                                                     <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">
                                                         {lecture.duration}
                                                     </p>
+                                                    {lecture.updatedDate && (
+                                                        <p className="text-[11px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1">
+                                                            Cập nhật: {formatUpdatedDate(lecture.updatedDate)}
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0 ml-1 sm:ml-2"/>
                                             </Link>

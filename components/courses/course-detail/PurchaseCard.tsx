@@ -10,6 +10,7 @@ import {
   Share2,
   ShoppingCart,
   CheckCircle,
+  Check,
 } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
@@ -53,6 +54,40 @@ export default function PurchaseCard({
       }, 0) ?? 0)
     );
   }, 0);
+
+  const [showCopyToast, setShowCopyToast] = useState(false);
+
+  useEffect(() => {
+    if (showCopyToast) {
+      const timer = setTimeout(() => setShowCopyToast(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showCopyToast]);
+
+  const handleShare = async () => {
+    try {
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const url = `${origin}/courses/${course.slug}`;
+      await navigator.clipboard.writeText(url);
+      setShowCopyToast(true);
+    } catch (err) {
+      try {
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const url = `${origin}/courses/${course.slug}`;
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        setShowCopyToast(true);
+      } catch (_) {
+        // silently fail
+      }
+    }
+  };
 
   // Format duration to hours and minutes
   const formatDuration = (seconds: number) => {
@@ -295,12 +330,18 @@ export default function PurchaseCard({
         </div>
 
         {/* Share and gift buttons */}
+        {showCopyToast && (
+          <div className="fixed top-20 right-4 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 z-50">
+            <Check className="w-5 h-5 flex-shrink-0" />
+            <p className="text-sm font-medium">Đã sao chép liên kết!</p>
+          </div>
+        )}
         <div className="flex gap-2 mt-6 text-sm font-medium">
-          <Button variant="ghost" className="flex-1">
+          <Button variant="ghost" className="flex-1" onClick={handleShare}>
             <Share2 className="w-4 h-4 mr-2" />
             Chia sẻ
           </Button>
-          <Button variant="ghost" className="flex-1">
+          {/* <Button variant="ghost" className="flex-1">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -316,7 +357,7 @@ export default function PurchaseCard({
               <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
             </svg>
             Tặng kèm
-          </Button>
+          </Button> */}
         </div>
       </div>
     </div>

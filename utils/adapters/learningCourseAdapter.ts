@@ -51,6 +51,7 @@ export const convertLessonToLecture = (
     isCurrent,
     textContent: lesson.content,
     attachments: (lesson as any).attachments || [], // Map attachments from backend
+    updatedDate: lesson.updatedDate,
   }
 }
 

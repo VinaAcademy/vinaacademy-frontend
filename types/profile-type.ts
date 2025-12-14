@@ -8,6 +8,6 @@ export interface UpdateUserInfoRequest{
     fullName: string
     phone: string | null
     avatarUrl: string | null
-    dateOfBirth: Date | null
+    birthday: Date | null
     description: string | null
 }

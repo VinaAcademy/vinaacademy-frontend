@@ -1,8 +1,8 @@
 "use client";
 
-import {FC} from 'react';
+import {FC, useState, useEffect} from 'react';
 import Link from 'next/link';
-import { Menu } from 'lucide-react';
+import { Menu, Check } from 'lucide-react';
 
 interface LearningHeaderProps {
     courseTitle: string;
@@ -11,8 +11,42 @@ interface LearningHeaderProps {
 }
 
 const LearningHeader: FC<LearningHeaderProps> = ({courseTitle, progress, courseSlug = 'default-course'}) => {
+    const [showCopyToast, setShowCopyToast] = useState(false);
+
+    useEffect(() => {
+        if (showCopyToast) {
+            const timer = setTimeout(() => setShowCopyToast(false), 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [showCopyToast]);
+
+    const handleShare = async () => {
+        try {
+            const origin = typeof window !== 'undefined' ? window.location.origin : '';
+            const url = `${origin}/courses/${courseSlug}`;
+            await navigator.clipboard.writeText(url);
+            setShowCopyToast(true);
+        } catch (err) {
+            try {
+                const origin = typeof window !== 'undefined' ? window.location.origin : '';
+                const url = `${origin}/courses/${courseSlug}`;
+                const textarea = document.createElement('textarea');
+                textarea.value = url;
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                setShowCopyToast(true);
+            } catch (_) {
+                // silently fail
+            }
+        }
+    };
     return (
-        <header className="bg-black text-white px-4 py-2 flex items-center justify-between border-b border-gray-700">
+        <>
+            <header className="bg-black text-white px-4 py-2 flex items-center justify-between border-b border-gray-700">
             <div className="flex items-center overflow-hidden">
                 <Link href={"/my-courses"} className="mr-3 sm:mr-4 flex-shrink-0">
                     <svg
@@ -59,7 +93,7 @@ const LearningHeader: FC<LearningHeaderProps> = ({courseTitle, progress, courseS
 
             <div className="flex items-center">
                 <div className="hidden sm:flex items-center space-x-4">
-                    <button className="text-white hover:text-gray-300 transition" title="Help">
+                    {/* <button className="text-white hover:text-gray-300 transition" title="Help">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-6 w-6"
@@ -70,9 +104,10 @@ const LearningHeader: FC<LearningHeaderProps> = ({courseTitle, progress, courseS
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                 d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                    </button>
+                    </button> */}
 
                     <button
+                        onClick={handleShare}
                         className="bg-white text-black hover:bg-gray-200 px-4 py-1.5 rounded text-sm font-medium transition">
                         Chia sẻ
                     </button>
@@ -97,6 +132,14 @@ const LearningHeader: FC<LearningHeaderProps> = ({courseTitle, progress, courseS
                 </button>
             </div>
         </header>
+
+        {showCopyToast && (
+            <div className="fixed top-20 right-4 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 z-50">
+                <Check className="w-5 h-5 flex-shrink-0" />
+                <p className="text-sm font-medium">Đã sao chép liên kết!</p>
+            </div>
+        )}
+        </>
     );
 }
 
