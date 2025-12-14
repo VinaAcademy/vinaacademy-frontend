@@ -295,6 +295,12 @@ export const API_ENDPOINTS = {
     QUIZ_PROGRESS: (quizId: string) => `/ai/quiz/progress/${quizId}`,
   },
 
+  // ==================== CHATBOT ====================
+  CHATBOT: {
+    CHAT_STREAM: '/chatbot/chat/stream',
+    HISTORY: '/chatbot/history',
+  },
+
   // ==================== ADMIN ====================
   ADMIN: {
     USERS: {
