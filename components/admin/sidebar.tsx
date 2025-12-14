@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   LayoutDashboard,
@@ -33,6 +33,7 @@ export default function Sidebar({
   const [expandedItems, setExpandedItems] = useState<string[]>([])
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [pendingCount, setPendingCount] = useState<number>(0)
+  const router = useRouter()
 
   // Fetch pending courses count
   useEffect(() => {
@@ -145,7 +146,7 @@ export default function Sidebar({
       {/* Logo */}
       <div className="flex items-center flex-shrink-0 px-4 mb-5">
         {!isCollapsed ? (
-          <h1 className="text-xl font-bold text-gray-900">VinAcademy</h1>
+          <h1 className="text-xl font-bold text-gray-900 hover:cursor-pointer" onClick={() => router.push('/')}>VinAcademy</h1>
         ) : (
           <div className="w-full flex justify-center">
             <span className="text-xl font-bold text-gray-900">VA</span>

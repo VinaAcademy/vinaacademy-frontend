@@ -11,7 +11,8 @@ interface MobileNavProps {
   categories: CategoryDto[];
   isLoading: boolean;
   isAuthenticated: boolean;
-  roleStaffAdmin: any;
+  roleStaff: any;
+  roleAdmin: boolean;
   cartItems: CartItem[];
   totalUnread: number;
   onClose: () => void;
@@ -23,7 +24,8 @@ const MobileNav = ({
   categories,
   isLoading,
   isAuthenticated,
-  roleStaffAdmin,
+  roleStaff,
+  roleAdmin,
   cartItems,
   totalUnread,
   onClose,
@@ -64,7 +66,8 @@ const MobileNav = ({
           {/* Navigation links */}
           <MobileNavLinks 
             isAuthenticated={isAuthenticated}
-            roleStaffAdmin={roleStaffAdmin}
+            roleStaff={roleStaff}
+            roleAdmin={roleAdmin}
             onClose={onClose}
           />
 

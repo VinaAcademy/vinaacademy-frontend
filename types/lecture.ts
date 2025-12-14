@@ -61,6 +61,7 @@ export interface Lecture {
   duration: string
   isPublished?: boolean
   free?: boolean
+  updatedDate?: string
 
   // Các trường tùy chọn cho mọi loại bài học
   isCompleted?: boolean

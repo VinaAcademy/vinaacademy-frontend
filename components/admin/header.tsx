@@ -2,6 +2,8 @@
 
 import {useState} from 'react';
 import {Bell, Search, Menu, X, Settings, LogOut, User, HelpCircle} from 'lucide-react';
+import { useAuth } from '@/providers';
+import { useRouter } from 'next/navigation';
 
 interface HeaderProps {
     onMenuButtonClick: () => void;
@@ -11,6 +13,8 @@ export default function Header({onMenuButtonClick}: HeaderProps) {
     const [searchOpen, setSearchOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
+    const { logout } = useAuth();
+    const router = useRouter();
 
     return (
         <header className="sticky top-0 z-10 flex-shrink-0 flex h-16 bg-white shadow">
@@ -37,6 +41,7 @@ export default function Header({onMenuButtonClick}: HeaderProps) {
                                     type="search"
                                 />
                                 <button
+                                    aria-label='searc open'
                                     type="button"
                                     className="absolute inset-y-0 right-0 flex items-center pr-3"
                                     onClick={() => setSearchOpen(false)}
@@ -152,28 +157,30 @@ export default function Header({onMenuButtonClick}: HeaderProps) {
                                 className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
                                 <a
                                     href="#"
+                                    onClick={() => router.push('/profile/info')}
                                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 >
                                     <User className="inline-block mr-2 h-4 w-4"/>
                                     Thông tin cá nhân
                                 </a>
-                                <a
+                                {/* <a
                                     href="#"
                                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 >
                                     <Settings className="inline-block mr-2 h-4 w-4"/>
                                     Cài đặt
-                                </a>
-                                <a
+                                </a> */}
+                                {/* <a
                                     href="#"
                                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 >
                                     <HelpCircle className="inline-block mr-2 h-4 w-4"/>
                                     Trợ giúp
-                                </a>
+                                </a> */}
                                 <div className="border-t border-gray-100"></div>
                                 <a
                                     href="#"
+                                    onClick={logout}
                                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 >
                                     <LogOut className="inline-block mr-2 h-4 w-4"/>

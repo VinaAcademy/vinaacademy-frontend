@@ -19,7 +19,7 @@ export default function HeroSection() {
   }, [])
 
   return (
-    <section className="relative w-full bg-transparent py-16 md:py-24 overflow-hidden">
+    <section className="relative w-full bg-transparent py-8 md:pt-12 md:pb-32 overflow-hidden">
       <div className="container mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-between relative">
         {/* Cột trái: Nội dung Text */}
         <div className="w-full md:w-1/2 space-y-8 z-10 text-center md:text-left">

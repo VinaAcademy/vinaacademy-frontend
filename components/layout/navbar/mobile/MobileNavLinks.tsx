@@ -2,11 +2,12 @@ import Link from "next/link";
 
 interface MobileNavLinksProps {
   isAuthenticated: boolean;
-  roleStaffAdmin: any;
+  roleStaff: any;
+  roleAdmin: boolean;
   onClose: () => void;
 }
 
-const MobileNavLinks = ({ isAuthenticated, roleStaffAdmin, onClose }: MobileNavLinksProps) => {
+const MobileNavLinks = ({ isAuthenticated, roleStaff, roleAdmin, onClose }: MobileNavLinksProps) => {
   return (
     <div className="pb-4 border-b border-gray-200">
       <Link 
@@ -32,9 +33,18 @@ const MobileNavLinks = ({ isAuthenticated, roleStaffAdmin, onClose }: MobileNavL
           Tin nhắn
         </Link>
       )}
-      {isAuthenticated && roleStaffAdmin && (
+      {isAuthenticated && roleStaff && !roleAdmin && (
         <Link 
           href="/requests"
+          className="block py-3 font-medium hover:text-gray-800"
+          onClick={onClose}
+        >
+          Duyệt khóa học
+        </Link>
+      )}
+      {isAuthenticated && roleAdmin && (
+        <Link
+          href="/admin/dashboard"
           className="block py-3 font-medium hover:text-gray-800"
           onClick={onClose}
         >

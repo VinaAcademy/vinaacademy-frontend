@@ -16,7 +16,8 @@ import {useEffect, useState} from "react";
 interface DesktopNavProps {
   categories: CategoryDto[];
   isLoading: boolean;
-  roleStaffAdmin: any;
+  roleStaff: any;
+  roleAdmin: boolean;
   notifications: NotificationDTO[];
   totalUnread: number;
   cartItems: CartItem[];
@@ -25,7 +26,8 @@ interface DesktopNavProps {
 }
 
 const DesktopNav = ({
-                      roleStaffAdmin,
+                      roleStaff,
+                      roleAdmin,
                       notifications,
   totalUnread,
   cartItems,
@@ -56,12 +58,20 @@ const DesktopNav = ({
         
         {isAuthenticated && (
           <div className="flex items-center space-x-4">
-            {roleStaffAdmin && (
+            {!roleAdmin && roleStaff && (
               <Link 
                 href="/requests" 
-                className="text-sm font-medium hover:text-gray-600 transition-colors"
+                className="hover:text-gray-600 transition-colors"
               >
                 Duyệt khóa học
+              </Link>
+            )}
+            {roleAdmin && (
+              <Link
+                href="/admin/dashboard"
+                className="hover:text-gray-600 transition-colors"
+              >
+                Quản trị
               </Link>
             )}
             <UserLearning />

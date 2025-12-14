@@ -245,6 +245,7 @@ const LecturePage: FC<LecturePageProps> = ({params}) => {
                                     lecture={currentLecture}
                                     courseSlug={slug}
                                     currentTimestamp={currentTimestamp}
+                                    isVideoTab={isVideoLecture}
                                 />
                             </div>
                         )}
