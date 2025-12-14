@@ -195,9 +195,9 @@ export default function PurchaseCard({
             className="object-cover"
           />
           <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-            <div className="w-16 h-16 rounded-full bg-white bg-opacity-80 flex items-center justify-center">
+            {/* <div className="w-16 h-16 rounded-full bg-white bg-opacity-80 flex items-center justify-center">
               <Play className="w-8 h-8 text-[#a435f0] ml-1" />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

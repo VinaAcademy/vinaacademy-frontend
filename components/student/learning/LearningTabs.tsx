@@ -24,12 +24,14 @@ interface LearningTabsProps {
   lecture: Lecture
   courseSlug: string
   currentTimestamp?: number
+  isVideoTab?: boolean
 }
 
 const LearningTabs: FC<LearningTabsProps> = ({
   lecture: lecture,
   courseSlug,
   currentTimestamp = 0,
+  isVideoTab = false,
 }) => {
   const [activeTab, setActiveTab] = useState<
     | 'overview'
@@ -125,17 +127,17 @@ const LearningTabs: FC<LearningTabsProps> = ({
             <Users size={16} className="mr-2" />
             Thảo luận
           </button>
-          <button
+          {isVideoTab && (<button
             onClick={() => setActiveTab('notes')}
-            className={`px-4 py-3 flex items-center text-sm font-medium whitespace-nowrap ${
-              activeTab === 'notes'
+            className={`px-4 py-3 flex items-center text-sm font-medium whitespace-nowrap ${activeTab === 'notes'
                 ? 'border-b-2 border-indigo-600 text-indigo-600'
                 : 'text-gray-700 hover:text-gray-900'
-            }`}
+              }`}
           >
             <PenSquare size={16} className="mr-2" />
             Ghi chú
-          </button>
+          </button>)}
+          
           <button
             onClick={() => setActiveTab('announcements')}
             className={`px-4 py-3 flex items-center text-sm font-medium whitespace-nowrap ${
@@ -158,7 +160,7 @@ const LearningTabs: FC<LearningTabsProps> = ({
             <Star size={16} className="mr-2" />
             Đánh giá
           </button>
-          <button
+          {/* <button
             onClick={() => setActiveTab('tools')}
             className={`px-4 py-3 flex items-center text-sm font-medium whitespace-nowrap ${
               activeTab === 'tools'
@@ -168,7 +170,7 @@ const LearningTabs: FC<LearningTabsProps> = ({
           >
             <Wrench size={16} className="mr-2" />
             Công cụ học tập
-          </button>
+          </button> */}
         </div>
       </div>
 
