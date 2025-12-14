@@ -101,6 +101,34 @@ export async function searchCourses(
   }
 }
 
+export async function aiSearchCourses(
+  search: CourseSearchRequest,
+  page = 0,
+  size = 10,
+): Promise<PaginatedResponse<CourseDto> | null> {
+  try {
+    console.log(
+      'aiSearchCourses called with search:',
+      search,
+      'page:',
+      page,
+      'size:',
+      size,
+    )
+    const response: AxiosResponse = await apiClient.get('/courses/aisearch', {
+      params: {
+        ...search,
+        page,
+        size,
+      },
+    })
+    return response.data.data
+  } catch (error) {
+    console.error('searchCourses error:', error)
+    return null
+  }
+}
+
 // GET /api/v1/courses/details (admin/staff)
 export async function searchCoursesDetail(
   search: CourseSearchRequest,
@@ -402,11 +430,12 @@ export async function submitCourseForReview(
 export async function updateStatusCourse(
   id: string,
   status: CourseStatus,
+  content: string,
 ): Promise<boolean> {
   try {
     const response: AxiosResponse<ApiResponse<boolean>> = await apiClient.patch(
       `/courses/by-id/${id}/status`,
-      { status },
+      { status, content },
     )
     // Some backends return {data:true}, others return updated object; normalize to boolean
     return !!response.data?.data || response.status === 200

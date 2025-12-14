@@ -6,6 +6,14 @@ import Pagination from '@/components/courses/search-course/ui/Pagination'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { PaginatedResponse } from '@/types/api-response'
 import React, { useEffect, useState, Suspense } from 'react'
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from '@/components/ui/tooltip'
+import { Button } from '@/components/ui/button'
+import { Sparkles } from 'lucide-react'
 
 interface SearchResultsProps {
   coursesData: PaginatedResponse<CourseDto>
@@ -51,14 +59,24 @@ function SearchResultsContent({ coursesData }: SearchResultsProps) {
 
   // Track current sort selection
   const [currentSort, setCurrentSort] = useState('relevance')
+  // Track AI search mode
+  const [aiSearchEnabled, setAiSearchEnabled] = useState(false)
 
   // Use pagination data from API response
   const { content: courses, totalPages, totalElements } = coursesData
 
-  // Initialize sort value from URL on component mount
+  // Initialize sort and AI search value from URL on component mount
   useEffect(() => {
     const sortBy = searchParams.get('sortBy') || 'name'
     const sortDirection = searchParams.get('sortDirection') || 'asc'
+    const aiParam = searchParams.get('ai')
+
+    // Set AI search mode from URL
+    if (aiParam === 'true') {
+      setAiSearchEnabled(true)
+    } else if (aiParam === 'false' || !aiParam) {
+      setAiSearchEnabled(false)
+    }
 
     // Determine the current sort option based on URL parameters
     if (sortBy === 'name' && sortDirection === 'asc') {
@@ -87,6 +105,8 @@ function SearchResultsContent({ coursesData }: SearchResultsProps) {
 
   // Handle sort change
   const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    if (aiSearchEnabled) return
+
     const value = event.target.value
     const params = new URLSearchParams(searchParams.toString())
 
@@ -121,6 +141,19 @@ function SearchResultsContent({ coursesData }: SearchResultsProps) {
     router.push(`/courses/search?${params.toString()}`)
   }
 
+  // Handle AI search toggle
+  const handleAiToggle = (enabled: boolean) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('ai', enabled ? 'true' : 'false')
+    if (enabled) {
+      params.delete('sortBy')
+      params.delete('sortDirection')
+    }
+    params.set('page', '1')
+    setAiSearchEnabled(enabled)
+    router.push(`/courses/search?${params.toString()}`)
+  }
+
   return (
     <div>
       {/* Results count and filter */}
@@ -129,19 +162,49 @@ function SearchResultsContent({ coursesData }: SearchResultsProps) {
           <span className="font-semibold">{totalElements}</span> khóa học tìm
           thấy
         </div>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm">Sắp xếp theo:</span>
-          <select
-            className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-black bg-white"
-            value={currentSort}
-            onChange={handleSortChange}
-          >
-            <option value="relevance">Liên quan nhất</option>
-            <option value="newest">Mới nhất</option>
-            <option value="highest-rated">Đánh giá cao nhất</option>
-            <option value="lowest-price">Giá thấp nhất</option>
-            <option value="highest-price">Giá cao nhất</option>
-          </select>
+        <div className="flex items-center space-x-4">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={aiSearchEnabled ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleAiToggle(!aiSearchEnabled)}
+                  className={`flex items-center gap-2 ${
+                    aiSearchEnabled
+                      ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                      : 'hover:bg-indigo-200'
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span className="hidden sm:inline">AI</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {aiSearchEnabled
+                  ? 'Tìm kiếm thông minh đang bật'
+                  : 'Tìm kiếm thông minh đang tắt'}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <div className="flex items-center space-x-2">
+            <span className="text-sm">Sắp xếp theo:</span>
+            <select
+              className={`border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-black bg-white ${
+                aiSearchEnabled ? 'opacity-60 cursor-not-allowed' : ''
+              }`}
+              value={currentSort}
+              onChange={handleSortChange}
+              disabled={aiSearchEnabled}
+            >
+              <option value="relevance">Liên quan nhất</option>
+              <option value="newest">Mới nhất</option>
+              <option value="highest-rated">Đánh giá cao nhất</option>
+              <option value="lowest-price">Giá thấp nhất</option>
+              <option value="highest-price">Giá cao nhất</option>
+            </select>
+          </div>
         </div>
       </div>
 

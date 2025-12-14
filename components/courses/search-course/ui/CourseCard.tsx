@@ -61,7 +61,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
         </div>
 
         <div className="p-4">
-          <h3 className="text-lg font-semibold mb-2 line-clamp-2">
+          <h3 className="text-lg font-semibold mb-2 line-clamp-2 min-h-[48px]">
             {course.name}
           </h3>
 

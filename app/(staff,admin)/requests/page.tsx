@@ -42,10 +42,6 @@ const CourseApprovalPage = () => {
   const [lessonType, setLessonType] = useState<string | ''>('')
   const [videoDuration, setVideoDuration] = useState<number | null>(0)
   const [readingContent, setReadingContent] = useState<string | ''>('')
-  const [lessonAttachments, setLessonAttachments] = useState<any[]>([])
-  const [lessonUpdatedDate, setLessonUpdatedDate] = useState<
-    string | number[] | null
-  >(null)
 
   const [isDialogOpenReject, setIsDialogOpenReject] = useState(false)
   const [filter, setFilter] = useState('all')
@@ -165,7 +161,11 @@ const CourseApprovalPage = () => {
         return
       }
 
-      const check = await updateStatusCourse(course.id, CourseStatus.PUBLISHED)
+      const check = await updateStatusCourse(
+        course.id,
+        CourseStatus.PUBLISHED,
+        '',
+      )
 
       if (check) {
         toast({
@@ -234,7 +234,7 @@ const CourseApprovalPage = () => {
     setIsLoading(true)
 
     try {
-      const check = await updateStatusCourse(id, CourseStatus.REJECTED)
+      const check = await updateStatusCourse(id, CourseStatus.REJECTED, comment)
 
       if (check) {
         toast({
@@ -498,8 +498,6 @@ const CourseApprovalPage = () => {
           lessonType,
           videoDuration,
           readingContent,
-          attachments,
-          updatedDate,
         ) => {
           setLessonId(lessonId)
           setLessonType(lessonType)
@@ -507,8 +505,6 @@ const CourseApprovalPage = () => {
           setIsPreviewLesson(true)
           setVideoDuration(videoDuration || 0)
           setReadingContent(readingContent || '')
-          setLessonAttachments(attachments || [])
-          setLessonUpdatedDate(updatedDate || null)
         }}
       />
       <LessonDialogPreview
@@ -517,20 +513,6 @@ const CourseApprovalPage = () => {
         lessonType={lessonType}
         videoDuration={videoDuration || 0}
         readingContent={readingContent}
-        attachments={lessonAttachments}
-        updatedDate={
-          lessonUpdatedDate
-            ? Array.isArray(lessonUpdatedDate)
-              ? new Date(
-                  lessonUpdatedDate[0],
-                  lessonUpdatedDate[1] - 1,
-                  lessonUpdatedDate[2],
-                  lessonUpdatedDate[3] || 0,
-                  lessonUpdatedDate[4] || 0,
-                ).toISOString()
-              : lessonUpdatedDate
-            : undefined
-        }
         onClose={() => setIsPreviewLesson(false)}
       />
     </div>

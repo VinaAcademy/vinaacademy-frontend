@@ -10,7 +10,8 @@ import NoResultsFound from '@/components/courses/search-course/ui/NoResultsFound
 import SearchHeader from '@/components/courses/search-course/search/SearchHeader'
 import { PaginatedResponse } from '@/types/api-response'
 import { Suspense } from 'react'
-import { useCourses } from '@/hooks/useCourses'
+import { searchCourses, aiSearchCourses } from '@/services/courseService'
+import { CourseSearchRequest } from '@/types/course'
 
 // Types
 export type FilterUpdates = {
@@ -35,24 +36,43 @@ function SearchPageLoading() {
 function SearchPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  useRef(true)
-  // State for search and filter params
-  const [query, setQuery] = useState('')
-  const [categories, setCategories] = useState<string[]>([])
-  const [subCategories, setSubCategories] = useState<string[]>([])
-  const [topics, setTopics] = useState<string[]>([])
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([])
-  const [levels, setLevels] = useState<string[]>([])
-  const [minPrice, setMinPrice] = useState('')
-  const [maxPrice, setMaxPrice] = useState('')
-  const [minRating, setMinRating] = useState('')
-  const [currentPage, setCurrentPage] = useState(0) // API is 0-based
-  const [pageSize, setPageSize] = useState(10)
-  const [sortBy, setSortBy] = useState('name')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
-  // UI state
+  // Read all params directly from searchParams for immediate reactivity
+  const query = searchParams.get('q') || ''
+  const categoriesParam = searchParams.get('categories') || ''
+  const categories = categoriesParam ? categoriesParam.split(',') : []
+  const subCategoriesParam = searchParams.get('subCategories') || ''
+  const subCategories = subCategoriesParam ? subCategoriesParam.split(',') : []
+  const topicsParam = searchParams.get('topics') || ''
+  const topics = topicsParam ? topicsParam.split(',') : []
+  const levelsParam = searchParams.get('level') || ''
+  const levels = levelsParam ? levelsParam.split(',') : []
+  const minPrice = searchParams.get('minPrice') || ''
+  const maxPrice = searchParams.get('maxPrice') || ''
+  const minRating = searchParams.get('minRating') || ''
+  const pageParam = searchParams.get('page') || '1'
+  const currentPage = parseInt(pageParam) - 1 // Convert to 0-based for API
+  const pageSize = 9
+  const sortBy = searchParams.get('sortBy') || 'name'
+  const sortDirection = (searchParams.get('sortDirection') || 'asc') as
+    | 'asc'
+    | 'desc'
+  const aiSearchEnabled = searchParams.get('ai') === 'true'
+
+  // UI state (only for UI, not for data fetching)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const [selectedTopics, setSelectedTopics] = useState<string[]>(topics)
+
+  // Data state
+  const [courses, setCourses] = useState<CourseDto[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [totalItems, setTotalItems] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+
+  // Sync selectedTopics with URL topics
+  useEffect(() => {
+    setSelectedTopics(topics)
+  }, [topicsParam])
 
   // Map UI level strings to API CourseLevel enum
   const mapLevelToApiFormat = (
@@ -69,62 +89,65 @@ function SearchPageContent() {
     return (levelMap[level] as CourseLevel) || undefined
   }
 
-  // Initialize state from URL params
-  const isParamsReady = useRef(false)
+  // Fetch courses directly when params change
   useEffect(() => {
-    console.log('Search params changed:', searchParams.toString())
-    setQuery(searchParams.get('q') || '')
+    const fetchCourses = async () => {
+      setIsLoading(true)
 
-    const categoriesParam = searchParams.get('categories') || ''
-    setCategories(categoriesParam ? categoriesParam.split(',') : [])
+      const searchRequest: CourseSearchRequest = {
+        keyword: query || undefined,
+        categorieSlugs: categories.length > 0 ? categories : undefined,
+        level: mapLevelToApiFormat(levels[0]),
+        minPrice: minPrice ? parseInt(minPrice) * 1000 : undefined,
+        maxPrice: maxPrice ? parseInt(maxPrice) * 1000 : undefined,
+        minRating: minRating ? parseFloat(minRating) : undefined,
+        status: 'PUBLISHED',
+      }
 
-    const subCategoriesParam = searchParams.get('subCategories') || ''
-    setSubCategories(subCategoriesParam ? subCategoriesParam.split(',') : [])
+      try {
+        console.log('Fetching with AI:', aiSearchEnabled)
+        let result
 
-    const topicsParam = searchParams.get('topics') || ''
-    setTopics(topicsParam ? topicsParam.split(',') : [])
-    setSelectedTopics(topicsParam ? topicsParam.split(',') : [])
+        if (aiSearchEnabled) {
+          result = await aiSearchCourses(searchRequest, currentPage, pageSize)
+        } else {
+          result = await searchCourses(
+            searchRequest,
+            currentPage,
+            pageSize,
+            sortBy,
+            sortDirection,
+          )
+        }
 
-    const levelsParam = searchParams.get('level') || ''
-    setLevels(levelsParam ? levelsParam.split(',') : [])
+        if (result) {
+          setCourses(result.content || [])
+          setTotalItems(result.totalElements || 0)
+          setTotalPages(result.totalPages || 0)
+        }
+      } catch (error) {
+        console.error('Error fetching courses:', error)
+        setCourses([])
+        setTotalItems(0)
+        setTotalPages(0)
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-    setMinPrice(searchParams.get('minPrice') || '')
-    setMaxPrice(searchParams.get('maxPrice') || '')
-    setMinRating(searchParams.get('minRating') || '')
-
-    const pageParam = searchParams.get('page') || '1'
-    setCurrentPage(parseInt(pageParam) - 1) // Convert to 0-based for API
-
-    const sortByParam = searchParams.get('sortBy') || 'name'
-    setSortBy(sortByParam)
-
-    const sortDirParam = searchParams.get('sortDirection') || 'asc'
-    setSortDirection(sortDirParam as 'asc' | 'desc')
-
-    setPageSize(9)
-
-    isParamsReady.current = true
-  }, [searchParams])
-
-  // Use the useCourses hook instead of direct React Query
-  // Use categorieSlugs array for multiple categories filter
-  const {
-    courses,
-    loading: isLoading,
-    totalItems,
-    totalPages,
-  } = useCourses({
-    keyword: query || undefined,
-    categorieSlugs: categories.length > 0 ? categories : undefined,
-    level: mapLevelToApiFormat(levels[0]),
-    minPrice: minPrice ? parseInt(minPrice) * 1000 : undefined,
-    maxPrice: maxPrice ? parseInt(maxPrice) * 1000 : undefined,
-    minRating: minRating ? parseFloat(minRating) : undefined,
-    page: currentPage,
-    size: pageSize,
-    sortBy: sortBy,
-    sortDirection: sortDirection,
-  })
+    fetchCourses()
+  }, [
+    query,
+    categoriesParam,
+    levelsParam,
+    minPrice,
+    maxPrice,
+    minRating,
+    currentPage,
+    sortBy,
+    sortDirection,
+    aiSearchEnabled,
+  ])
 
   // Ensure we have a valid coursesData object
   const normalizedCoursesData: PaginatedResponse<CourseDto> = {

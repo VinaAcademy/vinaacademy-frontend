@@ -26,32 +26,32 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 const initCategories = {
-  "lap-trinh":{
+  'lap-trinh': {
     icon: <Monitor className="w-8 h-8" />,
     color: 'text-orange-400',
     bg: 'bg-orange-50',
   },
-  "kinh-doanh":{
+  'kinh-doanh': {
     icon: <Building2 className="w-8 h-8" />,
     color: 'text-green-500',
     bg: 'bg-green-50',
   },
-  "tai-chinh-ke-toan":{
+  'tai-chinh-ke-toan': {
     icon: <BrainCircuit className="w-8 h-8" />,
     color: 'text-white',
     bg: 'bg-teal-700',
   },
-  "cntt-phan-mem":{
+  'cntt-phan-mem': {
     icon: <Briefcase className="w-8 h-8" />,
     color: 'text-pink-500',
     bg: 'bg-pink-50',
   },
-  "nang-suat-van-phong":{
+  'nang-suat-van-phong': {
     icon: <BookOpen className="w-8 h-8" />,
     color: 'text-yellow-500',
     bg: 'bg-yellow-50',
   },
-  "phat-trien-ca-nhan":{
+  'phat-trien-ca-nhan': {
     icon: <Activity className="w-8 h-8" />,
     color: 'text-emerald-500',
     bg: 'bg-emerald-50',
@@ -78,12 +78,14 @@ const features = [
 ]
 
 export default function TestSection() {
-  const router = useRouter();
-  const { categories, isLoading } = useCategories();
-  const mergeCate = categories.length ? categories.slice(0,6).map(cat => ({
-    ...cat,
-    ...initCategories[cat.slug as keyof typeof initCategories]
-  })) : [];
+  const router = useRouter()
+  const { categories, isLoading } = useCategories()
+  const mergeCate = categories.length
+    ? categories.slice(0, 6).map((cat) => ({
+        ...cat,
+        ...initCategories[cat.slug as keyof typeof initCategories],
+      }))
+    : []
   useEffect(() => {
     AOS.init({
       duration: 800,
@@ -106,7 +108,14 @@ export default function TestSection() {
               </h2>
             </div>
             <div className="flex gap-3" data-aos="fade-left">
-              <Link href="categories" className='font-medium hover:text-indigo-500'><div className='flex flex-row space-x-2'><p>Xem tất cả</p> <MoveRight/></div></Link>
+              <Link
+                href="categories"
+                className="font-medium hover:text-indigo-500"
+              >
+                <div className="flex flex-row space-x-2">
+                  <p>Xem tất cả</p> <MoveRight />
+                </div>
+              </Link>
             </div>
           </div>
 
@@ -118,6 +127,7 @@ export default function TestSection() {
                 data-aos-delay={index * 100}
                 className="
                   group relative flex flex-col items-center justify-center p-6 rounded-3xl cursor-pointer transition-all duration-300 bg-white text-slate-600 hover:shadow-lg hover:-translate-y-1"
+                onClick={() => router.push(`/categories/${cat.slug}`)}
               >
                 <div className={`mb-4 p-3 rounded-full ${cat.bg}`}>
                   <div className={cat.color}>{cat.icon}</div>
@@ -126,7 +136,9 @@ export default function TestSection() {
                 <h3 className="font-bold text-center mb-1 text-slate-800">
                   {cat.name}
                 </h3>
-                <p className="text-sm text-slate-400">{cat.coursesCount} Khóa học</p>
+                <p className="text-sm text-slate-400">
+                  {cat.coursesCount} Khóa học
+                </p>
               </div>
             ))}
           </div>
@@ -165,7 +177,10 @@ export default function TestSection() {
               ))}
             </div>
 
-            <Button className="bg-indigo-500 hover:bg-blue-600 text-white px-8 py-6 rounded-lg text-lg shadow-lg shadow-blue-200 transition-transform hover:scale-105" onClick={() => router.push('/courses')}>
+            <Button
+              className="bg-indigo-500 hover:bg-blue-600 text-white px-8 py-6 rounded-lg text-lg shadow-lg shadow-blue-200 transition-transform hover:scale-105"
+              onClick={() => router.push('/courses')}
+            >
               Xem Tất Cả Khóa Học
             </Button>
           </div>
