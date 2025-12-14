@@ -83,6 +83,7 @@ export interface LessonDto extends BaseDto {
 
   // reading
   content?: string
+  attachments?: any[]
 
   // quiz
   passPoint?: number

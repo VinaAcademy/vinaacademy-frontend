@@ -29,7 +29,7 @@ import { NotificationType } from '@/types/notification-type'
 import LessonDialogPreview from '@/components/staff/ui/LessonPreview'
 import { CourseStatus } from '@/types/new-course'
 
-const CourseApprovalPage = () => {
+const AdminCourseRequestsPage = () => {
   const { toast } = useToast()
 
   const [slugOpen, setSlugOpen] = useState<string | null>(null)
@@ -341,6 +341,16 @@ const CourseApprovalPage = () => {
         />
 
         <div className="space-y-8 max-w-7xl mx-auto">
+          {/* Page Header */}
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Phê duyệt khóa học
+            </h1>
+            <p className="mt-2 text-sm text-gray-600">
+              Xem xét và phê duyệt các yêu cầu khóa học từ giảng viên
+            </p>
+          </div>
+
           <DashboardStats
             totalRequests={total}
             pendingRequests={coursesCount?.totalPending || 0}
@@ -537,4 +547,4 @@ const CourseApprovalPage = () => {
   )
 }
 
-export default CourseApprovalPage
+export default AdminCourseRequestsPage
