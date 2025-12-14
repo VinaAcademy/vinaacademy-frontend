@@ -6,7 +6,12 @@ import Pagination from '@/components/courses/search-course/ui/Pagination'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { PaginatedResponse } from '@/types/api-response'
 import React, { useEffect, useState, Suspense } from 'react'
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip'
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from '@/components/ui/tooltip'
 import { Button } from '@/components/ui/button'
 import { Sparkles } from 'lucide-react'
 
@@ -166,7 +171,9 @@ function SearchResultsContent({ coursesData }: SearchResultsProps) {
                   size="sm"
                   onClick={() => handleAiToggle(!aiSearchEnabled)}
                   className={`flex items-center gap-2 ${
-                    aiSearchEnabled ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'hover:bg-indigo-200'
+                    aiSearchEnabled
+                      ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                      : 'hover:bg-indigo-200'
                   }`}
                 >
                   <Sparkles className="w-4 h-4" />

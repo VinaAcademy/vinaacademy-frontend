@@ -107,7 +107,14 @@ export async function aiSearchCourses(
   size = 10,
 ): Promise<PaginatedResponse<CourseDto> | null> {
   try {
-    console.log('aiSearchCourses called with search:', search, 'page:', page, 'size:', size)
+    console.log(
+      'aiSearchCourses called with search:',
+      search,
+      'page:',
+      page,
+      'size:',
+      size,
+    )
     const response: AxiosResponse = await apiClient.get('/courses/aisearch', {
       params: {
         ...search,
@@ -423,7 +430,7 @@ export async function submitCourseForReview(
 export async function updateStatusCourse(
   id: string,
   status: CourseStatus,
-  content: string
+  content: string,
 ): Promise<boolean> {
   try {
     const response: AxiosResponse<ApiResponse<boolean>> = await apiClient.patch(

@@ -369,7 +369,9 @@ export default function CourseList({ view, searchQuery }: CourseListProps) {
                     <Image
                       className="h-10 w-10 rounded object-cover"
                       src={course.thumbnail}
-                      alt=""
+                      alt={course.title}
+                      width={40}
+                      height={40}
                     />
                   </div>
                   <div className="ml-4">
