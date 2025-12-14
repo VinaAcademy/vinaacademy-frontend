@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -18,60 +18,12 @@ import {
   TrendingUp,
   Shield,
 } from 'lucide-react'
+import { getStatusCourse } from '@/services/courseService'
 
 interface SidebarProps {
   mobile?: boolean
   closeSidebar?: () => void
 }
-
-const navigation = [
-  { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-  {
-    name: 'Khóa học',
-    href: '/admin/courses',
-    icon: BookOpen,
-    children: [
-      { name: 'Tất cả khóa học', href: '/admin/courses' },
-      { name: 'Chờ phê duyệt', href: '/admin/courses/pending', badge: 5 },
-      { name: 'Danh mục', href: '/admin/courses/categories' },
-    ],
-  },
-  {
-    name: 'Người dùng',
-    href: '/admin/users',
-    icon: Users,
-    children: [
-      { name: 'Tất cả người dùng', href: '/admin/users' },
-      { name: 'Giảng viên', href: '/admin/users/instructors' },
-      { name: 'Học viên', href: '/admin/users/students' },
-    ],
-  },
-  {
-    name: 'Thanh toán',
-    href: '/admin/payments',
-    icon: CreditCard,
-    children: [
-      { name: 'Tất cả thanh toán', href: '/admin/payments' },
-      { name: 'Giao dịch', href: '/admin/payments/transactions' },
-      { name: 'Hoàn tiền', href: '/admin/payments/refunds' },
-      { name: 'Báo cáo thu nhập', href: '/admin/payments/reports' },
-    ],
-  },
-  { name: 'Quản lý doanh thu', href: '/admin/revenue', icon: TrendingUp },
-  { name: 'Báo cáo', href: '/admin/reports', icon: BarChart3 },
-  { name: 'Kiểm duyệt', href: '/admin/moderation', icon: Shield },
-  { name: 'Danh mục', href: '/admin/category', icon: ChartBarStacked },
-  {
-    name: 'Cài đặt',
-    href: '/admin/settings',
-    icon: Settings,
-    children: [
-      { name: 'Cài đặt nền tảng', href: '/admin/settings/platform' },
-      { name: 'Cài đặt thanh toán', href: '/admin/settings/payment' },
-      { name: 'Email', href: '/admin/settings/email' },
-    ],
-  },
-]
 
 export default function Sidebar({
   mobile = false,
@@ -80,6 +32,68 @@ export default function Sidebar({
   const pathname = usePathname()
   const [expandedItems, setExpandedItems] = useState<string[]>([])
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [pendingCount, setPendingCount] = useState<number>(0)
+
+  // Fetch pending courses count
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const data = await getStatusCourse()
+        if (data) {
+          setPendingCount(data.totalPending)
+        }
+      } catch (error) {
+        console.error('Error fetching pending count:', error)
+      }
+    }
+
+    fetchPendingCount()
+    // Refetch every 30 seconds
+    const interval = setInterval(fetchPendingCount, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const navigation = [
+    { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+    {
+      name: 'Khóa học',
+      href: '/admin/courses',
+      icon: BookOpen,
+      children: [
+        { name: 'Tổng quan', href: '/admin/courses' },
+        {
+          name: 'Chờ phê duyệt',
+          href: '/admin/courses/requests',
+          badge: pendingCount,
+        },
+        { name: 'Danh mục', href: '/admin/courses/category' },
+      ],
+    },
+    {
+      name: 'Người dùng',
+      href: '/admin/users',
+      icon: Users,
+      children: [
+        { name: 'Tất cả người dùng', href: '/admin/users' },
+        // { name: 'Giảng viên', href: '/admin/users/instructors' },
+        // { name: 'Học viên', href: '/admin/users/students' },
+      ],
+    },
+    { name: 'Quản lý doanh thu', href: '/admin/revenue', icon: TrendingUp },
+    // { name: 'Báo cáo', href: '/admin/reports', icon: BarChart3 },
+    { name: 'Kiểm duyệt', href: '/admin/moderation', icon: Shield },
+    // { name: 'Danh mục', href: '/admin/category', icon: ChartBarStacked },
+    // {
+    //   name: 'Cài đặt',
+    //   href: '/admin/settings',
+    //   icon: Settings,
+    //   children: [
+    //     { name: 'Cài đặt nền tảng', href: '/admin/settings/platform' },
+    //     { name: 'Cài đặt thanh toán', href: '/admin/settings/payment' },
+    //     { name: 'Email', href: '/admin/settings/email' },
+    //   ],
+    // },
+  ]
 
   const toggleExpand = (name: string) => {
     if (expandedItems.includes(name)) {
@@ -90,7 +104,11 @@ export default function Sidebar({
   }
 
   const isActive = (href: string) => {
-    return pathname === href || pathname.startsWith(`${href}/`)
+    return pathname === href
+  }
+
+  const isChildActive = (children: any[]) => {
+    return children.some((child) => pathname === child.href)
   }
 
   const toggleSidebar = () => {
@@ -170,11 +188,8 @@ export default function Sidebar({
                   className={`
                                         w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md
                                         ${
-                                          expandedItems.includes(item.name) ||
-                                          item.children.some((child) =>
-                                            isActive(child.href),
-                                          )
-                                            ? 'bg-gray-100 text-gray-900'
+                                          expandedItems.includes(item.name)
+                                            ? 'bg-gray-50 text-gray-900'
                                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                         }
                                     `}
@@ -184,12 +199,7 @@ export default function Sidebar({
                     className={`
                                             flex-shrink-0 h-5 w-5
                                             ${
-                                              expandedItems.includes(
-                                                item.name,
-                                              ) ||
-                                              item.children.some((child) =>
-                                                isActive(child.href),
-                                              )
+                                              expandedItems.includes(item.name)
                                                 ? 'text-gray-500'
                                                 : 'text-gray-400 group-hover:text-gray-500'
                                             }
@@ -229,7 +239,7 @@ export default function Sidebar({
                           href={child.href}
                           onClick={mobile ? closeSidebar : undefined}
                           className={`
-                                                    group flex items-center pl-10 pr-2 py-2 text-sm font-medium rounded-md
+                                                    group flex items-center pl-11 pr-2 py-2 text-sm font-medium rounded-md
                                                     ${
                                                       isActive(child.href)
                                                         ? 'bg-gray-100 text-gray-900'
@@ -237,13 +247,9 @@ export default function Sidebar({
                                                     }
                                                 `}
                         >
-                          <Dot
-                            className={`
-                                                       text-black -ml-6 
-                                                    `}
-                          />
+                          <Dot className="flex-shrink-0 h-4 w-4 -ml-2 mr-2" />
                           <span className="truncate">{child.name}</span>
-                          {child.badge && (
+                          {child.badge !== undefined && child.badge > 0 && (
                             <span className="ml-auto inline-block py-0.5 px-2 text-xs font-medium rounded-full bg-red-100 text-red-800">
                               {child.badge}
                             </span>
@@ -260,7 +266,7 @@ export default function Sidebar({
 
       {/* Bottom Section */}
       <div className="mt-6 pt-6 border-t border-gray-200">
-        <div className="pl-2 space-y-4">
+        {/* <div className="pl-2 space-y-4">
           <Link
             href="/admin/help"
             className="group flex items-center pl-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
@@ -295,7 +301,7 @@ export default function Sidebar({
               </div>
             )}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   )
