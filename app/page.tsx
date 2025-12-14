@@ -90,9 +90,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
               className="mb-4"
-            >
-              
-            </motion.div>
+            ></motion.div>
           )
         )}
 
@@ -193,7 +191,6 @@ export default function Home() {
           <PopularCourseFeatures />
         </div>
       </div>
-      <SupportChat />
     </div>
   )
 }
