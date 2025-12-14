@@ -162,12 +162,12 @@ const CourseCard = ({ course }: CourseCardProps) => {
               </Link>
 
               {/* "Progress Details" button - Also use slug */}
-              <Link
+              {/* <Link
                 href={`/my-courses/${courseSlug}`}
                 className="text-center py-2 px-3 bg-white border border-gray-900 text-gray-900 font-medium rounded-md hover:bg-gray-100 transition-colors duration-300"
               >
                 Chi tiết tiến độ
-              </Link>
+              </Link> */}
             </>
           )}
         </div>

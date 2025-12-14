@@ -198,6 +198,8 @@ export default function ModerationQueue() {
           action,
           notes: moderationNotes,
           deleteReview: action === 'approve' ? deleteReview : undefined,
+          userId: moderatingFlag.review.userId,
+          reviewId: moderatingFlag.review.id,
         }),
       )
 

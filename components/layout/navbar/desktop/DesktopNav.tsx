@@ -59,12 +59,33 @@ const DesktopNav = ({
         {isAuthenticated && (
           <div className="flex items-center space-x-4">
             {!roleAdmin && roleStaff && (
-              <Link 
-                href="/requests" 
-                className="hover:text-gray-600 transition-colors"
-              >
-                Duyệt khóa học
-              </Link>
+              <div className="relative group">
+                <button className="hover:text-gray-600 transition-colors flex items-center gap-1">
+                  Duyệt
+                  <svg 
+                    className="w-4 h-4 transition-transform group-hover:rotate-180" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <Link 
+                    href="/requests" 
+                    className="block px-4 py-3 hover:bg-gray-50 transition-colors first:rounded-t-lg"
+                  >
+                    Duyệt khóa học
+                  </Link>
+                  <Link 
+                    href="/moderation" 
+                    className="block px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-100 last:rounded-b-lg"
+                  >
+                    Quản lý đánh giá
+                  </Link>
+                </div>
+              </div>
             )}
             {roleAdmin && (
               <Link

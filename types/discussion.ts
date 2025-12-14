@@ -17,6 +17,7 @@ export interface DiscussionRequest {
   lessonId: string;
   comment: string;
   parentCommentId?: string;
+  courseId: string;
 }
 
 export interface FavoriteRequest {
