@@ -294,6 +294,11 @@ export const API_ENDPOINTS = {
     GENERATE_QUIZ: '/ai/quiz/create',
     QUIZ_PROGRESS: (quizId: string) => `/ai/quiz/progress/${quizId}`,
   },
+
+  // ==================== CHATBOT ====================
+  CHATBOT: {
+    CHAT_STREAM: '/chatbot/chat/stream',
+  },
 } as const
 
 const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080/ws'
