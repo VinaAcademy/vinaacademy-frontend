@@ -2,9 +2,9 @@
 echo "🚀 Starting VinaAcademy Frontend Container..."
 
 # Validate required environment variables
-if [ -z "$NEXT_PUBLIC_API_URL" ] 
-|| [ -z "$NEXT_PUBLIC_SITE_URL" ] 
-|| [ -z "$NEXT_PUBLIC_WS_URL" ] 
+if [ -z "$NEXT_PUBLIC_API_URL" ] \
+|| [ -z "$NEXT_PUBLIC_SITE_URL" ] \
+|| [ -z "$NEXT_PUBLIC_WS_URL" ] \
 || [ -z "$NEXT_PUBLIC_AI_URL" ]; then
   echo "❌ Error: Missing required environment variables"
   echo "Please ensure the following are set:"
