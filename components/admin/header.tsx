@@ -63,7 +63,7 @@ export default function Header({onMenuButtonClick}: HeaderProps) {
                 </div>
                 <div className="ml-4 flex items-center md:ml-6 space-x-4">
                     {/* Notification dropdown */}
-                    <div className="relative">
+                    {/* <div className="relative">
                         <button
                             type="button"
                             className="relative p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white"
@@ -134,7 +134,7 @@ export default function Header({onMenuButtonClick}: HeaderProps) {
                                 </div>
                             </div>
                         )}
-                    </div>
+                    </div> */}
 
                     {/* Profile dropdown */}
                     <div className="relative">
