@@ -12,7 +12,6 @@ const ENV_VARS = {
   NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
-  NEXT_PUBLIC_AI_URL: process.env.NEXT_PUBLIC_AI_URL,
 }
 
 // Define placeholder patterns (both formats for compatibility)
@@ -28,10 +27,6 @@ const PLACEHOLDERS = {
   NEXT_PUBLIC_WS_URL: [
     'http://PLACEHOLDER_WS_URL/ws',
     '__NEXT_PUBLIC_WS_URL__',
-  ],
-  NEXT_PUBLIC_AI_URL: [
-    'http://PLACEHOLDER_AI_URL/api/v1',
-    '__NEXT_PUBLIC_AI_URL__',
   ],
 }
 
