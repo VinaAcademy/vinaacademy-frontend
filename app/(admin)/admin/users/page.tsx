@@ -36,6 +36,7 @@ import {
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import AddUserModal from '@/components/admin/AddUserModal'
+import { getImageUrl } from '@/utils/imageUtils'
 
 export default function AdminUsersPage() {
   const [view, setView] = useState<
@@ -324,7 +325,7 @@ export default function AdminUsersPage() {
                       <div className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center">
                         {user.avatarUrl ? (
                           <img
-                            src={user.avatarUrl}
+                            src={getImageUrl(user.avatarUrl)}
                             alt={user.fullName || user.username}
                             className="h-9 w-9 rounded-full"
                           />
