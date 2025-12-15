@@ -134,6 +134,13 @@
   border-color: #374151; /* gray-700 */
 }
 
+.chatbot-markdown p,
+.chatbot-markdown ul,
+.chatbot-markdown ol {
+  margin: 0;
+}
+
+
 
 /* ==================== CHAT CONTAINER ==================== */
 .chatbot-container {
