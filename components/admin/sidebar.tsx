@@ -82,7 +82,7 @@ export default function Sidebar({
     },
     { name: 'Quản lý doanh thu', href: '/admin/revenue', icon: TrendingUp },
     // { name: 'Báo cáo', href: '/admin/reports', icon: BarChart3 },
-    { name: 'Kiểm duyệt', href: '/admin/moderation', icon: Shield },
+    { name: 'Quản lý đánh giá', href: '/admin/moderation', icon: Shield },
     // { name: 'Danh mục', href: '/admin/category', icon: ChartBarStacked },
     // {
     //   name: 'Cài đặt',
