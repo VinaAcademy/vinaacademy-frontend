@@ -32,6 +32,7 @@ COPY . .
 ENV NEXT_PUBLIC_API_URL=http://PLACEHOLDER_API_URL/api/v1
 ENV NEXT_PUBLIC_SITE_URL=http://PLACEHOLDER_SITE_URL
 ENV NEXT_PUBLIC_WS_URL=http://PLACEHOLDER_WS_URL/ws
+ENV NEXT_PUBLIC_AI_URL=http://PLACEHOLDER_AI_URL/api/v1
 
 RUN npm run build
 
@@ -57,6 +58,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/inject-env.js ./scripts/inject-env.js
 
 COPY entrypoint.sh .
+RUN sed -i 's/\r$//' entrypoint.sh
 RUN chmod +x entrypoint.sh
 
 RUN chown -R nextjs:nodejs /app
