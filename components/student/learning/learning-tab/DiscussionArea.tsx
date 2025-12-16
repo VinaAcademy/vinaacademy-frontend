@@ -1,81 +1,86 @@
-"use client";
+'use client'
 
-import { FC, useState, useEffect, useCallback } from "react";
-import { MessageSquare, Loader } from "lucide-react";
+import { FC, useState, useEffect, useCallback } from 'react'
+import { MessageSquare, Loader } from 'lucide-react'
 import {
   getRootCommentsPaginated,
   createDiscussion,
   toggleFavorite,
   deleteDiscussion,
-} from "@/services/discussionService";
-import { DiscussionDto, DiscussionRequest } from "@/types/discussion";
-import CommentItem from "./discussion/CommentItem";
-import CommentInput from "./CommentInput";
-import { createSuccessToast } from "@/components/ui/toast-cus";
+} from '@/services/discussionService'
+import { DiscussionDto, DiscussionRequest } from '@/types/discussion'
+import CommentItem from './discussion/CommentItem'
+import CommentInput from './CommentInput'
+import { createSuccessToast } from '@/components/ui/toast-cus'
+import { useAuth } from '@/providers'
 
 // Helpers to avoid duplicate keys when merging pages or switching sort
 const uniqueById = (items: DiscussionDto[]): DiscussionDto[] => {
-  const seen = new Set<string>();
+  const seen = new Set<string>()
   return items.filter((it) => {
-    if (seen.has(it.id)) return false;
-    seen.add(it.id);
-    return true;
-  });
-};
+    if (seen.has(it.id)) return false
+    seen.add(it.id)
+    return true
+  })
+}
 
-const appendUnique = (prev: DiscussionDto[], next: DiscussionDto[]): DiscussionDto[] => {
-  const existing = new Set(prev.map((c) => c.id));
-  const dedupedNext = next.filter((c) => !existing.has(c.id));
-  return [...prev, ...dedupedNext];
-};
+const appendUnique = (
+  prev: DiscussionDto[],
+  next: DiscussionDto[],
+): DiscussionDto[] => {
+  const existing = new Set(prev.map((c) => c.id))
+  const dedupedNext = next.filter((c) => !existing.has(c.id))
+  return [...prev, ...dedupedNext]
+}
 
 interface DiscussionAreaProps {
-  courseId: string;
-  lectureId: string;
+  courseId: string
+  lectureId: string
 }
 
 // Main Discussion Area Component
 const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
-  const [comments, setComments] = useState<DiscussionDto[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [newReply, setNewReply] = useState("");
-  const [filter, setFilter] = useState<"newest" | "popular">("newest");
-  const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [submitting, setSubmitting] = useState(false);
+  const [comments, setComments] = useState<DiscussionDto[]>([])
+  const [loading, setLoading] = useState(false)
+  const [replyingTo, setReplyingTo] = useState<string | null>(null)
+  const [newReply, setNewReply] = useState('')
+  const [filter, setFilter] = useState<'newest' | 'popular'>('newest')
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [submitting, setSubmitting] = useState(false)
+  const { user } = useAuth()
 
   // Load root comments
   const loadComments = useCallback(
     async (pageNum = 0) => {
-      setLoading(true);
+      setLoading(true)
       try {
-        const sortBy = filter === "popular" ? "favoriteCount" : "createdDate";
+        const sortBy = filter === 'popular' ? 'favoriteCount' : 'createdDate'
         const result = await getRootCommentsPaginated(
           lectureId,
           pageNum,
           5,
           sortBy,
-          "DESC"
-        );
+          'DESC',
+        )
 
         if (result) {
-          const pageItems = uniqueById(result.content);
+          const pageItems = uniqueById(result.content)
           if (pageNum === 0) {
-            setComments(pageItems);
+            setComments(pageItems)
           } else {
-            setComments((prev) => appendUnique(prev, pageItems));
+            setComments((prev) => appendUnique(prev, pageItems))
           }
-          setTotalPages(result.totalPages);
+          setTotalPages(result.totalPages)
         }
       } catch (error) {
-        console.error("Error loading comments:", error);
+        console.error('Error loading comments:', error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
     },
-    [lectureId, filter]
-  );
+    [lectureId, filter],
+  )
 
   // Create new comment or reply
   const createNewComment = useCallback(
@@ -86,9 +91,9 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
           comment: content,
           parentCommentId: parentId || undefined,
           courseId: courseId,
-        };
+        }
 
-        const result = await createDiscussion(request);
+        const result = await createDiscussion(request)
 
         if (result) {
           if (parentId) {
@@ -97,29 +102,29 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
               prev.map((comment) =>
                 comment.id === parentId
                   ? { ...comment, replyCount: comment.replyCount + 1 }
-                  : comment
-              )
-            );
+                  : comment,
+              ),
+            )
           } else {
             // it is a root comment - add to top
-            setComments((prev) => [result, ...prev]);
+            setComments((prev) => [result, ...prev])
           }
-          return true;
+          return true
         }
       } catch (error) {
-        console.error("Error creating comment:", error);
-        return false;
+        console.error('Error creating comment:', error)
+        return false
       }
-      return false;
+      return false
     },
-    [lectureId]
-  );
+    [lectureId],
+  )
 
   // Toggle like/unlike
   const handleToggleLike = useCallback(
     async (commentId: string, isLiked: boolean) => {
       try {
-        const result = await toggleFavorite(commentId, isLiked);
+        const result = await toggleFavorite(commentId, isLiked)
         console.log(result)
         if (result !== null) {
           // Update in root comments
@@ -133,90 +138,90 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
                       : comment.favoriteCount - 1,
                     likedByCurrentUser: result ? true : false,
                   }
-                : comment
-            )
-          );
+                : comment,
+            ),
+          )
           createSuccessToast(
-            !result? "Đã bỏ thích bình luận" : "Đã thích bình luận"
-          );
-          
+            !result ? 'Đã bỏ thích bình luận' : 'Đã thích bình luận',
+          )
         }
       } catch (error) {
-        console.error("Error toggling like:", error);
-        createSuccessToast("Đã có lỗi xảy ra, vui lòng thử lại");
+        console.error('Error toggling like:', error)
+        createSuccessToast('Đã có lỗi xảy ra, vui lòng thử lại')
       }
     },
-    []
-  );
+    [],
+  )
 
   // Delete comment
   const handleDeleteComment = useCallback(async (commentId: string) => {
     try {
-      const success = await deleteDiscussion(commentId);
-      console.log("delete", success);
+      const success = await deleteDiscussion(commentId)
+      console.log('delete', success)
       if (success) {
         // Remove from root comments
         setComments((prev) =>
-          prev.filter((comment) => comment.id !== commentId)
-        );
-        createSuccessToast("Xóa bình luận thành công");
+          prev.filter((comment) => comment.id !== commentId),
+        )
+        createSuccessToast('Xóa bình luận thành công')
       }
     } catch (error) {
-      console.error("Error deleting comment:", error);
+      console.error('Error deleting comment:', error)
     }
-  }, []);
+  }, [])
 
   // Format relative time
   const formatRelativeTime = useCallback((dateString: string): string => {
-    const date = new Date(dateString); 
-    const now = new Date();
-    console.log("BEFORE "+date, "AFTER "+now);
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    const date = new Date(dateString)
+    const now = new Date()
+    console.log('BEFORE ' + date, 'AFTER ' + now)
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
-    if (diffInSeconds < 60) return `${diffInSeconds} giây trước`;
+    if (diffInSeconds < 60) return `${diffInSeconds} giây trước`
     if (diffInSeconds < 3600)
-      return `${Math.floor(diffInSeconds / 60)} phút trước`;
+      return `${Math.floor(diffInSeconds / 60)} phút trước`
     if (diffInSeconds < 86400)
-      return `${Math.floor(diffInSeconds / 3600)} giờ trước`;
+      return `${Math.floor(diffInSeconds / 3600)} giờ trước`
     if (diffInSeconds < 2592000)
-      return `${Math.floor(diffInSeconds / 86400)} ngày trước`;
+      return `${Math.floor(diffInSeconds / 86400)} ngày trước`
 
-    return date.toLocaleDateString("vi-VN");
-  }, []);
+    return date.toLocaleDateString('vi-VN')
+  }, [])
 
   // Submit new comment
   const submitComment = useCallback(
     async (content: string) => {
-      return await createNewComment(content);
+      return await createNewComment(content)
     },
-    [createNewComment]
-  );
+    [createNewComment],
+  )
 
   // Load more comments
   const loadMore = useCallback(() => {
     if (page + 1 < totalPages) {
-      setPage((prev) => prev + 1);
+      setPage((prev) => prev + 1)
     }
-  }, [page, totalPages]);
+  }, [page, totalPages])
 
   // Effects
   useEffect(() => {
     // Khi filter hoặc lectureId đổi, reset về 0 và load ngay trang 0
-    setPage(0);
+    setPage(0)
     // Clear current list to avoid key duplication when new sort arrives
-    setComments([]);
-    loadComments(0);
+    setComments([])
+    loadComments(0)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lectureId, filter]);
+  }, [lectureId, filter])
 
   useEffect(() => {
     // Khi người dùng nhấn "load more" đổi page
-    if (page > 0) { //thêm điều kiện page > 0 mới load tại vì khi filter đổi page sẽ về 0 đã có loadComments(0) ở trên
-                    //nếu ko có điều kiện này sẽ load 2 lần trang 0 bị duplicate
-      loadComments(page);
-      console.log(page+" tren 2")
+    if (page > 0) {
+      //thêm điều kiện page > 0 mới load tại vì khi filter đổi page sẽ về 0 đã có loadComments(0) ở trên
+      //nếu ko có điều kiện này sẽ load 2 lần trang 0 bị duplicate
+      loadComments(page)
+      console.log(page + ' tren 2')
     }
-  }, [page, loadComments]);
+  }, [page, loadComments])
 
   return (
     <div className="flex flex-col h-full px-2 sm:px-4 md:px-6 py-4 md:py-6">
@@ -226,21 +231,21 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
         </h2>
         <div className="flex space-x-2">
           <button
-            onClick={() => setFilter("newest")}
+            onClick={() => setFilter('newest')}
             className={`px-2 sm:px-3 py-1 rounded text-sm ${
-              filter === "newest"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-200"
+              filter === 'newest'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-200'
             }`}
           >
             Mới nhất
           </button>
           <button
-            onClick={() => setFilter("popular")}
+            onClick={() => setFilter('popular')}
             className={`px-2 sm:px-3 py-1 rounded text-sm ${
-              filter === "popular"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-200"
+              filter === 'popular'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-200'
             }`}
           >
             Phổ biến nhất
@@ -283,6 +288,7 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
                 newReply={newReply}
                 setNewReply={setNewReply}
                 submitting={submitting}
+                userId={user?.id || ''}
               />
             ))}
 
@@ -297,7 +303,7 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
                   {loading ? (
                     <Loader className="animate-spin w-4 h-4" />
                   ) : (
-                    "Tải thêm bình luận"
+                    'Tải thêm bình luận'
                   )}
                 </button>
               </div>
@@ -306,7 +312,7 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default DiscussionArea;
+export default DiscussionArea
