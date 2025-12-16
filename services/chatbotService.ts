@@ -20,7 +20,10 @@ export interface SSEEvent {
 
 export interface ChatRequest {
   message: string
-  conversation_history: Array<ConversationMessage>
+  lesson_id?: string
+  course_id?: string
+  conversation_history?: ConversationMessage[]
+  custom_context?: Record<string, any>
 }
 
 export interface ConversationMessage {

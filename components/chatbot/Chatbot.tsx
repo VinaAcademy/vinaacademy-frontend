@@ -20,8 +20,11 @@ import { cn } from '@/lib/utils'
 import { useChatbot } from '@/hooks/chatbot/useChatbot'
 import { ChatMessage } from './ChatMessage'
 import './Chatbot.css'
+import { useChatbotContext } from '@/context/ChatbotContext'
 
 export function Chatbot() {
+  const { courseName, lessonName, customContextName, isVisible } =
+    useChatbotContext()
   const {
     isOpen,
     isMinimized,
@@ -37,6 +40,8 @@ export function Chatbot() {
     closeChatbot,
     clearHistory,
   } = useChatbot()
+
+  if (!isVisible) return null
 
   return (
     <>
@@ -172,6 +177,19 @@ export function Chatbot() {
                       )}
                   </div>
                 </div>
+
+                {/* Context Info */}
+                {(courseName || lessonName || customContextName) && (
+                  <div className="bg-blue-50 px-4 py-2 text-xs text-blue-700 border-t border-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800 flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                    <span>
+                      Đang hỏi về:{' '}
+                      <span className="font-semibold">
+                        {customContextName || lessonName || courseName || ''}
+                      </span>
+                    </span>
+                  </div>
+                )}
 
                 {/* Input Area */}
                 <div className="border-t border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">

@@ -1,4 +1,7 @@
+'use client'
+
 import React, { memo } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Bot, Cpu, Loader2, User } from 'lucide-react'
 import { marked } from 'marked'
@@ -10,6 +13,25 @@ interface ChatMessageProps {
 }
 
 export const ChatMessage = memo(({ turn }: ChatMessageProps) => {
+  const router = useRouter()
+
+  const handleLinkClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement
+    const anchor = target.closest('a')
+
+    if (anchor) {
+      const href = anchor.getAttribute('href')
+      if (
+        href &&
+        (href.startsWith('/') || href.startsWith(window.location.origin))
+      ) {
+        e.preventDefault()
+        const url = new URL(anchor.href)
+        router.push(url.pathname + url.search + url.hash)
+      }
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -19,7 +41,10 @@ export const ChatMessage = memo(({ turn }: ChatMessageProps) => {
       {/* User Message */}
       {turn.user && (
         <div className="flex justify-end gap-3">
-          <div className="chatbot-markdown max-w-[85%] rounded-2xl rounded-tr-sm bg-blue-600 px-4 py-2.5 text-sm text-white shadow-sm">
+          <div
+            className="chatbot-markdown max-w-[85%] rounded-2xl rounded-tr-sm bg-blue-600 px-4 py-2.5 text-sm text-white shadow-sm"
+            onClick={handleLinkClick}
+          >
             <div
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(marked.parse(turn.user) as string),
@@ -63,7 +88,10 @@ export const ChatMessage = memo(({ turn }: ChatMessageProps) => {
             <Bot className="h-5 w-5 text-white" />
           </div>
           <div className="max-w-[85%] space-y-2">
-            <div className="chatbot-markdown rounded-2xl rounded-tl-sm bg-white px-4 py-3 text-sm text-gray-800 shadow-sm ring-1 ring-gray-100 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700">
+            <div
+              className="chatbot-markdown rounded-2xl rounded-tl-sm bg-white px-4 py-3 text-sm text-gray-800 shadow-sm ring-1 ring-gray-100 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700"
+              onClick={handleLinkClick}
+            >
               <div
                 dangerouslySetInnerHTML={{
                   __html: DOMPurify.sanitize(

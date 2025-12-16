@@ -19,6 +19,7 @@ export {
   useChatMessages,
   useUnreadCount,
 } from './ChatContext'
+export { ChatbotProvider, useChatbotContext } from './ChatbotContext'
 
 // Lecture Edit Context - For instructor lecture editing
 export { LectureEditProvider, useLectureEdit } from './LectureEditContext'

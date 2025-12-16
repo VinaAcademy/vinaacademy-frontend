@@ -1,16 +1,17 @@
-"use client";
+'use client'
 
-import React from "react";
-import ComposerProvider from "./ComposerProvider";
-import ReactQueryProvider from "./ReactQueryProvider";
-import ToastProvider from "./ToastProvider";
-import {AuthProvider} from "@/context/AuthContext";
-import {NotificationProvider} from "@/context/NotificationContext";
-import {CategoryProvider} from "@/context/CategoryContext";
-import {CartProvider} from "@/context/CartContext";
-import {Toaster} from "@/components/ui/sonner";
-import {WS_ENDPOINTS} from "@/config/api.endpoint";
-import {ChatProvider} from "@/context";
+import React from 'react'
+import ComposerProvider from './ComposerProvider'
+import ReactQueryProvider from './ReactQueryProvider'
+import ToastProvider from './ToastProvider'
+import { AuthProvider } from '@/context/AuthContext'
+import { NotificationProvider } from '@/context/NotificationContext'
+import { CategoryProvider } from '@/context/CategoryContext'
+import { CartProvider } from '@/context/CartContext'
+import { Toaster } from '@/components/ui/sonner'
+import { WS_ENDPOINTS } from '@/config/api.endpoint'
+import { ChatProvider } from '@/context'
+import { ChatbotProvider } from '@/context/ChatbotContext'
 
 /**
  * AppProvider - Centralized provider composition
@@ -22,6 +23,7 @@ import {ChatProvider} from "@/context";
  * 4. WebSocketProvider - Real-time notifications (requires auth)
  * 5. CategoryProvider - Category data
  * 6. CartProvider - Shopping cart state
+ * 7. ChatbotProvider - Chatbot context
  *
  * Order matters! WebSocket must be after Auth (requires token).
  *
@@ -31,30 +33,33 @@ import {ChatProvider} from "@/context";
  */
 
 interface AppProviderProps {
-    children: React.ReactNode;
+  children: React.ReactNode
 }
 
-export default function AppProvider({children}: AppProviderProps) {
-    const wsUrl = WS_ENDPOINTS.NOTIFICATION.URL;
-    const debug = process.env.NODE_ENV === 'development';
+export default function AppProvider({ children }: AppProviderProps) {
+  const wsUrl = WS_ENDPOINTS.NOTIFICATION.URL
+  const debug = process.env.NODE_ENV === 'development'
 
-    if (!wsUrl) {
-        console.error("Missing NEXT_PUBLIC_NOTIFICATION_WS_URL environment variable");
-    }
-    return (
-        <ComposerProvider
-            providers={[
-                ReactQueryProvider,
-                ToastProvider,
-                AuthProvider,
-                wsUrl ? [NotificationProvider, {debug, wsUrl}] : null,
-                [ChatProvider, {debug, autoConnect: true}],
-                CategoryProvider,
-                CartProvider,
-            ]}
-        >
-            {children}
-            <Toaster/>
-        </ComposerProvider>
-    );
+  if (!wsUrl) {
+    console.error(
+      'Missing NEXT_PUBLIC_NOTIFICATION_WS_URL environment variable',
+    )
+  }
+  return (
+    <ComposerProvider
+      providers={[
+        ReactQueryProvider,
+        ToastProvider,
+        AuthProvider,
+        wsUrl ? [NotificationProvider, { debug, wsUrl }] : null,
+        [ChatProvider, { autoConnect: true }],
+        ChatbotProvider,
+        CategoryProvider,
+        CartProvider,
+      ]}
+    >
+      {children}
+      <Toaster />
+    </ComposerProvider>
+  )
 }

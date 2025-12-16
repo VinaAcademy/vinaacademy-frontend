@@ -9,6 +9,7 @@ import { Metadata } from 'next'
 import Script from 'next/script'
 import { notFound } from 'next/navigation'
 import { fetchCourseBySlug } from '@/services/courseActions'
+import { ChatbotContextUpdater } from '@/components/chatbot/ChatbotContextUpdater'
 
 // Generate metadata for the page
 export async function generateMetadata({
@@ -115,6 +116,8 @@ export default async function CoursePage({
             __html: JSON.stringify(structuredData),
           }}
         />
+
+        <ChatbotContextUpdater courseId={course.id} courseName={course.name} />
 
         <div className="bg-white min-h-screen">
           <main>
