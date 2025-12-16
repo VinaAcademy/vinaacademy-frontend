@@ -23,7 +23,8 @@ import './Chatbot.css'
 import { useChatbotContext } from '@/context/ChatbotContext'
 
 export function Chatbot() {
-  const { courseName, lessonName, customContextName } = useChatbotContext()
+  const { courseName, lessonName, customContextName, isVisible } =
+    useChatbotContext()
   const {
     isOpen,
     isMinimized,
@@ -39,6 +40,8 @@ export function Chatbot() {
     closeChatbot,
     clearHistory,
   } = useChatbot()
+
+  if (!isVisible) return null
 
   return (
     <>

@@ -1,6 +1,6 @@
 'use client'
 
-import { FC, useState } from 'react'
+import { FC, useEffect, useState } from 'react'
 import { use } from 'react'
 import VideoPlayer from '@/components/student/learning/content-area/VideoPlayer'
 import ReadingContent from '@/components/student/learning/content-area/ReadingContent'
@@ -40,6 +40,9 @@ const LecturePage: FC<LecturePageProps> = ({ params }) => {
     handleStartQuiz,
     refetchLectureData,
   } = useLecture(slug, lectureId)
+
+  // Kiểm tra loại bài học
+  const isQuizLecture = currentLecture?.type === 'quiz'
 
   const handleTimeUpdate = (time: number) => {
     setCurrentTimestamp(time)
@@ -91,10 +94,10 @@ const LecturePage: FC<LecturePageProps> = ({ params }) => {
   }
 
   // Kiểm tra loại bài học
-  const isReadingLecture = currentLecture.type === 'reading'
-  const isQuizLecture = currentLecture.type === 'quiz'
-  const isAssignmentLecture = currentLecture.type === 'assignment'
-  const isVideoLecture = currentLecture.type === 'video'
+  const isReadingLecture = currentLecture?.type === 'reading'
+  // const isQuizLecture = currentLecture?.type === 'quiz' // Removed duplicate declaration
+  const isAssignmentLecture = currentLecture?.type === 'assignment'
+  const isVideoLecture = currentLecture?.type === 'video'
 
   // Component hiển thị Assignment
   const AssignmentContent = () => {

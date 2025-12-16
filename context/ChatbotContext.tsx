@@ -17,12 +17,14 @@ interface ChatbotContextType {
   customContext: Record<string, any> | null
   customContextName?: string | null
   isOpen: boolean
+  isVisible: boolean
   setCourseContext: (id: string | null, name: string | null) => void
   setLessonContext: (id: string | null, name: string | null) => void
   setCustomContext: (
     context: Record<string, any> | null,
     name: string | null,
   ) => void
+  setChatbotVisible: (visible: boolean) => void
   clearContext: () => void
   openChatbot: () => void
   closeChatbot: () => void
@@ -44,6 +46,7 @@ export function ChatbotProvider({ children }: { children: ReactNode }) {
     null,
   )
   const [isOpen, setIsOpen] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
 
   const setCourseContext = useCallback(
     (id: string | null, name: string | null) => {
@@ -69,6 +72,10 @@ export function ChatbotProvider({ children }: { children: ReactNode }) {
     [],
   )
 
+  const setChatbotVisible = useCallback((visible: boolean) => {
+    setIsVisible(visible)
+  }, [])
+
   const clearContext = useCallback(() => {
     console.log('Clearing chatbot context')
     setCourseId(null)
@@ -92,9 +99,11 @@ export function ChatbotProvider({ children }: { children: ReactNode }) {
       customContext,
       customContextName,
       isOpen,
+      isVisible,
       setCourseContext,
       setLessonContext,
       setCustomContext,
+      setChatbotVisible,
       clearContext,
       openChatbot,
       closeChatbot,
@@ -108,9 +117,11 @@ export function ChatbotProvider({ children }: { children: ReactNode }) {
       customContext,
       customContextName,
       isOpen,
+      isVisible,
       setCourseContext,
       setLessonContext,
       setCustomContext,
+      setChatbotVisible,
       clearContext,
       openChatbot,
       closeChatbot,
