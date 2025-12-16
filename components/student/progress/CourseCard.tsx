@@ -133,7 +133,8 @@ const CourseCard = ({ course }: CourseCardProps) => {
             </div>
           )}
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        {/* <div className="mt-4 grid grid-cols-2 gap-2"> */}
+        <div className="mt-4 flex justify-center">
           {isLoading ? (
             // Loading state for buttons
             <>
