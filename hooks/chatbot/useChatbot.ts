@@ -12,6 +12,7 @@ export interface Turn {
   user: string | null
   tools: string[]
   thinking: string | null
+  summarization: string | null
   assistant: string
   error: string | null
 }
@@ -41,12 +42,12 @@ export function useChatbot() {
       user: null,
       tools: [],
       thinking: null,
+      summarization: null,
       assistant:
         'Xin chào! Tôi là trợ lý AI của VinaAcademy. Tôi có thể giúp gì cho bạn hôm nay?',
       error: null,
     },
   ])
-
   const chatBoxRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
@@ -78,6 +79,7 @@ export function useChatbot() {
                   user: msg.content,
                   tools: [],
                   thinking: null,
+                  summarization: null,
                   assistant: '',
                   error: null,
                 }
@@ -93,6 +95,7 @@ export function useChatbot() {
                     user: null,
                     tools: [],
                     thinking: null,
+                    summarization: null,
                     assistant: msg.content,
                     error: null,
                   })
@@ -140,6 +143,7 @@ export function useChatbot() {
         user: message,
         tools: [],
         thinking: null,
+        summarization: null,
         assistant: '',
         error: null,
       },
@@ -170,6 +174,7 @@ export function useChatbot() {
                 ...turn,
                 assistant: displayText,
                 thinking: null,
+                summarization: null,
               }
             }
             return turn
@@ -180,7 +185,12 @@ export function useChatbot() {
         setTurns((prev) =>
           prev.map((turn) => {
             if (turn.id === newTurnId) {
-              return { ...turn, tools: [...turn.tools, text], thinking: null }
+              return {
+                ...turn,
+                tools: [...turn.tools, text],
+                thinking: null,
+                summarization: null,
+              }
             }
             return turn
           }),
@@ -190,7 +200,17 @@ export function useChatbot() {
         setTurns((prev) =>
           prev.map((turn) => {
             if (turn.id === newTurnId) {
-              return { ...turn, thinking: text }
+              return { ...turn, thinking: text, summarization: null }
+            }
+            return turn
+          }),
+        )
+      },
+      onSummarization: (text: string) => {
+        setTurns((prev) =>
+          prev.map((turn) => {
+            if (turn.id === newTurnId) {
+              return { ...turn, summarization: text, thinking: null }
             }
             return turn
           }),
@@ -217,6 +237,7 @@ export function useChatbot() {
                 ...turn,
                 assistant: fullResponseText,
                 thinking: null,
+                summarization: null,
               }
             }
             return turn
@@ -276,6 +297,7 @@ export function useChatbot() {
           user: null,
           tools: [],
           thinking: null,
+          summarization: null,
           assistant:
             'Xin chào! Tôi là trợ lý AI của VinaAcademy. Tôi có thể giúp gì cho bạn hôm nay?',
           error: null,
@@ -283,6 +305,13 @@ export function useChatbot() {
       ])
     } catch (error) {
       console.error('Failed to clear history:', error)
+    }
+  }
+
+  const stopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
     }
   }
 
@@ -296,6 +325,7 @@ export function useChatbot() {
     handleInputChange,
     handleKeyPress,
     sendMessage,
+    stopGeneration,
     toggleChatbot,
     minimizeChatbot,
     closeChatbot,
