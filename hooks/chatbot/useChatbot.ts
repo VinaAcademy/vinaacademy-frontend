@@ -5,6 +5,7 @@ import {
   StreamCallbacks,
   ConversationMessage,
 } from '@/services/chatbotService'
+import { useChatbotContext } from '@/context/ChatbotContext'
 
 export interface Turn {
   id: string | number
@@ -16,7 +17,16 @@ export interface Turn {
 }
 
 export function useChatbot() {
-  const [isOpen, setIsOpen] = useState(false)
+  const {
+    courseId,
+    lessonId,
+    customContext,
+    isOpen,
+    openChatbot,
+    closeChatbot: contextCloseChatbot,
+    toggleChatbot: contextToggleChatbot,
+  } = useChatbotContext()
+  // const [isOpen, setIsOpen] = useState(false) // Managed by context now
   const [isMinimized, setIsMinimized] = useState(false)
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -137,7 +147,9 @@ export function useChatbot() {
 
     const payload: ChatRequest = {
       message: message,
-      conversation_history: conversationHistory,
+      course_id: courseId || undefined,
+      lesson_id: lessonId || undefined,
+      custom_context: customContext || undefined,
     }
 
     let fullResponseText = ''
@@ -235,7 +247,7 @@ export function useChatbot() {
   }
 
   const toggleChatbot = () => {
-    setIsOpen(!isOpen)
+    contextToggleChatbot()
     setIsMinimized(false)
   }
 
@@ -247,7 +259,7 @@ export function useChatbot() {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
     }
-    setIsOpen(false)
+    contextCloseChatbot()
     setIsMinimized(false)
   }
 

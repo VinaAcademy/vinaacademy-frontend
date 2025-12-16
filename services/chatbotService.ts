@@ -20,7 +20,10 @@ export interface SSEEvent {
 
 export interface ChatRequest {
   message: string
-  conversation_history: Array<ConversationMessage>
+  lesson_id?: string
+  course_id?: string
+  conversation_history?: ConversationMessage[]
+  custom_context?: Record<string, any>
 }
 
 export interface ConversationMessage {
@@ -90,7 +93,7 @@ export const chatbotService = {
       }
 
       const response = await fetch(
-        `${'https://api.vnacademy.io.vn/api/v1'}${API_ENDPOINTS.CHATBOT.CHAT_STREAM}`,
+        `${'http://localhost:8000/api/v1'}${API_ENDPOINTS.CHATBOT.CHAT_STREAM}`,
         {
           method: 'POST',
           headers: headers,
