@@ -105,7 +105,7 @@ const LearningTabs: FC<LearningTabsProps> = ({
             <Search size={16} className="mr-2" />
             Tổng quan
           </button>
-          {/* <button hỏi đáp chưa có
+          <button //hỏi đáp chưa có
             onClick={() => setActiveTab('q&a')}
             className={`px-4 py-3 flex items-center text-sm font-medium whitespace-nowrap ${
               activeTab === 'q&a'
@@ -115,7 +115,7 @@ const LearningTabs: FC<LearningTabsProps> = ({
           >
             <MessageSquare size={16} className="mr-2" />
             Hỏi đáp
-          </button> */}
+          </button>
           <button
             onClick={() => setActiveTab('discussion')}
             className={`px-4 py-3 flex items-center text-sm font-medium whitespace-nowrap ${
@@ -127,17 +127,20 @@ const LearningTabs: FC<LearningTabsProps> = ({
             <Users size={16} className="mr-2" />
             Thảo luận
           </button>
-          {isVideoTab && (<button
-            onClick={() => setActiveTab('notes')}
-            className={`px-4 py-3 flex items-center text-sm font-medium whitespace-nowrap ${activeTab === 'notes'
-                ? 'border-b-2 border-indigo-600 text-indigo-600'
-                : 'text-gray-700 hover:text-gray-900'
+          {isVideoTab && (
+            <button
+              onClick={() => setActiveTab('notes')}
+              className={`px-4 py-3 flex items-center text-sm font-medium whitespace-nowrap ${
+                activeTab === 'notes'
+                  ? 'border-b-2 border-indigo-600 text-indigo-600'
+                  : 'text-gray-700 hover:text-gray-900'
               }`}
-          >
-            <PenSquare size={16} className="mr-2" />
-            Ghi chú
-          </button>)}
-          
+            >
+              <PenSquare size={16} className="mr-2" />
+              Ghi chú
+            </button>
+          )}
+
           <button
             onClick={() => setActiveTab('announcements')}
             className={`px-4 py-3 flex items-center text-sm font-medium whitespace-nowrap ${

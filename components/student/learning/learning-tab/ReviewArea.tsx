@@ -501,8 +501,6 @@ const ReviewsArea: React.FC<ReviewsAreaProps> = ({
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">Đánh giá từ học viên</h2>
 
-        
-
         {/* Chỉ hiển thị nút Viết đánh giá nếu chưa có review */}
         {canReview && !userOwnReview && (
           <Button
@@ -584,7 +582,7 @@ const ReviewsArea: React.FC<ReviewsAreaProps> = ({
                     </div>
                     <div className="flex-1">
                       <div
-                        className="font-medium"
+                        className="font-medium hover:underline cursor-pointer"
                         onClick={() => {
                           router.push(`/user/${review.userId}`)
                         }}
