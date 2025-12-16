@@ -93,7 +93,7 @@ export const chatbotService = {
       }
 
       const response = await fetch(
-        `${'http://localhost:8000/api/v1'}${API_ENDPOINTS.CHATBOT.CHAT_STREAM}`,
+        `${'https://api.vnacademy.io.vn/api/v1'}${API_ENDPOINTS.CHATBOT.CHAT_STREAM}`,
         {
           method: 'POST',
           headers: headers,
