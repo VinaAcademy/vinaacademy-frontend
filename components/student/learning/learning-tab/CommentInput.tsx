@@ -1,35 +1,35 @@
-"use client";
+'use client'
 
-import { FC, useState } from "react";
-import { Loader } from "lucide-react";
+import { FC, useState } from 'react'
+import { Loader } from 'lucide-react'
 
 interface CommentInputProps {
-  onSubmit: (content: string) => Promise<boolean>;
-  placeholder?: string;
-  maxLength?: number;
+  onSubmit: (content: string) => Promise<boolean>
+  placeholder?: string
+  maxLength?: number
 }
 
 const CommentInput: FC<CommentInputProps> = ({
   onSubmit,
-  placeholder = "Chia sẻ suy nghĩ của bạn với các học viên khác...",
+  placeholder = 'Chia sẻ suy nghĩ của bạn với các học viên khác...',
   maxLength = 2000,
 }) => {
-  const [comment, setComment] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [comment, setComment] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async () => {
-    if (!comment.trim()) return;
+    if (!comment.trim()) return
 
-    setSubmitting(true);
+    setSubmitting(true)
     try {
-      const success = await onSubmit(comment);
+      const success = await onSubmit(comment)
       if (success) {
-        setComment("");
+        setComment('')
       }
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   return (
     <div className="mb-6 bg-gray-50 rounded-lg p-3 sm:p-4">
@@ -39,7 +39,7 @@ const CommentInput: FC<CommentInputProps> = ({
       <textarea
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        className="w-full p-2 sm:p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-gray-300"
+        className="w-full p-2 sm:p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-gray-800"
         placeholder={placeholder}
         rows={4}
         maxLength={maxLength}
@@ -56,12 +56,12 @@ const CommentInput: FC<CommentInputProps> = ({
           {submitting ? (
             <Loader className="animate-spin w-4 h-4" />
           ) : (
-            "Đăng bình luận"
+            'Đăng bình luận'
           )}
         </button>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default CommentInput;
+export default CommentInput
