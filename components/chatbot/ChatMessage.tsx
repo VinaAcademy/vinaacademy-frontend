@@ -3,7 +3,7 @@
 import React, { memo } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Bot, Cpu, Loader2, User } from 'lucide-react'
+import { Bot, Cpu, Loader2, User, FileText } from 'lucide-react'
 import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
 import { Turn } from '@/hooks/chatbot/useChatbot'
@@ -57,8 +57,8 @@ export const ChatMessage = memo(({ turn }: ChatMessageProps) => {
         </div>
       )}
 
-      {/* Tools & Thinking */}
-      {(turn.tools.length > 0 || turn.thinking) && (
+      {/* Tools & Thinking & Summarization */}
+      {(turn.tools.length > 0 || turn.thinking || turn.summarization) && (
         <div className="ml-11 space-y-2">
           {turn.tools.map((tool, idx) => (
             <motion.div
@@ -68,9 +68,20 @@ export const ChatMessage = memo(({ turn }: ChatMessageProps) => {
               className="flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50/50 px-3 py-1.5 text-xs text-blue-700 dark:border-blue-900/30 dark:bg-blue-900/20 dark:text-blue-300"
             >
               <Cpu className="h-3.5 w-3.5 animate-pulse" />
-              <span className="font-medium">Đang xử lý: {tool}</span>
+              <span className="font-medium">{tool}</span>
             </motion.div>
           ))}
+
+          {turn.summarization && (
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex items-center gap-2 rounded-lg border border-purple-100 bg-purple-50/50 px-3 py-1.5 text-xs text-purple-700 dark:border-purple-900/30 dark:bg-purple-900/20 dark:text-purple-300"
+            >
+              <FileText className="h-3.5 w-3.5 animate-pulse" />
+              <span className="font-medium">{turn.summarization}</span>
+            </motion.div>
+          )}
 
           {turn.thinking && (
             <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">

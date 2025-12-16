@@ -14,7 +14,7 @@ interface QuizDTO {
 
 // ==================== SSE STREAMING TYPES ====================
 export interface SSEEvent {
-  type: 'text' | 'tool_call' | 'tool_call_chunk' | 'error'
+  type: 'text' | 'tool_call' | 'tool_call_chunk' | 'error' | 'summarization'
   text: string
 }
 
@@ -35,6 +35,7 @@ export interface StreamCallbacks {
   onText: (text: string) => void
   onToolCall: (toolName: string) => void
   onToolCallChunk: (thinking: string) => void
+  onSummarization?: (text: string) => void
   onError: (error: string) => void
   onComplete: () => void
 }
@@ -194,6 +195,11 @@ export const chatbotService = {
             break
           case 'tool_call_chunk':
             callbacks.onToolCallChunk(event.text)
+            break
+          case 'summarization':
+            if (callbacks.onSummarization) {
+              callbacks.onSummarization(event.text)
+            }
             break
           case 'error':
             callbacks.onError(event.text)

@@ -14,6 +14,7 @@ import {
   User,
   X,
   Trash2,
+  Square,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -35,6 +36,7 @@ export function Chatbot() {
     handleInputChange,
     handleKeyPress,
     sendMessage,
+    stopGeneration,
     toggleChatbot,
     minimizeChatbot,
     closeChatbot,
@@ -203,14 +205,25 @@ export function Chatbot() {
                       disabled={isLoading}
                       className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-4 pr-12 text-sm outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-blue-500"
                     />
-                    <button
-                      onClick={sendMessage}
-                      disabled={isLoading || !input.trim()}
-                      className="absolute right-2 rounded-lg p-2 text-blue-600 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:text-gray-400 dark:text-blue-400 dark:hover:bg-blue-900/20"
-                      aria-label="Send message"
-                    >
-                      <Send className="h-5 w-5" />
-                    </button>
+                    {isLoading ? (
+                      <button
+                        onClick={stopGeneration}
+                        className="absolute right-2 rounded-lg p-2 text-red-500 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                        aria-label="Stop generating"
+                        title="Dừng"
+                      >
+                        <Square className="h-5 w-5 fill-current" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={sendMessage}
+                        disabled={!input.trim()}
+                        className="absolute right-2 rounded-lg p-2 text-blue-600 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:text-gray-400 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                        aria-label="Send message"
+                      >
+                        <Send className="h-5 w-5" />
+                      </button>
+                    )}
                   </div>
                   <div className="mt-2 text-center">
                     <p className="text-[10px] text-gray-400">
