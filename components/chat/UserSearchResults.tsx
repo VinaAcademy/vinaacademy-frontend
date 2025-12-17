@@ -1,18 +1,18 @@
-'use client';
+'use client'
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Users, MessageCircle } from 'lucide-react';
-import { User } from '@/types/auth';
-import { PaginatedResponse } from '@/types/api-response';
-import { Avatar } from '@/components/ui/avatar';
-import {getImageUrl} from "@/utils/imageUtils";
+import React from 'react'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Users, MessageCircle } from 'lucide-react'
+import { User } from '@/types/auth'
+import { PaginatedResponse } from '@/types/api-response'
+import { Avatar } from '@/components/ui/avatar'
+import { getImageUrl } from '@/utils/imageUtils'
 
 interface UserSearchResultsProps {
-  results: PaginatedResponse<User> | null | undefined;
-  loading: boolean;
-  onStartChat: (userId: string, user: User) => void;
+  results: PaginatedResponse<User> | null | undefined
+  loading: boolean
+  onStartChat: (userId: string, user: User) => void
 }
 
 export function UserSearchResults({
@@ -24,7 +24,10 @@ export function UserSearchResults({
     return (
       <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-md border border-gray-200/50 divide-y divide-gray-100 overflow-hidden">
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="flex items-center justify-between gap-3 p-4 animate-pulse">
+          <div
+            key={i}
+            className="flex items-center justify-between gap-3 p-4 animate-pulse"
+          >
             <div className="flex items-center gap-3 flex-1">
               <Skeleton className="h-12 w-12 rounded-full flex-shrink-0" />
               <div className="flex-1 space-y-2">
@@ -36,7 +39,7 @@ export function UserSearchResults({
           </div>
         ))}
       </div>
-    );
+    )
   }
 
   if (!results || results.content.length === 0) {
@@ -57,14 +60,14 @@ export function UserSearchResults({
           </p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-md border border-gray-200/50 overflow-hidden">
       <div className="divide-y divide-gray-100">
         {results.content.map((user, index) => {
-          const displayName = user.fullName || user.username || 'Không có tên';
+          const displayName = user.fullName || user.username || 'Không có tên'
 
           return (
             <div
@@ -74,7 +77,9 @@ export function UserSearchResults({
             >
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <Avatar
-                  src={getImageUrl(user.avatarUrl || '')}
+                  src={getImageUrl(
+                    user.avatarUrl || '/images/default-avatar.png',
+                  )}
                   alt={displayName}
                   className="h-12 w-12 flex-shrink-0 ring-2 ring-gray-200"
                   size={48}
@@ -104,7 +109,7 @@ export function UserSearchResults({
                 <span>Nhắn tin</span>
               </Button>
             </div>
-          );
+          )
         })}
       </div>
 
@@ -115,5 +120,5 @@ export function UserSearchResults({
         </div>
       )}
     </div>
-  );
+  )
 }

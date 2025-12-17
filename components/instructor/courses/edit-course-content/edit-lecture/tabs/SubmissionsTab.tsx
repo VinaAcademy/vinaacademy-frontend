@@ -181,7 +181,10 @@ export default function SubmissionsTab() {
                   <div className="flex items-center space-x-4 flex-1">
                     {/* Avatar */}
                     <Avatar
-                      src={getImageUrl(studentAttempt.student?.avatarUrl || '')}
+                      src={getImageUrl(
+                        studentAttempt.student?.avatarUrl ||
+                          '/images/default-avatar.png',
+                      )}
                       alt={studentAttempt.student.fullName}
                       size={48}
                       className="h-12 w-12"

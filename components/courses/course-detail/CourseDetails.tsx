@@ -1,63 +1,63 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Disclosure } from "@headlessui/react";
-import { ChevronDown, Play, FileText, Clock } from "lucide-react";
-import { CourseDetailsResponse, LessonType } from "@/types/course";
-import Image from "next/image";
-import SafeHtml from "@/components/common/safe-html";
-import { getImageUrl } from "@/utils/imageUtils";
+import { useState } from 'react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Disclosure } from '@headlessui/react'
+import { ChevronDown, Play, FileText, Clock } from 'lucide-react'
+import { CourseDetailsResponse, LessonType } from '@/types/course'
+import Image from 'next/image'
+import SafeHtml from '@/components/common/safe-html'
+import { getImageUrl } from '@/utils/imageUtils'
 
 interface CourseDetailsProps {
-  course: CourseDetailsResponse;
+  course: CourseDetailsResponse
 }
 
 export default function CourseDetails({ course }: CourseDetailsProps) {
-  const [tab, setTab] = useState("description");
+  const [tab, setTab] = useState('description')
 
   // Calculate total content - number of lessons and total duration
-  const totalLessons = course.totalLesson;
-  const totalSections = course.totalSection;
+  const totalLessons = course.totalLesson
+  const totalSections = course.totalSection
 
   // Calculate total duration in seconds
   const totalDuration = course.sections.reduce((total, section) => {
     return (
       total +
       (section.lessons?.reduce((sectionTotal, lesson) => {
-        return sectionTotal + (lesson.videoDuration || 0);
+        return sectionTotal + (lesson.videoDuration || 0)
       }, 0) ?? 0)
-    );
-  }, 0);
+    )
+  }, 0)
 
   // Format duration to hours and minutes
   const formatDuration = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return `${hours > 0 ? `${hours} giờ ` : ""}${minutes} phút`;
-  };
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    return `${hours > 0 ? `${hours} giờ ` : ''}${minutes} phút`
+  }
 
   // Format lesson type to Vietnamese
   const formatLessonType = (type?: LessonType) => {
     switch (type) {
-      case "VIDEO":
-        return "Video";
-      case "READING":
-        return "Bài đọc";
-      case "QUIZ":
-        return "Bài kiểm tra";
+      case 'VIDEO':
+        return 'Video'
+      case 'READING':
+        return 'Bài đọc'
+      case 'QUIZ':
+        return 'Bài kiểm tra'
       default:
-        return "Bài học";
+        return 'Bài học'
     }
-  };
+  }
 
   // Format lesson duration
   const formatLessonDuration = (seconds?: number) => {
-    if (!seconds) return "";
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
-  };
+    if (!seconds) return ''
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = Math.floor(seconds % 60)
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
 
   return (
     <div className="bg-white border rounded-lg overflow-hidden mb-8">
@@ -90,7 +90,7 @@ export default function CourseDetails({ course }: CourseDetailsProps) {
             <div className="text-sm text-gray-500 flex flex-wrap gap-4"></div>
           </div>
           <div className="space-y-2">
-           <SafeHtml html={course.description}/>
+            <SafeHtml html={course.description} />
           </div>
         </TabsContent>
 
@@ -118,7 +118,7 @@ export default function CourseDetails({ course }: CourseDetailsProps) {
                       </div>
                       <ChevronDown
                         className={`${
-                          open ? "transform rotate-180" : ""
+                          open ? 'transform rotate-180' : ''
                         } w-5 h-5 text-gray-500`}
                       />
                     </Disclosure.Button>
@@ -130,9 +130,9 @@ export default function CourseDetails({ course }: CourseDetailsProps) {
                             className="flex justify-between items-center p-3 border-b"
                           >
                             <div className="flex items-center gap-3">
-                              {lesson.type === "VIDEO" ? (
+                              {lesson.type === 'VIDEO' ? (
                                 <Play className="w-4 h-4 text-gray-500" />
-                              ) : lesson.type === "READING" ? (
+                              ) : lesson.type === 'READING' ? (
                                 <FileText className="w-4 h-4 text-gray-500" />
                               ) : (
                                 <Clock className="w-4 h-4 text-gray-500" />
@@ -166,7 +166,9 @@ export default function CourseDetails({ course }: CourseDetailsProps) {
               <div className="flex items-start gap-4 mb-4">
                 <div className="relative w-16 h-16 rounded-full overflow-hidden">
                   <Image
-                    src={getImageUrl(instructor.avatarUrl || "") || "/images/default-avatar.png"}
+                    src={getImageUrl(
+                      instructor.avatarUrl || '/images/default-avatar.png',
+                    )}
                     alt={instructor.fullName}
                     fill
                     className="object-cover"
@@ -191,5 +193,5 @@ export default function CourseDetails({ course }: CourseDetailsProps) {
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

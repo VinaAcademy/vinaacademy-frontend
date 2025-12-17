@@ -242,12 +242,6 @@ npm install package-name
 
 ### Testing Features
 
-**Mock Data**:
-- `data/mockCourses.ts` - Sample course data
-- `data/mockCourseData.ts` - Detailed course information
-- `data/mockCartData.ts` - Shopping cart examples
-- `data/mockInstructorCourse.ts` - Instructor dashboard data
-
 **WebSocket Testing**:
 - Enable debug mode in `AppProvider.tsx`: `[NotificationProvider, { debug: true }]`
 - Check notifications via bell icon in navigation

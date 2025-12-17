@@ -41,7 +41,7 @@ const NotificationsPage = () => {
   const [loading, setLoading] = useState<boolean>(true)
   const [filters, setFilters] = useState<NotificationFiltersType>({
     type: null,
-    isRead: false,
+    isRead: null,
     sortBy: 'createdAt',
     direction: 'desc',
   })

@@ -359,7 +359,6 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - **Default fallbacks**: If `NEXT_PUBLIC_API_URL` is missing, defaults to `http://localhost:8080/api/v1`
 
 ### Testing & Development Patterns
-- **Mock Data**: Use files in `data/mock*.ts` for development (e.g., `mockCourses.ts`, `mockCourseData.ts`, `mockCartData.ts`, `mockInstructorCourse.ts`)
 - **Error Handling**: Services return `null` on errors for graceful degradation - React Query handles loading/error states
 - **WebSocket Debugging**: Enable debug mode in `AppProvider.tsx` by passing `[NotificationProvider, { debug: true }]` or `[ChatProvider, { debug: true, autoConnect: true }]`
 - **Component Testing**: Most features are testable through UI navigation - Chat WebSocket via `/conversations`, Notifications via bell icon
@@ -464,9 +463,7 @@ subscribeToGroup(conversationId);
 ### Testing Patterns
 - Services return `null` on error for graceful degradation
 - React Query handles loading/error states
-- Use mock data from `data/mock*.ts` for development
 - `<NotificationDemo />` component for WebSocket testing
-- Mock data includes: `mockCourses.ts`, `mockCourseData.ts`, `mockCartData.ts`, `mockInstructorCourse.ts`
 - Test WebSocket by enabling debug mode in `AppProvider.tsx`: `[NotificationProvider, { debug: true }]`
 - Test Chat WebSocket with `[ChatProvider, { debug: true, autoConnect: true }]`
 
