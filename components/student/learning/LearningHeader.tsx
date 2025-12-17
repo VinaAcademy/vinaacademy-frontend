@@ -1,99 +1,113 @@
-"use client";
+'use client'
 
-import {FC, useState, useEffect} from 'react';
-import Link from 'next/link';
-import { Menu, Check } from 'lucide-react';
+import { FC, useState, useEffect } from 'react'
+import Link from 'next/link'
+import { Menu, Check } from 'lucide-react'
 
 interface LearningHeaderProps {
-    courseTitle: string;
-    progress: number;
-    courseSlug?: string;
+  courseTitle: string
+  progress: number
+  courseSlug?: string
 }
 
-const LearningHeader: FC<LearningHeaderProps> = ({courseTitle, progress, courseSlug = 'default-course'}) => {
-    const [showCopyToast, setShowCopyToast] = useState(false);
+const LearningHeader: FC<LearningHeaderProps> = ({
+  courseTitle,
+  progress,
+  courseSlug = 'default-course',
+}) => {
+  const [showCopyToast, setShowCopyToast] = useState(false)
 
-    useEffect(() => {
-        if (showCopyToast) {
-            const timer = setTimeout(() => setShowCopyToast(false), 2000);
-            return () => clearTimeout(timer);
-        }
-    }, [showCopyToast]);
+  useEffect(() => {
+    if (showCopyToast) {
+      const timer = setTimeout(() => setShowCopyToast(false), 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [showCopyToast])
 
-    const handleShare = async () => {
-        try {
-            const origin = typeof window !== 'undefined' ? window.location.origin : '';
-            const url = `${origin}/courses/${courseSlug}`;
-            await navigator.clipboard.writeText(url);
-            setShowCopyToast(true);
-        } catch (err) {
-            try {
-                const origin = typeof window !== 'undefined' ? window.location.origin : '';
-                const url = `${origin}/courses/${courseSlug}`;
-                const textarea = document.createElement('textarea');
-                textarea.value = url;
-                textarea.style.position = 'fixed';
-                textarea.style.left = '-9999px';
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                setShowCopyToast(true);
-            } catch (_) {
-                // silently fail
-            }
-        }
-    };
-    return (
-        <>
-            <header className="bg-black text-white px-4 py-2 flex items-center justify-between border-b border-gray-700">
-            <div className="flex items-center overflow-hidden">
-                <Link href={"/my-courses"} className="mr-3 sm:mr-4 flex-shrink-0">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6 sm:h-8 sm:w-8 text-white hover:text-gray-300 transition"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                        <polyline points="9 22 9 12 15 12 15 22"/>
-                    </svg>
-                </Link>
+  const handleShare = async () => {
+    try {
+      const origin = typeof window !== 'undefined' ? window.location.origin : ''
+      const url = `${origin}/courses/${courseSlug}`
+      await navigator.clipboard.writeText(url)
+      setShowCopyToast(true)
+    } catch (err) {
+      try {
+        const origin =
+          typeof window !== 'undefined' ? window.location.origin : ''
+        const url = `${origin}/courses/${courseSlug}`
+        const textarea = document.createElement('textarea')
+        textarea.value = url
+        textarea.style.position = 'fixed'
+        textarea.style.left = '-9999px'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+        setShowCopyToast(true)
+      } catch (_) {
+        // silently fail
+      }
+    }
+  }
+  return (
+    <>
+      <header className="bg-black text-white px-4 py-2 flex items-center justify-between border-b border-gray-700">
+        <div className="flex items-center overflow-hidden">
+          <Link href={'/my-courses'} className="mr-3 sm:mr-4 flex-shrink-0">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </Link>
 
-                <div className="flex flex-col mr-2 sm:mr-8 min-w-0">
-                    <Link href={`/courses/${courseSlug}`} className="hover:text-gray-300">
-                        <h1 className="text-sm sm:text-lg font-medium truncate max-w-[150px] sm:max-w-[250px] md:max-w-sm">{courseTitle}</h1>
-                    </Link>
-                    <div className="flex items-center">
-                        <div className="w-20 sm:w-32 bg-gray-300 rounded-full h-1.5 mr-2">
-                            <div
-                                className={`h-1.5 rounded-full transition-all duration-300 ${progress === 100
-                                    ? "bg-green-500"
-                                    : progress >= 80
-                                        ? "bg-blue-500"
-                                        : progress >= 60
-                                            ? "bg-blue-400"
-                                            : progress >= 40
-                                                ? "bg-blue-300"
-                                                : progress >= 20
-                                                    ? "bg-gray-400"
-                                                    : "bg-gray-300"
-                                }`}
-                                style={{width: `${progress}%`}}
-                            />
-                        </div>
-                        <span className="text-xs text-gray-400">{progress}% hoàn thành</span>
-                    </div>
-                </div>
-            </div>
-
+          <div className="flex flex-col mr-2 sm:mr-8 min-w-0">
+            <Link
+              href={`/courses/${courseSlug}`}
+              className="hover:text-gray-300"
+            >
+              <h1 className="text-sm sm:text-lg font-medium truncate max-w-[150px] sm:max-w-[250px] md:max-w-sm">
+                {courseTitle}
+              </h1>
+            </Link>
             <div className="flex items-center">
-                <div className="hidden sm:flex items-center space-x-4">
-                    {/* <button className="text-white hover:text-gray-300 transition" title="Help">
+              <div className="w-20 sm:w-32 bg-gray-300 rounded-full h-1.5 mr-2">
+                <div
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    progress === 100
+                      ? 'bg-green-500'
+                      : progress >= 80
+                        ? 'bg-blue-500'
+                        : progress >= 60
+                          ? 'bg-blue-400'
+                          : progress >= 40
+                            ? 'bg-blue-300'
+                            : progress >= 20
+                              ? 'bg-gray-400'
+                              : 'bg-gray-300'
+                  }`}
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <span className="text-xs text-gray-400">
+                {progress}% hoàn thành
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center">
+          <div className="hidden sm:flex items-center space-x-4">
+            {/* <button className="text-white hover:text-gray-300 transition" title="Help">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-6 w-6"
@@ -106,41 +120,52 @@ const LearningHeader: FC<LearningHeaderProps> = ({courseTitle, progress, courseS
                         </svg>
                     </button> */}
 
-                    <button
-                        onClick={handleShare}
-                        className="bg-white text-black hover:bg-gray-200 px-4 py-1.5 rounded text-sm font-medium transition">
-                        Chia sẻ
-                    </button>
+            <button
+              onClick={handleShare}
+              className="bg-white text-black hover:bg-gray-200 px-4 py-1.5 rounded text-sm font-medium transition"
+            >
+              Chia sẻ
+            </button>
 
-                    <button className="text-white hover:text-gray-300 transition" title="More options">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                d="M12 5v.01M12 12v.01M12 19v.01M19 12a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                {/* Menu cho điện thoại */}
-                <button className="sm:hidden text-white hover:text-gray-300 transition" title="Menu">
-                    <Menu className="h-6 w-6" />
-                </button>
-            </div>
-        </header>
+            <button
+              className="text-white hover:text-gray-300 transition"
+              title="More options"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 5v.01M12 12v.01M12 19v.01M19 12a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </button>
+          </div>
 
-        {showCopyToast && (
-            <div className="fixed top-20 right-4 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 z-50">
-                <Check className="w-5 h-5 flex-shrink-0" />
-                <p className="text-sm font-medium">Đã sao chép liên kết!</p>
-            </div>
-        )}
-        </>
-    );
+          {/* Menu cho điện thoại */}
+          <button
+            className="sm:hidden text-white hover:text-gray-300 transition"
+            title="Menu"
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+        </div>
+      </header>
+
+      {showCopyToast && (
+        <div className="fixed top-20 right-4 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 z-50">
+          <Check className="w-5 h-5 flex-shrink-0" />
+          <p className="text-sm font-medium">Đã sao chép liên kết!</p>
+        </div>
+      )}
+    </>
+  )
 }
 
-export default LearningHeader;
+export default LearningHeader

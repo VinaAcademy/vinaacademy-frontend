@@ -78,7 +78,9 @@ export default function Home() {
         {user && (
           <WelcomeSection
             userName={username}
-            userAvatar={getImageUrl(user.avatarUrl || '')}
+            userAvatar={getImageUrl(
+              user.avatarUrl || '/images/default-avatar.png',
+            )}
           />
         )}
         <HeroSection />
