@@ -51,7 +51,9 @@ export default function StudentAttemptsModal({
           {/* Student Info */}
           <div className="flex items-center space-x-4">
             <Avatar
-              src={getImageUrl(student.student.avatarUrl || '')}
+              src={getImageUrl(
+                student.student.avatarUrl || '/images/default-avatar.png',
+              )}
               alt={student.student.fullName}
               size={56}
               className="h-14 w-14"

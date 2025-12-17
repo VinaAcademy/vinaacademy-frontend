@@ -106,10 +106,9 @@ export default function PublicInstructorPage() {
               <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full opacity-50 group-hover:opacity-70 blur-md transition duration-300"></div>
               <div className="relative w-40 h-40 md:w-52 md:h-52 rounded-full overflow-hidden border-4 border-white shadow-xl flex-shrink-0">
                 <Image
-                  src={
-                    getImageUrl(instructor.avatarUrl || '') ||
-                    '/images/default-avatar.png'
-                  }
+                  src={getImageUrl(
+                    instructor.avatarUrl || '/images/default-avatar.png',
+                  )}
                   alt={instructor.fullName || ''}
                   fill
                   className="object-cover"

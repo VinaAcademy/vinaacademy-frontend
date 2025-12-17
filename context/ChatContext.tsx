@@ -3,78 +3,78 @@
  * Provides global chat state and WebSocket connection management
  */
 
-'use client';
+'use client'
 
-import React, {createContext, useContext, ReactNode} from 'react';
-import {useAuth} from './AuthContext';
-import {getAccessToken} from '@/lib/apiClient';
-import {useChat as useChatHook} from '@/hooks/useChat';
+import React, { createContext, useContext, ReactNode } from 'react'
+import { useAuth } from './AuthContext'
+import { getAccessToken } from '@/lib/apiClient'
+import { useChat as useChatHook } from '@/hooks/useChat'
 import type {
-    ConversationDto,
-    MessageDto,
-    CreateGroupRequest,
-} from '@/types/chat';
+  ConversationDto,
+  MessageDto,
+  CreateGroupRequest,
+} from '@/types/chat'
 
 /**
  * Chat Context type
  */
 interface ChatContextType {
-    // Connection state
-    connected: boolean;
-    connecting: boolean;
-    connectionError: string | null;
-    connect: () => Promise<void>;
-    disconnect: () => void;
+  // Connection state
+  connected: boolean
+  connecting: boolean
+  connectionError: string | null
+  connect: () => Promise<void>
+  disconnect: () => void
 
-    // Conversations
-    conversations: ConversationDto[];
-    conversationsLoading: boolean;
-    conversationsError: Error | null;
-    refetchConversations: () => void;
-    getConversation: (conversationId: string) => ConversationDto | undefined;
+  // Conversations
+  conversations: ConversationDto[]
+  conversationsLoading: boolean
+  conversationsError: Error | null
+  refetchConversations: () => void
+  getConversation: (conversationId: string) => ConversationDto | undefined
 
-    // Messages
-    messages: Record<string, MessageDto[]>;
-    loadMessages: (conversationId: string, page?: number) => Promise<void>;
-    clearMessages: (conversationId: string) => void;
+  // Messages
+  messages: Record<string, MessageDto[]>
+  loadMessages: (conversationId: string, page?: number) => Promise<void>
+  clearMessages: (conversationId: string) => void
 
-    // Sending messages
-    sendTextMessage: (
-        conversationId: string,
-        content: string,
-        isGroup: boolean,
-        recipientId?: string
-    ) => void;
+  // Sending messages
+  sendTextMessage: (
+    conversationId: string,
+    content: string,
+    isGroup: boolean,
+    recipientId?: string,
+  ) => void
 
-    // Group management
-    subscribeToGroup: (conversationId: string) => void;
-    unsubscribeFromGroup: (conversationId: string) => void;
-    createGroup: (request: CreateGroupRequest) => Promise<ConversationDto | null>;
+  // Group management
+  subscribeToGroup: (conversationId: string) => void
+  unsubscribeFromGroup: (conversationId: string) => void
+  createGroup: (request: CreateGroupRequest) => Promise<ConversationDto | null>
 
-    // Direct conversations
-    startDirectConversation: (userId: string) => Promise<ConversationDto | null>;
+  // Direct conversations
+  startDirectConversation: (userId: string) => Promise<ConversationDto | null>
 
-    // Read status
-    markAsRead: (conversationId: string) => Promise<void>;
+  // Read status
+  markAsRead: (conversationId: string) => Promise<void>
 
-    // Online users - PHASE 4
-    onlineUserIds: Set<string>;
-    isUserOnline: (userId: string) => boolean;
-    refreshOnlineUsers: () => Promise<void>;
+  // Online users - PHASE 4
+  onlineUserIds: Set<string>
+  isUserOnline: (userId: string) => boolean
+  refreshOnlineUsers: () => Promise<void>
 }
 
 /**
  * Chat Context
  */
-const ChatContext = createContext<ChatContextType | undefined>(undefined);
+const ChatContext = createContext<ChatContextType | undefined>(undefined)
 
 /**
  * Chat Provider Props
  */
 interface ChatProviderProps {
-    children: ReactNode;
-    debug?: boolean;
-    autoConnect?: boolean;
+  children: ReactNode
+  debug?: boolean
+  autoConnect?: boolean
 }
 
 /**
@@ -89,30 +89,22 @@ interface ChatProviderProps {
  * ```
  */
 export function ChatProvider({
-                                 children,
-                                 debug = false,
-                                 autoConnect = true
-                             }: ChatProviderProps) {
-    const {user} = useAuth();
-    const accessToken = getAccessToken();
+  children,
+  debug = false,
+  autoConnect = true,
+}: ChatProviderProps) {
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const accessToken = getAccessToken()
 
-    // Only initialize chat if user is logged in
-    const chat = useChatHook({
-        accessToken: accessToken || '',
-        debug,
-        autoConnect: autoConnect && !!user && !!accessToken,
-    });
+  // Only initialize chat if user is logged in
+  const chat = useChatHook({
+    accessToken: accessToken || '',
+    debug,
+    autoConnect:
+      autoConnect && !!user && !!accessToken && isAuthenticated && !isLoading,
+  })
 
-    // Don't render provider if no user (prevents unnecessary WebSocket attempts)
-    if (!user || !accessToken) {
-        return <>{children}</>;
-    }
-
-    return (
-        <ChatContext.Provider value={chat}>
-            {children}
-        </ChatContext.Provider>
-    );
+  return <ChatContext.Provider value={chat}>{children}</ChatContext.Provider>
 }
 
 /**
@@ -121,26 +113,23 @@ export function ChatProvider({
  *
  * @example
  * ```tsx
- * const { 
- *   connected, 
- *   conversations, 
- *   sendTextMessage 
+ * const {
+ *   connected,
+ *   conversations,
+ *   sendTextMessage
  * } = useChat();
  * ```
  */
 export function useChat(): ChatContextType {
-    const context = useContext(ChatContext);
+  const context = useContext(ChatContext)
 
-    if (context === undefined) {
-        const {isAuthenticated} = useAuth();
-        if (isAuthenticated) {
-            throw new Error('useChat must be used within a ChatProvider when authenticated');
-        } else {
-            throw new Error('Redirecting to login');
-        }
-    }
+  if (context === undefined) {
+    throw new Error(
+      'useChat must be used within a ChatProvider when authenticated',
+    )
+  }
 
-    return context;
+  return context
 }
 
 /**
@@ -156,8 +145,8 @@ export function useChat(): ChatContextType {
  * ```
  */
 export function useChatAvailable(): boolean {
-    const context = useContext(ChatContext);
-    return context !== undefined;
+  const context = useContext(ChatContext)
+  return context !== undefined
 }
 
 /**
@@ -165,11 +154,13 @@ export function useChatAvailable(): boolean {
  * @param conversationId - ID of the conversation to get
  */
 export function useChatConversation(conversationId: string | null) {
-    const {conversations} = useChat();
+  const context = useContext(ChatContext)
 
-    if (!conversationId) return null;
+  if (!context || !conversationId) return null
 
-    return conversations.find(conv => conv.id === conversationId) || null;
+  return (
+    context.conversations.find((conv) => conv.id === conversationId) || null
+  )
 }
 
 /**
@@ -177,11 +168,11 @@ export function useChatConversation(conversationId: string | null) {
  * @param conversationId - ID of the conversation
  */
 export function useChatMessages(conversationId: string | null) {
-    const {messages} = useChat();
+  const context = useContext(ChatContext)
 
-    if (!conversationId) return [];
+  if (!context || !conversationId) return []
 
-    return messages[conversationId] || [];
+  return context.messages[conversationId] || []
 }
 
 /**
@@ -189,11 +180,12 @@ export function useChatMessages(conversationId: string | null) {
  * Note: This is a simplified version - you may want to implement proper unread tracking
  */
 export function useUnreadCount(): number {
-    const {isAuthenticated, user} = useAuth();
-    if (!isAuthenticated || !user) return 0;
-    const {conversations} = useChat();
+  const { isAuthenticated, user } = useAuth()
+  const context = useContext(ChatContext) // Always call hook unconditionally
 
-    return conversations.reduce((count, conv) => {
-        return count + (conv.unreadCount || 0);
-    }, 0);
+  if (!isAuthenticated || !user || !context) return 0
+
+  return context.conversations.reduce((count, conv) => {
+    return count + (conv.unreadCount || 0)
+  }, 0)
 }

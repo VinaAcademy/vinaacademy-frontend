@@ -17,9 +17,7 @@ import HeroSection from '@/components/layout/home/HeroSection'
 import PopularCourseFeatures from '@/components/layout/home/PopularCourseFeatures'
 import ImageSection from '@/components/layout/home/ImageSection'
 import InstructorSection from '@/components/layout/home/InstructorSection'
-import SupportChat from '@/components/layout/home/SupportChat'
-
-const userAvatar = ''
+import { getImageUrl } from '@/utils/imageUtils'
 
 export default function Home() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
@@ -77,7 +75,12 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center min-h-screen bg=transparent px-2 sm:px-4">
       {/* bg-gradient-to-b from-gray-50 to-gray-100 */}
       <div className="w-full">
-        {user && <WelcomeSection userName={username} userAvatar={userAvatar} />}
+        {user && (
+          <WelcomeSection
+            userName={username}
+            userAvatar={getImageUrl(user.avatarUrl || '')}
+          />
+        )}
         <HeroSection />
         {authLoading ? (
           <div className="w-full">
