@@ -47,11 +47,12 @@ interface GroupedFlag {
     flagId: number
     flagType: FlaggedReviewDto['flagType']
     severity: number
-    confidence: string
+    confidence: number // Sửa từ string thành number để khớp với FlaggedReviewDto
     reason: string
     status: ModerationStatus
     flaggedAt: string
     reviewedBy?: string
+    reviewedByName?: string
     reviewedAt?: string
     moderatorNotes?: string
   }>
@@ -68,7 +69,7 @@ export default function ModerationQueue() {
   const [groupedFlags, setGroupedFlags] = useState<GroupedFlag[]>([])
   const [loading, setLoading] = useState(true)
   const [filterStatus, setFilterStatus] = useState<ModerationStatus | 'ALL'>(
-    'ALL',
+    ModerationStatus.PENDING,
   )
   const [showCriticalOnly, setShowCriticalOnly] = useState(false)
   const [statistics, setStatistics] = useState<ModerationStatistics | null>(
@@ -79,7 +80,6 @@ export default function ModerationQueue() {
   const [moderatingFlag, setModeratingFlag] = useState<GroupedFlag | null>(null)
   const [moderatingFlagIds, setModeratingFlagIds] = useState<number[]>([])
   const [moderationNotes, setModerationNotes] = useState('')
-  const [deleteReview, setDeleteReview] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   // Pagination
@@ -120,6 +120,7 @@ export default function ModerationQueue() {
           status: flag.status,
           flaggedAt: flag.flaggedAt,
           reviewedBy: flag.reviewedBy,
+          reviewedByName: flag.reviewedByName,
           reviewedAt: flag.reviewedAt,
           moderatorNotes: flag.moderatorNotes,
         })
@@ -142,6 +143,7 @@ export default function ModerationQueue() {
               status: flag.status,
               flaggedAt: flag.flaggedAt,
               reviewedBy: flag.reviewedBy,
+              reviewedByName: flag.reviewedByName,
               reviewedAt: flag.reviewedAt,
               moderatorNotes: flag.moderatorNotes,
             },
@@ -158,11 +160,17 @@ export default function ModerationQueue() {
   const loadFlags = async (page: number) => {
     try {
       setLoading(true)
-      const status = filterStatus === 'ALL' ? undefined : filterStatus
+
+      // ModerationQueue: "ALL" nghĩa là tất cả các trạng thái
+      // Mặc định là PENDING (chờ xử lý)
+      const status =
+        filterStatus === 'ALL'
+          ? undefined // Không filter, lấy tất cả
+          : filterStatus
 
       const response = showCriticalOnly
         ? await getCriticalFlags(page, 20)
-        : await getFlaggedReviews(status, page, 20)
+        : await getFlaggedReviews({ status, page, size: 20 })
 
       setFlags(response.content)
       setGroupedFlags(groupFlagsByReview(response.content))
@@ -183,7 +191,6 @@ export default function ModerationQueue() {
     setModeratingFlag(groupedFlag)
     setModeratingFlagIds(groupedFlag.flags.map((f) => f.flagId))
     setModerationNotes('')
-    setDeleteReview(groupedFlag.maxSeverity >= 4) // Auto-check delete for critical flags
   }
 
   const handleSubmitModeration = async (action: 'approve' | 'reject') => {
@@ -197,7 +204,6 @@ export default function ModerationQueue() {
         moderateFlag(flagId, {
           action,
           notes: moderationNotes,
-          deleteReview: action === 'approve' ? deleteReview : undefined,
           userId: moderatingFlag.review.userId,
           reviewId: moderatingFlag.review.id,
         }),
@@ -205,10 +211,12 @@ export default function ModerationQueue() {
 
       await Promise.all(promises)
 
-      toast.success(
+      const actionLabel =
         action === 'approve'
-          ? `Đã duyệt ${moderatingFlagIds.length} flag(s) và xử lý đánh giá`
-          : `Đã từ chối ${moderatingFlagIds.length} flag(s)`,
+          ? 'đã xác nhận vi phạm và ẩn review'
+          : 'đã từ chối, review được giữ lại'
+      toast.success(
+        `Đã xử lý ${moderatingFlagIds.length} flag(s) - ${actionLabel}`,
       )
 
       setModeratingFlag(null)
@@ -358,28 +366,27 @@ export default function ModerationQueue() {
                 <div
                   className="bg-blue-600 h-2 rounded-full"
                   style={{
-                    width: `${parseFloat(groupedFlag.flags.reduce((max, f) => (parseFloat(f.confidence) > parseFloat(max.confidence) ? f : max)).confidence) * 100}%`,
+                    width: `${groupedFlag.flags.reduce((max, f) => (f.confidence > max.confidence ? f : max)).confidence * 100}%`,
                   }}
                 />
               </div>
               <span className="text-gray-700 font-medium">
                 {(
-                  parseFloat(
-                    groupedFlag.flags.reduce((max, f) =>
-                      parseFloat(f.confidence) > parseFloat(max.confidence)
-                        ? f
-                        : max,
-                    ).confidence,
-                  ) * 100
+                  groupedFlag.flags.reduce((max, f) =>
+                    f.confidence > max.confidence ? f : max,
+                  ).confidence * 100
                 ).toFixed(0)}
                 %
               </span>
             </div>
 
             {/* Moderation Info */}
-            {groupedFlag.flags[0].reviewedBy && (
+            {(groupedFlag.flags[0].reviewedBy ||
+              groupedFlag.flags[0].reviewedByName) && (
               <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-                <div>Xử lý bởi: {groupedFlag.flags[0].reviewedBy}</div>
+                <div>
+                  Xử lý bởi: {groupedFlag.flags[0].reviewedByName || 'Hệ thống'}
+                </div>
                 {groupedFlag.flags[0].reviewedAt && (
                   <div>Lúc: {formatDate(groupedFlag.flags[0].reviewedAt)}</div>
                 )}
@@ -554,18 +561,15 @@ export default function ModerationQueue() {
                 />
               </div>
 
-              {/* Delete Review Option */}
-              <label className="flex items-center gap-2 cursor-pointer">
-                <Checkbox
-                  checked={deleteReview}
-                  onCheckedChange={(checked) =>
-                    setDeleteReview(checked as boolean)
-                  }
-                />
-                <span className="text-sm text-gray-700">
-                  Xóa/ẩn đánh giá này
-                </span>
-              </label>
+              {/* Info Message */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800">
+                  <strong>Lưu ý:</strong> Chọn <strong>"Duyệt"</strong> nếu xác
+                  nhận vi phạm → Review sẽ bị ẩn. Chọn{' '}
+                  <strong>"Từ chối"</strong> nếu không vi phạm → Review được giữ
+                  lại.
+                </p>
+              </div>
             </div>
           )}
 

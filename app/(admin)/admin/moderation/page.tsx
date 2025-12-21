@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ModerationQueue from '@/components/admin/sentiment/ModerationQueue'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Shield, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
+import ModerationHistory from '@/components/admin/sentiment/ModerationHistory'
 
 /**
  * Admin Moderation Page
@@ -106,20 +107,9 @@ export default function ModerationPage() {
         </TabsContent>
 
         {/* History Tab - Placeholder */}
+        {/* History Tab */}
         <TabsContent value="history" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Lịch sử kiểm duyệt</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-gray-500">
-                <CheckCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>
-                  Lịch sử các quyết định kiểm duyệt sẽ được hiển thị tại đây
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <ModerationHistory />
         </TabsContent>
       </Tabs>
     </div>

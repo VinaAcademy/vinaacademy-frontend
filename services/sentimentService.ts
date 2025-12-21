@@ -103,27 +103,48 @@ export const getInstructorDashboard = async (
 
 /**
  * Lấy danh sách đánh giá bị flag cần kiểm duyệt
- * @param status Trạng thái moderation (optional)
- * @param page Số trang
- * @param size Kích thước trang
+ * @param params Object chứa status, page, size
  */
-export const getFlaggedReviews = async (
-  status?: ModerationStatus,
-  page: number = 0,
-  size: number = 20,
-): Promise<PageResponse<FlaggedReviewDto>> => {
+export const getFlaggedReviews = async (params: {
+  status?: ModerationStatus
+  page?: number
+  size?: number
+}): Promise<PageResponse<FlaggedReviewDto>> => {
   try {
-    const params: any = { page, size }
-    if (status) {
-      params.status = status
+    const queryParams: any = {
+      page: params.page ?? 0,
+      size: params.size ?? 20,
+    }
+    if (params.status) {
+      queryParams.status = params.status
     }
 
     const response = await apiClient.get<
       ApiResponse<PageResponse<FlaggedReviewDto>>
-    >(`${BASE_PATH}/admin/flagged`, { params })
+    >(`${BASE_PATH}/admin/flagged`, { params: queryParams })
     return response.data.data
   } catch (error) {
     console.error('Error getting flagged reviews:', error)
+    throw error
+  }
+}
+
+/**
+ * Lấy lịch sử kiểm duyệt (TẤT CẢ flags đã xử lý: APPROVED, REJECTED, AUTO_APPROVED)
+ * @param page Số trang
+ * @param size Kích thước trang
+ */
+export const getModerationHistory = async (
+  page: number = 0,
+  size: number = 20,
+): Promise<PageResponse<FlaggedReviewDto>> => {
+  try {
+    const response = await apiClient.get<
+      ApiResponse<PageResponse<FlaggedReviewDto>>
+    >(`${BASE_PATH}/admin/flagged/history`, { params: { page, size } })
+    return response.data.data
+  } catch (error) {
+    console.error('Error getting moderation history:', error)
     throw error
   }
 }
@@ -180,6 +201,42 @@ export const getCriticalFlags = async (
     return response.data.data
   } catch (error) {
     console.error('Error getting critical flags:', error)
+    throw error
+  }
+}
+
+/**
+ * Lấy danh sách reviews bị ẩn (cho admin)
+ * @param page Số trang
+ * @param size Kích thước trang
+ */
+export const getHiddenReviews = async (
+  page: number = 0,
+  size: number = 20,
+): Promise<any> => {
+  try {
+    const response = await apiClient.get<ApiResponse<any>>(
+      `/course-reviews/admin/hidden`,
+      { params: { page, size } },
+    )
+    return response.data.data
+  } catch (error) {
+    console.error('Error getting hidden reviews:', error)
+    throw error
+  }
+}
+
+/**
+ * Khôi phục review bị ẩn
+ * @param reviewId ID của review
+ */
+export const unhideReview = async (reviewId: number): Promise<void> => {
+  try {
+    await apiClient.post<ApiResponse<void>>(
+      `/course-reviews/admin/${reviewId}/unhide`,
+    )
+  } catch (error) {
+    console.error('Error unhiding review:', error)
     throw error
   }
 }
