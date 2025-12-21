@@ -179,18 +179,20 @@ export interface FlaggedReviewDto {
     courseId: string
     courseName: string
     rating: number
-    review: string
+    review: string // Nội dung đánh giá
     userId: string
+    userFullName: string // Tên người dùng
     createdDate: string
     updatedDate: string
   }
   sentiment: ReviewSentimentDto
   flagType: FlagType
   severity: number // 1-5
-  confidence: string // Backend returns string like "0.9900"
+  confidence: number // Backend returns BigDecimal as number
   reason: string
   status: ModerationStatus
   reviewedBy?: string
+  reviewedByName?: string // Tên người xử lý (moderator name)
   reviewedAt?: string
   moderatorNotes?: string
   flaggedAt: string
