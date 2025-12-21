@@ -91,7 +91,11 @@ const CourseCard = ({ course }: CourseCardProps) => {
       <div className="p-4">
         <h3
           className="font-bold text-lg mb-2 text-gray-900"
-          onClick={() => router.push(`/learning/${courseSlug}`)}
+          onClick={() =>
+            course.courseStatus === 'PUBLISHED' &&
+            courseSlug &&
+            router.push(`/learning/${courseSlug}`)
+          }
         >
           {title}
         </h3>
@@ -155,12 +159,18 @@ const CourseCard = ({ course }: CourseCardProps) => {
             // Loaded state with correct slug
             <>
               {/* "Continue Learning" button - Use slug for navigation */}
-              <Link
-                href={`/learning/${courseSlug}`}
-                className="text-center py-2 px-3 bg-black hover:bg-gray-900 text-white font-medium rounded-md transition-colors duration-300"
-              >
-                {isCompleted ? 'Xem lại' : 'Tiếp tục học'}
-              </Link>
+              {course.courseStatus === 'PUBLISHED' ? (
+                <Link
+                  href={`/learning/${courseSlug}`}
+                  className="text-center py-2 px-3 bg-black hover:bg-gray-900 text-white font-medium rounded-md transition-colors duration-300"
+                >
+                  {isCompleted ? 'Xem lại' : 'Tiếp tục học'}
+                </Link>
+              ) : (
+                <span className="text-center py-2 px-3 bg-gray-300 text-gray-500 font-medium rounded-md cursor-not-allowed">
+                  Khóa học đang chờ kiểm duyệt
+                </span>
+              )}
 
               {/* "Progress Details" button - Also use slug */}
               {/* <Link

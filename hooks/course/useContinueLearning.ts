@@ -76,6 +76,7 @@ export function useContinueLearning({
           id: String(enrollment.courseId),
           name: enrollment.courseName,
           slug: enrollment.courseSlug,
+          courseStatus: enrollment.courseStatus,
           image: enrollment.courseImage || '/images/course-placeholder.jpg',
           instructor: formatLastAccessed(lastAccessedDate), // Thời gian truy cập thay vì tên giảng viên
           progress: enrollment.progressPercentage || 0,
