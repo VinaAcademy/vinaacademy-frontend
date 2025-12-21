@@ -164,7 +164,13 @@ export interface PayoutApprovalFormData {
   note: string
 }
 
+/**
+ * Form data for processing refunds
+ * Updated to use composite key (paymentId, instructorId, courseId)
+ */
 export interface RefundFormData {
-  vnpayTxnRef: string
+  paymentId: string // UUID
+  instructorId: string // UUID
+  courseId: string // UUID
   reason: string
 }
