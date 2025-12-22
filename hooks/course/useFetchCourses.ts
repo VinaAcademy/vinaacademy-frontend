@@ -34,6 +34,8 @@ export function useFetchCourses(
   // Use useQuery to fetch and cache data
   const { data, error, isLoading, isPending, isError, refetch } = useQuery({
     queryKey: COURSE_KEYS.byTab({ activeTab, currentPage, pageSize, status }),
+    staleTime: 2 * 60 * 1000, // 2p không refetch
+    gcTime: 10 * 60 * 1000, // cache 10 phút
     queryFn: async () => {
       try {
         return await getUserEnrollments(currentPage, pageSize, status)
@@ -62,11 +64,11 @@ export function useFetchCourses(
         category: enrollment.category || '',
         lastAccessed: enrollment.lastAccessedAt || '',
         enrollmentId: enrollment.id,
+        courseStatus: enrollment.courseStatus,
+        status: enrollment.status,
       }))
     : []
-
   const totalPages = data?.totalPages || 1
-
   return {
     courses,
     totalPages,

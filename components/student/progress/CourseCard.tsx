@@ -168,7 +168,9 @@ const CourseCard = ({ course }: CourseCardProps) => {
                 </Link>
               ) : (
                 <span className="text-center py-2 px-3 bg-gray-300 text-gray-500 font-medium rounded-md cursor-not-allowed">
-                  Khóa học đang chờ kiểm duyệt
+                  {course.courseStatus === 'PENDING'
+                    ? 'Khóa học đang chờ kiểm duyệt lại'
+                    : 'Khóa học đang được cập nhật lại'}
                 </span>
               )}
 

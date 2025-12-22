@@ -105,7 +105,7 @@ const LearningTabs: FC<LearningTabsProps> = ({
             <Search size={16} className="mr-2" />
             Tổng quan
           </button>
-          <button //hỏi đáp chưa có
+          {/* <button //hỏi đáp chưa có
             onClick={() => setActiveTab('q&a')}
             className={`px-4 py-3 flex items-center text-sm font-medium whitespace-nowrap ${
               activeTab === 'q&a'
@@ -115,7 +115,7 @@ const LearningTabs: FC<LearningTabsProps> = ({
           >
             <MessageSquare size={16} className="mr-2" />
             Hỏi đáp
-          </button>
+          </button> */}
           <button
             onClick={() => setActiveTab('discussion')}
             className={`px-4 py-3 flex items-center text-sm font-medium whitespace-nowrap ${
