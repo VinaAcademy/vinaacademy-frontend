@@ -4,9 +4,9 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/context/CartContext'
 import { useAuth } from '@/context/AuthContext'
-import { fetchCourseBySlug } from '@/services/courseActions'
 import { Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { getCourseBySlug } from '@/services/courseService'
 
 export default function AddToCartPage({
   params,
@@ -38,7 +38,7 @@ export default function AddToCartPage({
           return
         }
 
-        const course = await fetchCourseBySlug(slug)
+        const course = await getCourseBySlug(slug)
         if (!course) {
           setStatus('error')
           router.push('/cart')
