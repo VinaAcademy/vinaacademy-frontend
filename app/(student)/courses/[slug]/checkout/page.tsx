@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext'
 import { Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { getCourseBySlug } from '@/services/courseService'
+import { checkEnrollment } from '@/services/enrollmentService'
 
 export default function AddToCartPage({
   params,
@@ -14,7 +15,7 @@ export default function AddToCartPage({
   params: Promise<{ slug: string }>
 }) {
   const router = useRouter()
-  const { addToCart, isInitialized } = useCart()
+  const { addToCart, isInitialized, cartItems } = useCart()
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth()
   const { toast } = useToast()
   const [status, setStatus] = useState<'loading' | 'error' | 'success'>(
@@ -42,6 +43,24 @@ export default function AddToCartPage({
         if (!course) {
           setStatus('error')
           router.push('/cart')
+          return
+        }
+
+        const isEnrolled = await checkEnrollment(course.id)
+        if (isEnrolled) {
+          toast({
+            title: 'Lỗi',
+            description: 'Bạn đã đăng ký khóa học này rồi',
+            variant: 'destructive',
+          })
+          setStatus('error')
+          router.push(`/courses/${slug}`)
+          return
+        }
+        const isInCart = cartItems.some((item) => item.courseId === course.id)
+        if (isInCart) {
+          router.push('/cart')
+          setStatus('success')
           return
         }
 
@@ -77,6 +96,7 @@ export default function AddToCartPage({
     isAuthLoading,
     isAuthenticated,
     isInitialized,
+    cartItems,
   ])
 
   return (
