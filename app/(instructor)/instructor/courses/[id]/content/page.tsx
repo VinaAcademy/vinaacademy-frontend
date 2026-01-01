@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import { Loader2 } from 'lucide-react'
@@ -8,7 +8,7 @@ import { CourseContentHeader } from '@/components/instructor/courses/edit-course
 import { CourseContentBody } from '@/components/instructor/courses/edit-course-content/CourseContentBody'
 import { useCourseContent } from '@/components/instructor/courses/edit-course-content/hooks/useCourseContent'
 import { SectionEditModal } from '@/components/instructor/courses/SectionEditModal'
-import { getCourseById } from '@/services/courseService'
+import { getCourseById, submitCourseForReview } from '@/services/courseService'
 import { CourseDto } from '@/types/course'
 import { ErrorBoundary } from 'react-error-boundary'
 import ErrorFallback from '@/components/shared/ErrorFallback'
@@ -17,6 +17,7 @@ import '@/components/instructor/courses/edit-course-content/drag-drop.css'
 
 export default function CourseContentPage() {
   const params = useParams()
+  const router = useRouter()
   const courseId = params.id as string
   const [isAddSectionModalOpen, setAddSectionModalOpen] = useState(false)
   const [courseInfo, setCourseInfo] = useState<CourseDto | null>(null)
@@ -68,6 +69,30 @@ export default function CourseContentPage() {
       })
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleSubmitForReview = async () => {
+    try {
+      const result = await submitCourseForReview(courseId)
+
+      if (result) {
+        toast.success('Khóa học đã được gửi đi phê duyệt', {
+          position: 'bottom-right',
+        })
+        router.push('/instructor/courses')
+        await fetchSections()
+      } else {
+        throw new Error('Failed to submit course for review')
+      }
+    } catch (error) {
+      console.error('Error submitting course for review:', error)
+      toast.error(
+        'Không thể gửi khóa học đi phê duyệt. Vui lòng thử lại sau.',
+        {
+          position: 'bottom-right',
+        },
+      )
     }
   }
 
@@ -142,6 +167,7 @@ export default function CourseContentPage() {
           courseImage={getImageUrl(courseInfo?.image || '')}
           courseStatus={courseInfo?.status}
           onAddSection={handleAddSection}
+          onSubmitForReview={handleSubmitForReview}
         />
 
         {/* Main Content Component */}
