@@ -10,11 +10,21 @@ import {
 import { Button } from '@/components/ui/button'
 import { QuizDto, AnswerDto, QuestionType } from '@/types/quiz' // Adjust import path as needed
 import { getQuizForInstructor } from '@/services/quizInstructorService' // Adjust import path as needed
-import { AlertTriangle, Loader2, FileText, Download } from 'lucide-react'
+import {
+  AlertTriangle,
+  Loader2,
+  FileText,
+  Download,
+  CheckCircle,
+  XCircle,
+} from 'lucide-react'
 import { useHLS } from '@/hooks/video/useHLS'
 import SafeHtml from '@/components/common/safe-html'
 import { getAttachmentDownloadUrl } from '@/services/lessonAttachmentService'
 import { toast } from 'sonner'
+import { Badge } from '@/components/ui/badge'
+import { moderateLessons } from '@/services/lessonService'
+import { LessonStatus } from '@/types/course'
 
 interface HLSVideoPreviewProps {
   videoRef: React.MutableRefObject<HTMLVideoElement>
@@ -62,7 +72,9 @@ type lessonPreviewProps = {
   videoDuration?: number
   attachments?: any[]
   updatedDate?: string
+  lessonStatus?: LessonStatus
   onClose: () => void
+  onLessonApprove?: () => void
 }
 
 const LessonDialogPreview = ({
@@ -73,7 +85,9 @@ const LessonDialogPreview = ({
   readingContent,
   attachments = [],
   updatedDate,
+  lessonStatus,
   onClose,
+  onLessonApprove,
 }: lessonPreviewProps) => {
   const [quiz, setQuiz] = useState<QuizDto | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
@@ -83,6 +97,72 @@ const LessonDialogPreview = ({
   const hlsVideoRef = useRef<HTMLVideoElement>(
     null,
   ) as React.MutableRefObject<HTMLVideoElement>
+
+  const getStatusColor = (status?: string) => {
+    switch (status?.toLowerCase()) {
+      case 'draft':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      case 'published':
+        return 'bg-green-100 text-green-800 border-green-200'
+      case 'pending':
+        return 'bg-blue-100 text-blue-800 border-blue-200'
+      case 'rejected':
+        return 'bg-red-100 text-red-800 border-red-200'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200'
+    }
+  }
+
+  const getStatusText = (status?: string) => {
+    switch (status?.toLowerCase()) {
+      case 'draft':
+        return 'Bản nháp'
+      case 'published':
+        return 'Đã xuất bản'
+      case 'pending':
+        return 'Chờ duyệt'
+      case 'rejected':
+        return 'Bị từ chối'
+      default:
+        return 'Không xác định'
+    }
+  }
+
+  const handleApproveLesson = async () => {
+    try {
+      const success = await moderateLessons({
+        lessonIds: [lessonId],
+        status: 'PUBLISHED',
+      })
+      if (success) {
+        toast.success('Đã phê duyệt bài học')
+        onLessonApprove?.()
+        onClose()
+      } else {
+        toast.error('Không thể phê duyệt bài học')
+      }
+    } catch (error) {
+      toast.error('Đã xảy ra lỗi')
+    }
+  }
+
+  const handleRejectLesson = async () => {
+    try {
+      const success = await moderateLessons({
+        lessonIds: [lessonId],
+        status: 'REJECTED',
+      })
+      if (success) {
+        toast.success('Đã từ chối bài học')
+        onLessonApprove?.()
+        onClose()
+      } else {
+        toast.error('Không thể từ chối bài học')
+      }
+    } catch (error) {
+      toast.error('Đã xảy ra lỗi')
+    }
+  }
 
   // Determine if the content is video type
   const isVideoType = lessonType.toLowerCase() === 'video'
@@ -361,25 +441,60 @@ const LessonDialogPreview = ({
     >
       <DialogContent className={dialogSizeClass}>
         <DialogHeader>
-          <DialogTitle>
-            {lessonType.toLowerCase() === 'quiz'
-              ? 'Xem trước bài kiểm tra'
-              : lessonType.toLowerCase() === 'video'
-                ? 'Xem trước video'
-                : 'Xem trước bài đọc'}
-          </DialogTitle>
-          {updatedDate && (
-            <p className="text-sm text-gray-500 mt-2">
-              Cập nhật lần cuối:{' '}
-              {new Date(updatedDate).toLocaleString('vi-VN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </p>
-          )}
+          <div className="flex justify-between items-start">
+            <div>
+              <DialogTitle>
+                {lessonType.toLowerCase() === 'quiz'
+                  ? 'Xem trước bài kiểm tra'
+                  : lessonType.toLowerCase() === 'video'
+                    ? 'Xem trước video'
+                    : 'Xem trước bài đọc'}
+              </DialogTitle>
+              {updatedDate && (
+                <p className="text-sm text-gray-500 mt-2">
+                  Cập nhật lần cuối:{' '}
+                  {new Date(updatedDate).toLocaleString('vi-VN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {lessonStatus && (
+                <Badge
+                  variant="outline"
+                  className={getStatusColor(lessonStatus)}
+                >
+                  {getStatusText(lessonStatus)}
+                </Badge>
+              )}
+              {lessonStatus === 'PENDING' && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:text-red-700"
+                    onClick={handleRejectLesson}
+                  >
+                    <XCircle className="h-4 w-4 mr-1" />
+                    Từ chối
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                    onClick={handleApproveLesson}
+                  >
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Duyệt bài học
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto">

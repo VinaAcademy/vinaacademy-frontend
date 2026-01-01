@@ -14,6 +14,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { CourseDto } from '@/types/course'
 import { formatCurrency } from '@/utils/commonUtils'
+import { getImageUrl } from '@/utils/imageUtils'
 
 interface CarouselProps {
   title?: string
@@ -105,7 +106,7 @@ const Carousel = ({ title, customCourses }: CarouselProps) => {
                     <CardHeader className="p-0 relative">
                       <div className="relative w-full h-40">
                         <Image
-                          src={course.image}
+                          src={getImageUrl(course.image)}
                           alt={course.name}
                           fill
                           className="object-cover rounded-t-lg"

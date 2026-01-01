@@ -21,7 +21,11 @@ import {
   searchCoursesDetail,
   updateStatusCourse,
 } from '@/services/courseService'
-import { CourseSearchRequest, CourseStatusCountDto } from '@/types/course'
+import {
+  CourseSearchRequest,
+  CourseStatusCountDto,
+  LessonStatus,
+} from '@/types/course'
 import { PaginatedResponse } from '@/types/api-response'
 import { CourseDetailsResponse } from '@/types/course'
 import RejectCourseDialog from '@/components/staff/ui/RejectCourse'
@@ -46,6 +50,10 @@ const AdminCourseRequestsPage = () => {
   const [lessonUpdatedDate, setLessonUpdatedDate] = useState<
     string | number[] | null
   >(null)
+  const [lessonStatus, setLessonStatus] = useState<LessonStatus | undefined>(
+    undefined,
+  )
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   const [isDialogOpenReject, setIsDialogOpenReject] = useState(false)
   const [filter, setFilter] = useState('all')
@@ -137,7 +145,15 @@ const AdminCourseRequestsPage = () => {
     }
 
     fetchCourses()
-  }, [filter, searchTerm, category, sortDirection, currentPage, toast])
+  }, [
+    filter,
+    searchTerm,
+    category,
+    sortDirection,
+    currentPage,
+    toast,
+    refreshTrigger,
+  ])
 
   // Reset page when filters change
   useEffect(() => {
@@ -514,6 +530,7 @@ const AdminCourseRequestsPage = () => {
           readingContent,
           attachments,
           updatedDate,
+          lessonStatus,
         ) => {
           setLessonId(lessonId)
           setLessonType(lessonType)
@@ -523,7 +540,9 @@ const AdminCourseRequestsPage = () => {
           setReadingContent(readingContent || '')
           setLessonAttachments(attachments || [])
           setLessonUpdatedDate(updatedDate || null)
+          setLessonStatus(lessonStatus)
         }}
+        onLessonApprove={() => setRefreshTrigger((prev) => prev + 1)}
       />
       <LessonDialogPreview
         isOpen={isPreviewLesson}
@@ -545,7 +564,9 @@ const AdminCourseRequestsPage = () => {
               : lessonUpdatedDate
             : undefined
         }
+        lessonStatus={lessonStatus}
         onClose={() => setIsPreviewLesson(false)}
+        onLessonApprove={() => setRefreshTrigger((prev) => prev + 1)}
       />
     </div>
   )
