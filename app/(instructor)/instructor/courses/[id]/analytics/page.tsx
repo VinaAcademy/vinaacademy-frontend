@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import InstructorSentimentDashboard from '@/components/instructor/sentiment/InstructorSentimentDashboard'
@@ -16,13 +16,40 @@ import { getLessonsBySectionId } from '@/services/lessonService'
  */
 export default function CourseAnalyticsPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const courseId = params.id as string
-  const [activeTab, setActiveTab] = useState('sentiment')
+  const lessonParamId = searchParams.get('lesson')
+  const tabParam = searchParams.get('tab')
+  const [activeTab, setActiveTabState] = useState(tabParam || 'sentiment')
   const [lessons, setLessons] = useState<
     { id: string; title: string; sectionTitle: string }[]
   >([])
-  const [selectedLessonId, setSelectedLessonId] = useState<string>('')
+  const [selectedLessonId, setSelectedLessonIdState] = useState<string>('')
   const [loadingLessons, setLoadingLessons] = useState(false)
+  const [invalidLessonId, setInvalidLessonId] = useState(false)
+
+  // Handle tab change and remove tab param
+  const setActiveTab = useCallback(
+    (tab: string) => {
+      setActiveTabState(tab)
+      const params = new URLSearchParams(searchParams)
+      params.delete('tab')
+      router.push(`?${params.toString()}`)
+    },
+    [searchParams, router],
+  )
+
+  // Handle lesson selection and remove lesson param
+  const setSelectedLessonId = useCallback(
+    (lessonId: string) => {
+      setSelectedLessonIdState(lessonId)
+      const params = new URLSearchParams(searchParams)
+      params.delete('lesson')
+      router.push(`?${params.toString()}`)
+    },
+    [searchParams, router],
+  )
 
   const loadLessons = useCallback(async () => {
     if (!courseId) return
@@ -45,15 +72,29 @@ export default function CourseAnalyticsPage() {
       }
 
       setLessons(lessonPairs)
-      if (lessonPairs.length && !selectedLessonId) {
-        setSelectedLessonId(lessonPairs[0].id)
+
+      // Check if lesson param is provided
+      if (lessonParamId) {
+        const lessonExists = lessonPairs.some(
+          (lesson) => lesson.id === lessonParamId,
+        )
+        if (lessonExists) {
+          setSelectedLessonIdState(lessonParamId)
+          setInvalidLessonId(false)
+        } else {
+          setInvalidLessonId(true)
+          setSelectedLessonIdState('')
+        }
+      } else if (lessonPairs.length && !selectedLessonId) {
+        setSelectedLessonIdState(lessonPairs[0].id)
+        setInvalidLessonId(false)
       }
     } catch (error) {
       console.error('Error loading lessons for course analytics:', error)
     } finally {
       setLoadingLessons(false)
     }
-  }, [courseId, selectedLessonId])
+  }, [courseId, lessonParamId, selectedLessonId])
 
   useEffect(() => {
     loadLessons()
@@ -147,7 +188,12 @@ export default function CourseAnalyticsPage() {
                   </div>
                 </div>
 
-                {loadingLessons ? (
+                {invalidLessonId ? (
+                  <div className="text-center py-10 text-red-500">
+                    <MessageSquare className="mx-auto mb-3 h-8 w-8 text-red-400" />
+                    <p>Bài học này không tồn tại trong khóa học.</p>
+                  </div>
+                ) : loadingLessons ? (
                   <div className="flex items-center justify-center py-12 text-gray-500">
                     <MessageSquare className="mr-2 h-5 w-5 animate-pulse" />
                     Đang tải danh sách bài học...

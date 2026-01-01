@@ -1,12 +1,12 @@
-"use client";
-import { NotificationDTO } from "@/types/notification";
-import NotificationBadge from "./NotificationBadge";
-import NotificationList from "./NotificationList";
-import { useNotificationDropdown } from "./useNotificationDropdown";
+'use client'
+import { NotificationDTO } from '@/types/notification'
+import NotificationBadge from './NotificationBadge'
+import NotificationList from './NotificationList'
+import { useNotificationDropdown } from './useNotificationDropdown'
 
 interface NotificationDropdownProps {
-  notifications: NotificationDTO[];
-  totalUnread?: number;
+  notifications: NotificationDTO[]
+  totalUnread?: number
 }
 
 const NotificationDropdown = ({
@@ -19,11 +19,11 @@ const NotificationDropdown = ({
     handleMouseEnter,
     handleMouseLeave,
     toggleDropdown,
-  } = useNotificationDropdown();
+  } = useNotificationDropdown()
 
   return (
     <div
-      className="relative"
+      className="relative hover:bg-gray-100"
       ref={dropdownRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -39,8 +39,8 @@ const NotificationDropdown = ({
       <div
         className={`absolute right-0 top-12 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-50 transition-all duration-200 ${
           isOpen
-            ? "transform-none opacity-100 visible"
-            : "transform translate-y-2 opacity-0 invisible pointer-events-none"
+            ? 'transform-none opacity-100 visible'
+            : 'transform translate-y-2 opacity-0 invisible pointer-events-none'
         }`}
         aria-hidden={!isOpen}
       >
@@ -53,7 +53,7 @@ const NotificationDropdown = ({
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default NotificationDropdown;
+export default NotificationDropdown
