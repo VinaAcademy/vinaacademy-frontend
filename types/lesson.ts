@@ -1,5 +1,5 @@
 import { BaseDto } from './api-response'
-import { LessonType } from './course'
+import { LessonStatus, LessonType } from './course'
 import { QuestionDto } from './quiz'
 import { VideoStatus } from './video'
 
@@ -20,6 +20,7 @@ export interface LessonDto extends BaseDto {
   id: string // UUID
   title: string
   type: LessonType
+  lessonStatus: LessonStatus
   free: boolean
   orderIndex: number
   sectionId: string // UUID

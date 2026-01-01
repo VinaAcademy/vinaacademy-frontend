@@ -1,22 +1,20 @@
 'use client'
 
-import { FC, useState } from 'react'
-import { use } from 'react'
+import { FC, use, useState } from 'react'
 import Link from 'next/link'
 import {
   BookOpen,
-  Video,
+  CheckCircle,
+  ChevronRight,
+  Clock,
   FileText,
   PenSquare,
-  Clock,
   Users,
-  ChevronRight,
-  CheckCircle,
+  Video,
 } from 'lucide-react'
 import LearningHeader from '@/components/student/learning/LearningHeader'
 import StatusToast from '@/components/student/learning/shared/StatusToast'
-import { LearningCourse, Section, Lecture, LectureType } from '@/types/lecture'
-import { useRouter } from 'next/navigation'
+import { Section } from '@/types/lecture'
 import { useLearningCourse } from '@/hooks/useLearningCourse'
 import { ChatbotContextUpdater } from '@/components/chatbot/ChatbotContextUpdater'
 
@@ -61,10 +59,9 @@ const CoursePage: FC<CoursePageProps> = ({ params }) => {
   // Unwrap the params Promise
   const unwrappedParams = use(params)
   const slug = unwrappedParams.slug
-  const router = useRouter()
 
   // Use our custom hook to fetch course data
-  const { course, loading, error, apiResponse } = useLearningCourse(slug)
+  const { course, loading, apiResponse } = useLearningCourse(slug)
 
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
@@ -323,47 +320,84 @@ const CoursePage: FC<CoursePageProps> = ({ params }) => {
                     </p>
                   </div>
                   <div className="divide-y divide-gray-200">
-                    {section.lectures.map((lecture, lectureIndex) => (
-                      <Link
-                        key={lecture.id}
-                        href={`/learning/${slug}/lecture/${lecture.id}`}
-                        className="flex items-center p-3 sm:p-4 hover:bg-gray-50 transition"
-                      >
-                        <div className="w-6 sm:w-8 text-center text-gray-500 mr-1 sm:mr-2 flex-shrink-0">
-                          {lecture.isCompleted ? (
-                            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mx-auto" />
-                          ) : (
-                            <span className="text-xs sm:text-sm">
-                              {sectionIndex + 1}.{lectureIndex + 1}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center flex-wrap gap-1 sm:gap-2">
-                            <div className="flex-shrink-0">
-                              {getLectureTypeIcon(lecture.type || 'video')}
+                    {section.lectures
+                      .filter((l) => l.lessonStatus !== 'REJECTED')
+                      .map((lecture, lectureIndex) => {
+                        const isPending = lecture.lessonStatus === 'PENDING'
+
+                        if (isPending) {
+                          return (
+                            <div
+                              key={lecture.id}
+                              className="flex items-center p-3 sm:p-4 bg-gray-50 opacity-75 cursor-not-allowed"
+                            >
+                              <div className="w-6 sm:w-8 text-center text-gray-500 mr-1 sm:mr-2 flex-shrink-0">
+                                <span className="text-xs sm:text-sm">
+                                  {sectionIndex + 1}.{lectureIndex + 1}
+                                </span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center flex-wrap gap-1 sm:gap-2">
+                                  <div className="flex-shrink-0">
+                                    {getLectureTypeIcon(
+                                      lecture.type || 'video',
+                                    )}
+                                  </div>
+                                  <span className="font-medium text-gray-800 text-sm sm:text-base truncate">
+                                    {lecture.title}
+                                  </span>
+                                  <span className="px-1.5 py-0.5 text-xs bg-yellow-100 text-yellow-800 rounded-full flex-shrink-0">
+                                    Đang cập nhật...
+                                  </span>
+                                </div>
+                              </div>
                             </div>
-                            <span className="font-medium text-gray-800 text-sm sm:text-base truncate">
-                              {lecture.title}
-                            </span>
-                            {lecture.isCurrent && (
-                              <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-800 rounded-full flex-shrink-0">
-                                Đang học
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">
-                            {lecture.duration}
-                          </p>
-                          {lecture.updatedDate && (
-                            <p className="text-[11px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1">
-                              Cập nhật: {formatUpdatedDate(lecture.updatedDate)}
-                            </p>
-                          )}
-                        </div>
-                        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0 ml-1 sm:ml-2" />
-                      </Link>
-                    ))}
+                          )
+                        }
+
+                        return (
+                          <Link
+                            key={lecture.id}
+                            href={`/learning/${slug}/lecture/${lecture.id}`}
+                            className="flex items-center p-3 sm:p-4 hover:bg-gray-50 transition"
+                          >
+                            <div className="w-6 sm:w-8 text-center text-gray-500 mr-1 sm:mr-2 flex-shrink-0">
+                              {lecture.isCompleted ? (
+                                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mx-auto" />
+                              ) : (
+                                <span className="text-xs sm:text-sm">
+                                  {sectionIndex + 1}.{lectureIndex + 1}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center flex-wrap gap-1 sm:gap-2">
+                                <div className="flex-shrink-0">
+                                  {getLectureTypeIcon(lecture.type || 'video')}
+                                </div>
+                                <span className="font-medium text-gray-800 text-sm sm:text-base truncate">
+                                  {lecture.title}
+                                </span>
+                                {lecture.isCurrent && (
+                                  <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-800 rounded-full flex-shrink-0">
+                                    Đang học
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">
+                                {lecture.duration}
+                              </p>
+                              {lecture.updatedDate && (
+                                <p className="text-[11px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1">
+                                  Cập nhật:{' '}
+                                  {formatUpdatedDate(lecture.updatedDate)}
+                                </p>
+                              )}
+                            </div>
+                            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0 ml-1 sm:ml-2" />
+                          </Link>
+                        )
+                      })}
                   </div>
                 </div>
               ))}

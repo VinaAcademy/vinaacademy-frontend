@@ -1,7 +1,6 @@
 'use client'
 
-import { FC, useEffect, useState } from 'react'
-import { use } from 'react'
+import { FC, use, useState } from 'react'
 import VideoPlayer from '@/components/student/learning/content-area/VideoPlayer'
 import ReadingContent from '@/components/student/learning/content-area/ReadingContent'
 import QuizContent from '@/components/student/learning/content-area/QuizContent'
@@ -9,7 +8,6 @@ import QuizLanding from '@/components/student/learning/content-area/QuizLanding'
 import CourseContent from '@/components/student/learning/CourseContent'
 import LearningHeader from '@/components/student/learning/LearningHeader'
 import LearningTabs from '@/components/student/learning/LearningTabs'
-import { Lecture, LectureType } from '@/types/lecture'
 import { useRouter } from 'next/navigation'
 import { useLecture } from '@/hooks/useLecture'
 import { ChatbotContextUpdater } from '@/components/chatbot/ChatbotContextUpdater'
@@ -35,7 +33,6 @@ const LecturePage: FC<LecturePageProps> = ({ params }) => {
     courseData,
     currentLecture,
     loading,
-    error,
     showQuizContent,
     handleStartQuiz,
     refetchLectureData,
@@ -67,7 +64,11 @@ const LecturePage: FC<LecturePageProps> = ({ params }) => {
     )
   }
 
-  if (!currentLecture || !courseData) {
+  if (
+    !currentLecture ||
+    !courseData ||
+    currentLecture.lessonStatus !== 'PUBLISHED'
+  ) {
     return (
       <div className="flex flex-col h-screen bg-white text-black">
         <LearningHeader

@@ -1,5 +1,5 @@
 import { CourseDto, LessonDto, LessonType } from '@/types/course'
-import { LearningCourse, Section, Lecture, LectureType } from '@/types/lecture'
+import { LearningCourse, Lecture, LectureType, Section } from '@/types/lecture'
 import { getLessonsBySectionId } from '@/services/lessonService'
 import { LessonProgressDto } from '@/types/lesson'
 
@@ -52,6 +52,7 @@ export const convertLessonToLecture = (
     textContent: lesson.content,
     attachments: (lesson as any).attachments || [], // Map attachments from backend
     updatedDate: lesson.updatedDate,
+    lessonStatus: lesson.lessonStatus,
   }
 }
 
