@@ -36,6 +36,10 @@ export const API_ENDPOINTS = {
     BY_ID: (id: string) => `/courses/by-id/${id}`,
     DETAILS_BY_ID: (id: string) => `/courses/details/by-id/${id}`,
     LEARNING: (slug: string) => `/courses/by-slug/${slug}/learning`,
+    CAN_ACCESS_LEARNING: (id: string) =>
+      `/courses/by-id/${id}/can-access-learning`,
+    IS_INSTRUCTOR: (courseId: string) =>
+      `/courses/by-id/${courseId}/is-instructor`,
 
     // CRUD operations
     CREATE: '/courses',

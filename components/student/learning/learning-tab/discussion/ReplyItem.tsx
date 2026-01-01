@@ -54,6 +54,11 @@ const ReplyItem: FC<ReplyItemProps> = memo(
             <div>
               <p className="font-medium text-xs sm:text-sm text-gray-800">
                 {reply.userFullName}
+                {reply.isInstructor && (
+                  <span className="ml-2 text-[10px] font-semibold text-blue-600">
+                    Giảng viên khóa học
+                  </span>
+                )}
               </p>
               <p className="text-xs text-gray-500">
                 {formatRelativeTime(reply.createdDate)}

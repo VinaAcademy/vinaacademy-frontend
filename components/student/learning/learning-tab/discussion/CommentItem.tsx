@@ -37,6 +37,7 @@ interface CommentItemProps {
   setNewReply: (content: string) => void
   submitting: boolean
   userId: string
+  resolveInstructorStatus: (userId: string) => Promise<boolean>
 }
 
 // Memoized Comment Item Component
@@ -54,6 +55,7 @@ const CommentItem: FC<CommentItemProps> = memo(
     setNewReply,
     submitting,
     userId,
+    resolveInstructorStatus,
   }) => {
     const [expandedReplies, setExpandedReplies] = useState(false)
     const [openDeleteComment, setOpenDeleteComment] = useState(false)
@@ -65,13 +67,34 @@ const CommentItem: FC<CommentItemProps> = memo(
     const [loadingMoreReplies, setLoadingMoreReplies] = useState(false)
     const router = useRouter()
 
+    const annotateReplies = useCallback(
+      async (items: DiscussionDto[]): Promise<DiscussionDto[]> => {
+        const uniqueUserIds = Array.from(
+          new Set(items.map((item) => item.userId)),
+        )
+        const statuses = await Promise.all(
+          uniqueUserIds.map(
+            async (uid) => [uid, await resolveInstructorStatus(uid)] as const,
+          ),
+        )
+        const statusMap = Object.fromEntries(statuses)
+
+        return items.map((item) => ({
+          ...item,
+          isInstructor: statusMap[item.userId] ?? false,
+        }))
+      },
+      [resolveInstructorStatus],
+    )
+
     // Load initial replies
     const loadReplies = useCallback(async () => {
       setLoadingReplies(true)
       try {
         const result = await getRepliesPaginated(comment.id, 0, 10)
         if (result) {
-          setReplies(result.content)
+          const annotatedReplies = await annotateReplies(result.content)
+          setReplies(annotatedReplies)
           setRepliesPage(0)
           setRepliesTotalPages(result.totalPages)
           setLoadedRepliesCount(result.content.length)
@@ -82,7 +105,7 @@ const CommentItem: FC<CommentItemProps> = memo(
       } finally {
         setLoadingReplies(false)
       }
-    }, [comment.id])
+    }, [annotateReplies, comment.id])
 
     // Load more replies
     const loadMoreReplies = useCallback(async () => {
@@ -91,7 +114,8 @@ const CommentItem: FC<CommentItemProps> = memo(
       try {
         const result = await getRepliesPaginated(comment.id, nextPage, 10)
         if (result) {
-          setReplies((prev) => [...prev, ...result.content])
+          const annotatedReplies = await annotateReplies(result.content)
+          setReplies((prev) => [...prev, ...annotatedReplies])
           setRepliesPage(nextPage)
           setLoadedRepliesCount((prev) => prev + result.content.length)
         }
@@ -100,7 +124,7 @@ const CommentItem: FC<CommentItemProps> = memo(
       } finally {
         setLoadingMoreReplies(false)
       }
-    }, [comment.id, repliesPage])
+    }, [annotateReplies, comment.id, repliesPage])
 
     // Toggle replies visibility
     const toggleReplies = useCallback(async () => {
@@ -119,14 +143,12 @@ const CommentItem: FC<CommentItemProps> = memo(
         const success = await onCreateReply(content, comment.id)
         if (success) {
           setReplyingTo(null)
-          // Reload replies to show the new one
-          if (expandedReplies) {
-            await loadReplies()
-          }
+          // Always reload so freshly added replies appear even when thread was collapsed
+          await loadReplies()
         }
         return success
       },
-      [comment.id, onCreateReply, setReplyingTo, expandedReplies, loadReplies],
+      [comment.id, onCreateReply, setReplyingTo, loadReplies],
     )
 
     // Handle reply to reply submission
@@ -137,7 +159,6 @@ const CommentItem: FC<CommentItemProps> = memo(
         const success = await onCreateReply(content, comment.id)
         if (success) {
           setReplyingTo(null)
-          // Reload replies to show the new one
           await loadReplies()
         }
         return success
@@ -216,6 +237,11 @@ const CommentItem: FC<CommentItemProps> = memo(
                 <div>
                   <p className="font-medium text-sm sm:text-base text-gray-800">
                     {comment.userFullName}
+                    {comment.isInstructor && (
+                      <span className="ml-2 text-[11px] font-semibold text-blue-600">
+                        Giảng viên khóa học
+                      </span>
+                    )}
                   </p>
                   <p className="text-xs text-gray-500">
                     {formatRelativeTime(comment.createdDate)}
