@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Calendar, ChevronDown } from 'lucide-react'
+import { Calendar, ChevronDown, FileDown, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import PlatformStats from '@/components/admin/dashboard/platform-stats'
 import RevenueOverview from '@/components/admin/dashboard/revenue-overview'
@@ -13,13 +13,19 @@ import {
   getQuickActions,
   RecentActivities,
   QuickActions,
+  getPlatformStats,
+  getRevenueOverview,
+  getActiveUsers,
 } from '@/services/adminDashboardService'
+import { exportAdminDashboardToExcel } from '@/utils/adminExport'
+import { toast } from 'sonner'
 
 export default function AdminDashboard() {
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('month')
   const [activities, setActivities] = useState<RecentActivities | null>(null)
   const [quickActions, setQuickActions] = useState<QuickActions | null>(null)
   const [loading, setLoading] = useState(true)
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,6 +45,40 @@ export default function AdminDashboard() {
 
     fetchData()
   }, [])
+
+  const handleExportToExcel = async () => {
+    setExporting(true)
+    const toastId = toast.loading('Đang xuất file Excel...')
+
+    try {
+      // Fetch all data in parallel
+      const [platformStats, revenueOverview, activeUsers, recentActivities] =
+        await Promise.all([
+          getPlatformStats(timeRange),
+          getRevenueOverview(),
+          getActiveUsers(),
+          getRecentActivities(),
+        ])
+
+      // Export to Excel
+      await exportAdminDashboardToExcel(
+        {
+          platformStats,
+          revenueOverview,
+          activeUsers,
+          recentActivities,
+        },
+        timeRange,
+      )
+
+      toast.success('Xuất Excel thành công!', { id: toastId })
+    } catch (error) {
+      console.error('Export error:', error)
+      toast.error('Lỗi khi xuất file Excel', { id: toastId })
+    } finally {
+      setExporting(false)
+    }
+  }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -61,6 +101,19 @@ export default function AdminDashboard() {
           <Button
             variant="outline"
             className="h-9 gap-1.5 bg-white"
+            onClick={handleExportToExcel}
+            disabled={exporting}
+          >
+            {exporting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileDown className="h-4 w-4" />
+            )}
+            <span>Xuất Excel</span>
+          </Button>
+          <Button
+            variant="outline"
+            className="h-9 gap-1.5 bg-white"
             onClick={() => {}}
           >
             <Calendar className="h-4 w-4" />
@@ -69,7 +122,6 @@ export default function AdminDashboard() {
               {timeRange === 'month' && '30 ngày qua'}
               {timeRange === 'year' && '365 ngày qua'}
             </span>
-            <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
           <div className="bg-white border rounded-md overflow-hidden flex">
             <button
