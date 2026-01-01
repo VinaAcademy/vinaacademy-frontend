@@ -1,11 +1,15 @@
 'use client'
 
-import { useParams } from 'next/navigation'
-import { useState } from 'react'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import InstructorSentimentDashboard from '@/components/instructor/sentiment/InstructorSentimentDashboard'
+import InstructorStatsTab from '@/components/instructor/sentiment/InstructorStatsTab'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, BarChart3, MessageSquare } from 'lucide-react'
+import DiscussionArea from '@/components/student/learning/learning-tab/DiscussionArea'
+import { getSectionsByCourse } from '@/services/sectionService'
+import { getLessonsBySectionId } from '@/services/lessonService'
 
 /**
  * Instructor Course Analytics Page
@@ -13,8 +17,95 @@ import { TrendingUp, BarChart3, MessageSquare } from 'lucide-react'
  */
 export default function CourseAnalyticsPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const courseId = params.id as string
-  const [activeTab, setActiveTab] = useState('sentiment')
+  const lessonParamId = searchParams.get('lesson')
+  const tabParam = searchParams.get('tab')
+  const [activeTab, setActiveTabState] = useState(tabParam || 'sentiment')
+  const [lessons, setLessons] = useState<
+    { id: string; title: string; sectionTitle: string }[]
+  >([])
+  const [selectedLessonId, setSelectedLessonIdState] = useState<string>('')
+  const [loadingLessons, setLoadingLessons] = useState(false)
+  const [invalidLessonId, setInvalidLessonId] = useState(false)
+
+  // Handle tab change and remove tab param
+  const setActiveTab = useCallback(
+    (tab: string) => {
+      setActiveTabState(tab)
+      const params = new URLSearchParams(searchParams)
+      params.delete('tab')
+      router.push(`?${params.toString()}`)
+    },
+    [searchParams, router],
+  )
+
+  // Handle lesson selection and remove lesson param
+  const setSelectedLessonId = useCallback(
+    (lessonId: string) => {
+      setSelectedLessonIdState(lessonId)
+      const params = new URLSearchParams(searchParams)
+      params.delete('lesson')
+      router.push(`?${params.toString()}`)
+    },
+    [searchParams, router],
+  )
+  const [dashboardData, setDashboardData] = useState<any>(null)
+
+  const loadLessons = useCallback(async () => {
+    if (!courseId) return
+    setLoadingLessons(true)
+    try {
+      const sections = await getSectionsByCourse(courseId)
+
+      const lessonPairs: { id: string; title: string; sectionTitle: string }[] =
+        []
+
+      for (const section of sections) {
+        const sectionLessons = await getLessonsBySectionId(section.id)
+        sectionLessons.forEach((lesson) => {
+          lessonPairs.push({
+            id: lesson.id,
+            title: lesson.title,
+            sectionTitle: section.title,
+          })
+        })
+      }
+
+      setLessons(lessonPairs)
+
+      // Check if lesson param is provided
+      if (lessonParamId) {
+        const lessonExists = lessonPairs.some(
+          (lesson) => lesson.id === lessonParamId,
+        )
+        if (lessonExists) {
+          setSelectedLessonIdState(lessonParamId)
+          setInvalidLessonId(false)
+        } else {
+          setInvalidLessonId(true)
+          setSelectedLessonIdState('')
+        }
+      } else if (lessonPairs.length && !selectedLessonId) {
+        setSelectedLessonIdState(lessonPairs[0].id)
+        setInvalidLessonId(false)
+      }
+    } catch (error) {
+      console.error('Error loading lessons for course analytics:', error)
+    } finally {
+      setLoadingLessons(false)
+    }
+  }, [courseId, lessonParamId, selectedLessonId])
+
+  useEffect(() => {
+    loadLessons()
+  }, [loadLessons])
+
+  const selectedLesson = useMemo(
+    () => lessons.find((lesson) => lesson.id === selectedLessonId),
+    [lessons, selectedLessonId],
+  )
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -45,22 +136,29 @@ export default function CourseAnalyticsPage() {
 
         {/* Sentiment Analysis Tab */}
         <TabsContent value="sentiment" className="mt-6">
-          <InstructorSentimentDashboard courseId={courseId} />
+          <InstructorSentimentDashboard
+            courseId={courseId}
+            onDataLoaded={setDashboardData}
+          />
         </TabsContent>
 
-        {/* Stats Tab - Placeholder */}
+        {/* Stats Tab */}
         <TabsContent value="stats" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Thống kê chi tiết</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-gray-500">
-                <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>Tính năng thống kê chi tiết sẽ được bổ sung</p>
-              </div>
-            </CardContent>
-          </Card>
+          {dashboardData ? (
+            <InstructorStatsTab data={dashboardData} />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Thống kê chi tiết</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-12 text-gray-500">
+                  <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p>Vui lòng chuyển qua tab Sentiment để tải dữ liệu</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         {/* Feedback Tab - Placeholder */}
@@ -70,9 +168,56 @@ export default function CourseAnalyticsPage() {
               <CardTitle>Phản hồi từ học viên</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12 text-gray-500">
-                <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>Danh sách phản hồi sẽ được hiển thị tại đây</p>
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">
+                      Chọn bài học để xem thảo luận của học viên
+                    </p>
+                    {selectedLesson && (
+                      <p className="text-xs text-gray-500">
+                        Thuộc mục: {selectedLesson.sectionTitle}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-700">Bài học</label>
+                    <select
+                      value={selectedLessonId}
+                      onChange={(e) => setSelectedLessonId(e.target.value)}
+                      className="min-w-[240px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      disabled={loadingLessons || lessons.length === 0}
+                    >
+                      {lessons.map((lesson) => (
+                        <option key={lesson.id} value={lesson.id}>
+                          {lesson.sectionTitle} · {lesson.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {invalidLessonId ? (
+                  <div className="text-center py-10 text-red-500">
+                    <MessageSquare className="mx-auto mb-3 h-8 w-8 text-red-400" />
+                    <p>Bài học này không tồn tại trong khóa học.</p>
+                  </div>
+                ) : loadingLessons ? (
+                  <div className="flex items-center justify-center py-12 text-gray-500">
+                    <MessageSquare className="mr-2 h-5 w-5 animate-pulse" />
+                    Đang tải danh sách bài học...
+                  </div>
+                ) : !selectedLessonId ? (
+                  <div className="text-center py-10 text-gray-500">
+                    <MessageSquare className="mx-auto mb-3 h-8 w-8 text-gray-400" />
+                    <p>Không tìm thấy bài học để hiển thị thảo luận.</p>
+                  </div>
+                ) : (
+                  <DiscussionArea
+                    courseId={courseId}
+                    lectureId={selectedLessonId}
+                  />
+                )}
               </div>
             </CardContent>
           </Card>

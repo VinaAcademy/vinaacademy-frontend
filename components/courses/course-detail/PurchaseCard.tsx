@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
-import { CourseDetailsResponse, SectionDto, UserDto } from "@/types/course";
+import { Button } from '@/components/ui/button'
+import { CourseDetailsResponse, SectionDto, UserDto } from '@/types/course'
 import {
   Book,
   Clock,
@@ -11,24 +11,25 @@ import {
   ShoppingCart,
   CheckCircle,
   Check,
-} from "lucide-react";
-import Image from "next/image";
-import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+} from 'lucide-react'
+import Image from 'next/image'
+import { useAuth } from '@/context/AuthContext'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import {
   enrollInCourse,
   checkEnrollment,
   EnrollmentRequest,
-} from "@/services/enrollmentService";
-import { useToast } from "@/hooks/use-toast";
-import { useCart } from "@/context/CartContext";
-import { getImageUrl } from "@/utils/imageUtils";
+} from '@/services/enrollmentService'
+import { canAccessCourseForLearning } from '@/services/courseService'
+import { useToast } from '@/hooks/use-toast'
+import { useCart } from '@/context/CartContext'
+import { getImageUrl } from '@/utils/imageUtils'
 
 interface PurchaseCardProps {
-  course: CourseDetailsResponse;
-  instructors: UserDto[];
-  sections: SectionDto[];
+  course: CourseDetailsResponse
+  instructors: UserDto[]
+  sections: SectionDto[]
 }
 
 export default function PurchaseCard({
@@ -36,187 +37,211 @@ export default function PurchaseCard({
   instructors,
   sections,
 }: PurchaseCardProps) {
-  const { user, isAuthenticated } = useAuth();
-  const { addToCart, cartItems } = useCart();
-  const router = useRouter();
-  const { toast } = useToast();
-  const [isEnrolled, setIsEnrolled] = useState(false);
-  const [isEnrolling, setIsEnrolling] = useState(false);
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [isInCart, setIsInCart] = useState(false);
+  const { user, isAuthenticated } = useAuth()
+  const { addToCart, cartItems } = useCart()
+  const router = useRouter()
+  const { toast } = useToast()
+  const [isEnrolled, setIsEnrolled] = useState(false)
+  const [isEnrolling, setIsEnrolling] = useState(false)
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const [isInCart, setIsInCart] = useState(false)
+  const [canAccessLearning, setCanAccessLearning] = useState(false)
 
   // Calculate total course duration in seconds
   const totalDuration = course.sections.reduce((total, section) => {
     return (
       total +
       (section.lessons?.reduce((sectionTotal, lesson) => {
-        return sectionTotal + (lesson.videoDuration || 0);
+        return sectionTotal + (lesson.videoDuration || 0)
       }, 0) ?? 0)
-    );
-  }, 0);
+    )
+  }, 0)
 
-  const [showCopyToast, setShowCopyToast] = useState(false);
+  const [showCopyToast, setShowCopyToast] = useState(false)
 
   useEffect(() => {
     if (showCopyToast) {
-      const timer = setTimeout(() => setShowCopyToast(false), 2000);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(() => setShowCopyToast(false), 2000)
+      return () => clearTimeout(timer)
     }
-  }, [showCopyToast]);
+  }, [showCopyToast])
 
   const handleShare = async () => {
     try {
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const url = `${origin}/courses/${course.slug}`;
-      await navigator.clipboard.writeText(url);
-      setShowCopyToast(true);
+      const origin = typeof window !== 'undefined' ? window.location.origin : ''
+      const url = `${origin}/courses/${course.slug}`
+      await navigator.clipboard.writeText(url)
+      setShowCopyToast(true)
     } catch (err) {
       try {
-        const origin = typeof window !== 'undefined' ? window.location.origin : '';
-        const url = `${origin}/courses/${course.slug}`;
-        const textarea = document.createElement('textarea');
-        textarea.value = url;
-        textarea.style.position = 'fixed';
-        textarea.style.left = '-9999px';
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        setShowCopyToast(true);
+        const origin =
+          typeof window !== 'undefined' ? window.location.origin : ''
+        const url = `${origin}/courses/${course.slug}`
+        const textarea = document.createElement('textarea')
+        textarea.value = url
+        textarea.style.position = 'fixed'
+        textarea.style.left = '-9999px'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+        setShowCopyToast(true)
       } catch (_) {
         // silently fail
       }
     }
-  };
+  }
 
   // Format duration to hours and minutes
   const formatDuration = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return `${hours > 0 ? `${hours} giờ ` : ""}${minutes} phút`;
-  };
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    return `${hours > 0 ? `${hours} giờ ` : ''}${minutes} phút`
+  }
 
   // Check if user is already enrolled
   useEffect(() => {
     const checkUserEnrollment = async () => {
       if (isAuthenticated && course.id) {
         try {
-          const enrolled = await checkEnrollment(course.id.toString());
-          setIsEnrolled(enrolled);
+          const enrolled = await checkEnrollment(course.id.toString())
+          setIsEnrolled(enrolled)
         } catch (error) {
-          console.error("Error checking enrollment:", error);
+          console.error('Error checking enrollment:', error)
         }
+      } else {
+        setIsEnrolled(false)
       }
-    };
+    }
 
-    checkUserEnrollment();
-  }, [isAuthenticated, course.id]);
+    checkUserEnrollment()
+  }, [isAuthenticated, course.id])
+
+  useEffect(() => {
+    const checkLearningAccess = async () => {
+      if (isAuthenticated && course.id) {
+        try {
+          const access = await canAccessCourseForLearning(course.id.toString())
+          setCanAccessLearning(!!access)
+        } catch (error) {
+          console.error('Error checking learning access:', error)
+          setCanAccessLearning(false)
+        }
+      } else {
+        setCanAccessLearning(false)
+      }
+    }
+
+    checkLearningAccess()
+  }, [isAuthenticated, course.id])
 
   // Check if course is already in cart
   useEffect(() => {
     if (isAuthenticated && course.id && cartItems.length > 0) {
       const courseInCart = cartItems.some(
-        (item) => item.courseId === course.id.toString()
-      );
-      setIsInCart(courseInCart);
+        (item) => item.courseId === course.id.toString(),
+      )
+      setIsInCart(courseInCart)
     }
-  }, [isAuthenticated, course.id, cartItems]);
+  }, [isAuthenticated, course.id, cartItems])
 
   // Handle enrollment
   const handleEnroll = async () => {
     if (!isAuthenticated) {
       toast({
-        title: "Bạn cần đăng nhập",
-        description: "Vui lòng đăng nhập để đăng ký khóa học",
-        variant: "destructive",
-      });
+        title: 'Bạn cần đăng nhập',
+        description: 'Vui lòng đăng nhập để đăng ký khóa học',
+        variant: 'destructive',
+      })
       router.push(
-        "/login?redirect=" + encodeURIComponent(window.location.pathname)
-      );
-      return;
+        '/login?redirect=' + encodeURIComponent(window.location.pathname),
+      )
+      return
     }
 
-    // Nếu khóa học có giá > 0 thì chuyển đến trang thanh toán
-    if (course.price > 0) {
-      router.push(`/checkout?course=${course.id}`);
-      return;
+    // Nếu khóa học có giá > 0 nhưng người dùng đã có quyền truy cập,
+    // cho phép đăng ký trực tiếp thay vì đi qua giỏ hàng/checkout.
+    const shouldGoCheckout = course.price > 0 && !canAccessLearning
+    if (shouldGoCheckout) {
+      router.push(`/checkout?course=${course.id}`)
+      return
     }
 
     // Tiếp tục xử lý đăng ký miễn phí
-    setIsEnrolling(true);
+    setIsEnrolling(true)
     try {
       const enrollmentData: EnrollmentRequest = {
         courseId: course.id.toString(),
-      };
+      }
 
-      await enrollInCourse(enrollmentData);
-      setIsEnrolled(true);
+      await enrollInCourse(enrollmentData)
+      setIsEnrolled(true)
       toast({
-        title: "Đăng ký thành công!",
-        description: "Bạn đã đăng ký khóa học thành công.",
-      });
+        title: 'Đăng ký thành công!',
+        description: 'Bạn đã đăng ký khóa học thành công.',
+      })
 
       // Redirect to the course learning page
-      router.push(`/learning/${course.slug}`);
+      router.push(`/learning/${course.slug}`)
     } catch (error) {
-      console.error("Error enrolling:", error);
+      console.error('Error enrolling:', error)
       toast({
-        title: "Đăng ký thất bại",
+        title: 'Đăng ký thất bại',
         description:
-          "Có lỗi xảy ra khi đăng ký khóa học. Vui lòng thử lại sau.",
-        variant: "destructive",
-      });
+          'Có lỗi xảy ra khi đăng ký khóa học. Vui lòng thử lại sau.',
+        variant: 'destructive',
+      })
     } finally {
-      setIsEnrolling(false);
+      setIsEnrolling(false)
     }
-  };
+  }
 
   // Handle add to cart
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
       toast({
-        title: "Bạn cần đăng nhập",
-        description: "Vui lòng đăng nhập để thêm khóa học vào giỏ hàng",
-        variant: "destructive",
-      });
+        title: 'Bạn cần đăng nhập',
+        description: 'Vui lòng đăng nhập để thêm khóa học vào giỏ hàng',
+        variant: 'destructive',
+      })
       router.push(
-        "/login?redirect=" + encodeURIComponent(window.location.pathname)
-      );
-      return;
+        '/login?redirect=' + encodeURIComponent(window.location.pathname),
+      )
+      return
     }
 
-    setIsAddingToCart(true);
+    setIsAddingToCart(true)
     try {
       // Truyền object đúng format
       const success = await addToCart({
         courseId: course.id.toString(),
         price: course.price,
-      });
+      })
 
       if (success) {
-        setIsInCart(true);
+        setIsInCart(true)
         toast({
-          title: "Đã thêm vào giỏ hàng",
-          description: "Khóa học đã được thêm vào giỏ hàng của bạn",
-        });
+          title: 'Đã thêm vào giỏ hàng',
+          description: 'Khóa học đã được thêm vào giỏ hàng của bạn',
+        })
       } else {
         toast({
-          title: "Không thể thêm vào giỏ hàng",
-          description: "Có lỗi xảy ra khi thêm khóa học vào giỏ hàng",
-          variant: "destructive",
-        });
+          title: 'Không thể thêm vào giỏ hàng',
+          description: 'Có lỗi xảy ra khi thêm khóa học vào giỏ hàng',
+          variant: 'destructive',
+        })
       }
     } catch (error) {
-      console.error("Error adding to cart:", error);
+      console.error('Error adding to cart:', error)
       toast({
-        title: "Không thể thêm vào giỏ hàng",
-        description: "Có lỗi xảy ra khi thêm khóa học vào giỏ hàng",
-        variant: "destructive",
-      });
+        title: 'Không thể thêm vào giỏ hàng',
+        description: 'Có lỗi xảy ra khi thêm khóa học vào giỏ hàng',
+        variant: 'destructive',
+      })
     } finally {
-      setIsAddingToCart(false);
+      setIsAddingToCart(false)
     }
-  };
+  }
 
   return (
     <div className="border rounded-lg shadow-lg overflow-hidden">
@@ -224,7 +249,7 @@ export default function PurchaseCard({
       <div className="relative">
         <div className="aspect-video w-full relative">
           <Image
-            src={getImageUrl(course.image) || "/images/course-placeholder.jpg"}
+            src={getImageUrl(course.image) || '/images/course-placeholder.jpg'}
             alt={course.name}
             fill
             className="object-cover"
@@ -244,14 +269,14 @@ export default function PurchaseCard({
           <div className="flex items-center mb-2">
             <p className="text-2xl font-bold">
               {course.price === 0
-                ? "Miễn phí"
+                ? 'Miễn phí'
                 : `${Math.round(Number(course.price)).toLocaleString(
-                    "vi-VN"
+                    'vi-VN',
                   )} VNĐ`}
             </p>
             {course.price > 0 && (
               <span className="ml-3 text-base text-gray-500 line-through">
-                {Math.round(Number(course.price) * 1.5).toLocaleString("vi-VN")}{" "}
+                {Math.round(Number(course.price) * 1.5).toLocaleString('vi-VN')}{' '}
                 VNĐ
               </span>
             )}
@@ -267,22 +292,20 @@ export default function PurchaseCard({
                 Tiếp tục học
               </Button>
             ) : (
-              course.price <= 0 && (
+              (course.price <= 0 || canAccessLearning) && (
                 <Button
                   variant="default"
                   className="w-full bg-[#a435f0] hover:bg-[#8710d8]"
                   onClick={handleEnroll}
                   disabled={isEnrolling}
                 >
-                  {isEnrolling
-                    ? "Đang xử lý..."
-                    : "Đăng ký học ngay"}
+                  {isEnrolling ? 'Đang xử lý...' : 'Đăng ký học ngay'}
                 </Button>
               )
             )}
 
             {/* Hiển thị nút "Thêm vào giỏ hàng" chỉ khi có giá và chưa đăng ký */}
-            {course.price > 0 && !isEnrolled && (
+            {course.price > 0 && !isEnrolled && !canAccessLearning && (
               <Button
                 variant="outline"
                 className="w-full"
@@ -290,7 +313,7 @@ export default function PurchaseCard({
                 disabled={isAddingToCart || isInCart}
               >
                 <ShoppingCart className="w-4 h-4 mr-2" />
-                {isAddingToCart ? "Đang xử lý..." : "Thêm vào giỏ hàng"}
+                {isAddingToCart ? 'Đang xử lý...' : 'Thêm vào giỏ hàng'}
               </Button>
             )}
 
@@ -361,5 +384,5 @@ export default function PurchaseCard({
         </div>
       </div>
     </div>
-  );
+  )
 }
