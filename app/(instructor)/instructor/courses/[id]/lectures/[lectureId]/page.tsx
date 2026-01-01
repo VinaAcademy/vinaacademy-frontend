@@ -1,17 +1,17 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Lecture, LectureType } from '@/types/lecture'
 import { toast } from 'react-toastify'
 import { Loader2 } from 'lucide-react'
 import { getLessonById, updateLesson } from '@/services/lessonService'
 import {
-  lessonToLecture,
   lectureToLessonRequest,
+  lessonToLecture,
 } from '@/utils/adapters/lessonAdapter'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUIZ_KEYS } from '@/hooks/instructor/useQuizInstructor'
-import { LESSON_KEYS } from '@/config/query-keys.config'
+import { LESSON_KEYS, SECTION_KEYS } from '@/config/query-keys.config'
 import { LectureEditProvider } from '@/context/LectureEditContext'
 import Header from '@/components/instructor/courses/edit-course-content/edit-lecture/LectureHeader'
 import TabNavigation from '@/components/instructor/courses/edit-course-content/edit-lecture/TabNavigation'
@@ -108,6 +108,10 @@ function LectureEditor() {
 
         await queryClient.invalidateQueries({
           queryKey: QUIZ_KEYS.quiz(lectureId),
+        })
+
+        await queryClient.invalidateQueries({
+          queryKey: SECTION_KEYS.byCourse(courseId),
         })
 
         // Also invalidate the section lessons list query to update the UI when returning to the list
