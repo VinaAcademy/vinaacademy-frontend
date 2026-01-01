@@ -139,8 +139,9 @@ export interface TrendDataPoint {
   neutralCount: number
   negativeCount: number
   mixedCount: number
-  avgPositiveScore: number
-  avgNegativeScore: number
+  sentimentScore?: number // Overall sentiment score for that period
+  avgPositiveScore?: number
+  avgNegativeScore?: number
 }
 
 export interface AspectAnalysis {

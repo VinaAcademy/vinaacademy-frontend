@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import InstructorSentimentDashboard from '@/components/instructor/sentiment/InstructorSentimentDashboard'
+import InstructorStatsTab from '@/components/instructor/sentiment/InstructorStatsTab'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, BarChart3, MessageSquare } from 'lucide-react'
 import DiscussionArea from '@/components/student/learning/learning-tab/DiscussionArea'
@@ -23,6 +24,7 @@ export default function CourseAnalyticsPage() {
   >([])
   const [selectedLessonId, setSelectedLessonId] = useState<string>('')
   const [loadingLessons, setLoadingLessons] = useState(false)
+  const [dashboardData, setDashboardData] = useState<any>(null)
 
   const loadLessons = useCallback(async () => {
     if (!courseId) return
@@ -93,22 +95,29 @@ export default function CourseAnalyticsPage() {
 
         {/* Sentiment Analysis Tab */}
         <TabsContent value="sentiment" className="mt-6">
-          <InstructorSentimentDashboard courseId={courseId} />
+          <InstructorSentimentDashboard
+            courseId={courseId}
+            onDataLoaded={setDashboardData}
+          />
         </TabsContent>
 
-        {/* Stats Tab - Placeholder */}
+        {/* Stats Tab */}
         <TabsContent value="stats" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Thống kê chi tiết</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-gray-500">
-                <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>Tính năng thống kê chi tiết sẽ được bổ sung</p>
-              </div>
-            </CardContent>
-          </Card>
+          {dashboardData ? (
+            <InstructorStatsTab data={dashboardData} />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Thống kê chi tiết</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-12 text-gray-500">
+                  <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p>Vui lòng chuyển qua tab Sentiment để tải dữ liệu</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         {/* Feedback Tab - Placeholder */}

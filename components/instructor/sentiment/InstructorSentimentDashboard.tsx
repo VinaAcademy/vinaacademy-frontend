@@ -34,6 +34,7 @@ import {
 
 interface InstructorSentimentDashboardProps {
   courseId: string
+  onDataLoaded?: (data: SentimentDashboardResponse) => void
 }
 
 /**
@@ -42,6 +43,7 @@ interface InstructorSentimentDashboardProps {
  */
 export default function InstructorSentimentDashboard({
   courseId,
+  onDataLoaded,
 }: InstructorSentimentDashboardProps) {
   const [data, setData] = useState<SentimentDashboardResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -64,6 +66,11 @@ export default function InstructorSentimentDashboard({
         range.startDate,
         range.endDate,
       )
+
+      // Call callback to pass data to parent
+      if (onDataLoaded) {
+        onDataLoaded(response)
+      }
       setData(response)
     } catch (err) {
       console.error('Error loading dashboard:', err)
