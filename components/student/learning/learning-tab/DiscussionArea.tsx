@@ -1,6 +1,6 @@
 'use client'
 
-import { FC, useState, useEffect, useCallback } from 'react'
+import { FC, useState, useEffect, useCallback, useRef } from 'react'
 import { MessageSquare, Loader } from 'lucide-react'
 import {
   getRootCommentsPaginated,
@@ -13,6 +13,7 @@ import CommentItem from './discussion/CommentItem'
 import CommentInput from './CommentInput'
 import { createSuccessToast } from '@/components/ui/toast-cus'
 import { useAuth } from '@/providers'
+import { isInstructorOfCourse } from '@/services/courseService'
 
 // Helpers to avoid duplicate keys when merging pages or switching sort
 const uniqueById = (items: DiscussionDto[]): DiscussionDto[] => {
@@ -49,6 +50,40 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
   const [totalPages, setTotalPages] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const { user } = useAuth()
+  const instructorCacheRef = useRef<Record<string, boolean>>({})
+
+  const resolveInstructorStatus = useCallback(
+    async (userId: string): Promise<boolean> => {
+      const cached = instructorCacheRef.current[userId]
+      if (cached !== undefined) return cached
+
+      const result = await isInstructorOfCourse(courseId, userId)
+      const isInstructor = !!result
+      instructorCacheRef.current[userId] = isInstructor
+      return isInstructor
+    },
+    [courseId],
+  )
+
+  const annotateWithInstructor = useCallback(
+    async (items: DiscussionDto[]): Promise<DiscussionDto[]> => {
+      const uniqueUserIds = Array.from(
+        new Set(items.map((item) => item.userId)),
+      )
+      const statuses = await Promise.all(
+        uniqueUserIds.map(
+          async (uid) => [uid, await resolveInstructorStatus(uid)] as const,
+        ),
+      )
+      const statusMap = Object.fromEntries(statuses)
+
+      return items.map((item) => ({
+        ...item,
+        isInstructor: statusMap[item.userId] ?? false,
+      }))
+    },
+    [resolveInstructorStatus],
+  )
 
   // Load root comments
   const loadComments = useCallback(
@@ -65,11 +100,13 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
         )
 
         if (result) {
-          const pageItems = uniqueById(result.content)
+          const annotated = await annotateWithInstructor(
+            uniqueById(result.content),
+          )
           if (pageNum === 0) {
-            setComments(pageItems)
+            setComments(annotated)
           } else {
-            setComments((prev) => appendUnique(prev, pageItems))
+            setComments((prev) => appendUnique(prev, annotated))
           }
           setTotalPages(result.totalPages)
         }
@@ -79,7 +116,7 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
         setLoading(false)
       }
     },
-    [lectureId, filter],
+    [lectureId, filter, annotateWithInstructor],
   )
 
   // Create new comment or reply
@@ -96,6 +133,8 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
         const result = await createDiscussion(request)
 
         if (result) {
+          const isInstructor = await resolveInstructorStatus(result.userId)
+          const enrichedResult = { ...result, isInstructor }
           if (parentId) {
             // Update reply count in parent comment
             setComments((prev) =>
@@ -107,7 +146,7 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
             )
           } else {
             // it is a root comment - add to top
-            setComments((prev) => [result, ...prev])
+            setComments((prev) => [enrichedResult, ...prev])
           }
           return true
         }
@@ -117,7 +156,7 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
       }
       return false
     },
-    [lectureId],
+    [lectureId, resolveInstructorStatus],
   )
 
   // Toggle like/unlike
@@ -289,6 +328,7 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
                 setNewReply={setNewReply}
                 submitting={submitting}
                 userId={user?.id || ''}
+                resolveInstructorStatus={resolveInstructorStatus}
               />
             ))}
 

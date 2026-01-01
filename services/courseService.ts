@@ -1,5 +1,6 @@
 'use client'
 
+import { API_ENDPOINTS } from '@/config/api.endpoint'
 import apiClient from '@/lib/apiClient'
 import { ApiResponse, PaginatedResponse } from '@/types/api-response'
 import {
@@ -115,7 +116,7 @@ export async function aiSearchCourses(
       'size:',
       size,
     )
-    const semantic = true;
+    const semantic = true
     const response: AxiosResponse = await apiClient.get('/courses/aisearch', {
       params: {
         ...search,
@@ -215,6 +216,43 @@ export const getCourseLearning = async (
     return response.data.data
   } catch (error) {
     console.error('getCourseLearning error:', error)
+    return null
+  }
+}
+
+// GET /api/v1/courses/by-id/{id}/can-access-learning
+export const canAccessCourseForLearning = async (
+  courseId: string,
+): Promise<boolean | null> => {
+  try {
+    const response: AxiosResponse<ApiResponse<boolean>> = await apiClient.get(
+      API_ENDPOINTS.COURSE.CAN_ACCESS_LEARNING(courseId),
+    )
+    return response.data.data
+  } catch (error) {
+    console.error('canAccessCourseForLearning error:', error)
+    return null
+  }
+}
+
+// GET /api/v1/courses/by-id/{id}/is-instructor
+export const isInstructorOfCourse = async (
+  courseId: string,
+  userId: string,
+): Promise<boolean | null> => {
+  try {
+    const response: AxiosResponse<ApiResponse<boolean>> = await apiClient.get(
+      API_ENDPOINTS.COURSE.IS_INSTRUCTOR(courseId),
+      {
+        params: { userId },
+      },
+    )
+    return response.data.data
+  } catch (error) {
+    console.error(
+      `isInstructorOfCourse error for courseId ${courseId} and userId ${userId}:`,
+      error,
+    )
     return null
   }
 }

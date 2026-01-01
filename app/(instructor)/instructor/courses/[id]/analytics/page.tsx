@@ -1,11 +1,14 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import InstructorSentimentDashboard from '@/components/instructor/sentiment/InstructorSentimentDashboard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, BarChart3, MessageSquare } from 'lucide-react'
+import DiscussionArea from '@/components/student/learning/learning-tab/DiscussionArea'
+import { getSectionsByCourse } from '@/services/sectionService'
+import { getLessonsBySectionId } from '@/services/lessonService'
 
 /**
  * Instructor Course Analytics Page
@@ -15,6 +18,51 @@ export default function CourseAnalyticsPage() {
   const params = useParams()
   const courseId = params.id as string
   const [activeTab, setActiveTab] = useState('sentiment')
+  const [lessons, setLessons] = useState<
+    { id: string; title: string; sectionTitle: string }[]
+  >([])
+  const [selectedLessonId, setSelectedLessonId] = useState<string>('')
+  const [loadingLessons, setLoadingLessons] = useState(false)
+
+  const loadLessons = useCallback(async () => {
+    if (!courseId) return
+    setLoadingLessons(true)
+    try {
+      const sections = await getSectionsByCourse(courseId)
+
+      const lessonPairs: { id: string; title: string; sectionTitle: string }[] =
+        []
+
+      for (const section of sections) {
+        const sectionLessons = await getLessonsBySectionId(section.id)
+        sectionLessons.forEach((lesson) => {
+          lessonPairs.push({
+            id: lesson.id,
+            title: lesson.title,
+            sectionTitle: section.title,
+          })
+        })
+      }
+
+      setLessons(lessonPairs)
+      if (lessonPairs.length && !selectedLessonId) {
+        setSelectedLessonId(lessonPairs[0].id)
+      }
+    } catch (error) {
+      console.error('Error loading lessons for course analytics:', error)
+    } finally {
+      setLoadingLessons(false)
+    }
+  }, [courseId, selectedLessonId])
+
+  useEffect(() => {
+    loadLessons()
+  }, [loadLessons])
+
+  const selectedLesson = useMemo(
+    () => lessons.find((lesson) => lesson.id === selectedLessonId),
+    [lessons, selectedLessonId],
+  )
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -70,9 +118,51 @@ export default function CourseAnalyticsPage() {
               <CardTitle>Phản hồi từ học viên</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12 text-gray-500">
-                <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>Danh sách phản hồi sẽ được hiển thị tại đây</p>
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">
+                      Chọn bài học để xem thảo luận của học viên
+                    </p>
+                    {selectedLesson && (
+                      <p className="text-xs text-gray-500">
+                        Thuộc mục: {selectedLesson.sectionTitle}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-700">Bài học</label>
+                    <select
+                      value={selectedLessonId}
+                      onChange={(e) => setSelectedLessonId(e.target.value)}
+                      className="min-w-[240px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      disabled={loadingLessons || lessons.length === 0}
+                    >
+                      {lessons.map((lesson) => (
+                        <option key={lesson.id} value={lesson.id}>
+                          {lesson.sectionTitle} · {lesson.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {loadingLessons ? (
+                  <div className="flex items-center justify-center py-12 text-gray-500">
+                    <MessageSquare className="mr-2 h-5 w-5 animate-pulse" />
+                    Đang tải danh sách bài học...
+                  </div>
+                ) : !selectedLessonId ? (
+                  <div className="text-center py-10 text-gray-500">
+                    <MessageSquare className="mx-auto mb-3 h-8 w-8 text-gray-400" />
+                    <p>Không tìm thấy bài học để hiển thị thảo luận.</p>
+                  </div>
+                ) : (
+                  <DiscussionArea
+                    courseId={courseId}
+                    lectureId={selectedLessonId}
+                  />
+                )}
               </div>
             </CardContent>
           </Card>
