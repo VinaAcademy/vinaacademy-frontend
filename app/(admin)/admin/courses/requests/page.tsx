@@ -114,13 +114,25 @@ const AdminCourseRequestsPage = () => {
       }
 
       try {
-        const result = await searchCoursesDetail(
+        let result = await searchCoursesDetail(
           searchRequest,
           currentPage,
           itemsPerPage,
           'createdDate',
           sortDirection,
         )
+        if (result?.content) {
+          result.content = result?.content.map((course) => {
+            const status = course.sections.some((section) =>
+              section?.lessons?.some(
+                (lesson) => lesson.lessonStatus === 'PENDING',
+              ),
+            )
+              ? CourseStatus.PENDING
+              : course.status
+            return { ...course, status }
+          })
+        }
 
         setCourseData(result)
         // Select first course by default if available
