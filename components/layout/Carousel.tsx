@@ -134,7 +134,7 @@ const Carousel = ({ title, customCourses }: CarouselProps) => {
                           {getLevelText(course.level)}
                         </span>
                       </div>
-                      <CardTitle className="text-lg mb-2 line-clamp-2 h-15">
+                      <CardTitle className="text-lg mb-2 line-clamp-2 min-h-[56px]">
                         {course.name}
                       </CardTitle>
                       <p className="text-gray-600 text-sm mb-2">
@@ -154,7 +154,7 @@ const Carousel = ({ title, customCourses }: CarouselProps) => {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="font-bold">
-                          {course.price == 0
+                          {Number(course.price ?? 0) === 0
                             ? 'Miễn phí'
                             : `${formatCurrency(course.price)}`}
                         </span>

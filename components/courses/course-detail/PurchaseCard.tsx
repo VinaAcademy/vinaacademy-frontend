@@ -242,7 +242,7 @@ export default function PurchaseCard({
       setIsAddingToCart(false)
     }
   }
-
+  console.log('Render PurchaseCard:', course.price)
   return (
     <div className="border rounded-lg shadow-lg overflow-hidden">
       {/* Course preview image with play button overlay */}
@@ -268,7 +268,7 @@ export default function PurchaseCard({
           {/* Hiển thị giá dựa trên điều kiện */}
           <div className="flex items-center mb-2">
             <p className="text-2xl font-bold">
-              {course.price === 0
+              {Number(course.price ?? 0) === 0
                 ? 'Miễn phí'
                 : `${Math.round(Number(course.price)).toLocaleString(
                     'vi-VN',

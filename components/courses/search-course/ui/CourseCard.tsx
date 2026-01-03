@@ -86,7 +86,9 @@ const CourseCard = ({ course }: CourseCardProps) => {
 
           <div className="flex justify-between items-center">
             <div className="font-bold text-lg">
-              {formatCurrency(course.price)}
+              {Number(course.price ?? 0) === 0
+                ? 'Miễn phí'
+                : formatCurrency(course.price)}
             </div>
             <div className="text-sm text-gray-600">
               {course.totalStudent || 0} học viên

@@ -406,7 +406,7 @@ export default function PublicInstructorPage() {
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                       sizes="(max-width: 768px) 100vw, 33vw"
                     />
-                    {course.price === 0 && (
+                    {Number(course.price ?? 0) === 0 && (
                       <div className="absolute top-3 left-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
                         MIỄN PHÍ
                       </div>
