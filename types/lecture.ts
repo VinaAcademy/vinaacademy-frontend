@@ -1,5 +1,5 @@
 // Cập nhật interface Lecture
-import { CourseDto, LessonDto, SectionDto } from './course'
+import { LessonStatus } from './course'
 import { VideoStatus } from './video'
 import { MediaFileDto } from './lesson'
 
@@ -62,6 +62,7 @@ export interface Lecture {
   isPublished?: boolean
   free?: boolean
   updatedDate?: string
+  lessonStatus?: LessonStatus
 
   // Các trường tùy chọn cho mọi loại bài học
   isCompleted?: boolean

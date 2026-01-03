@@ -1,4 +1,4 @@
-import { Loader } from 'lucide-react'
+import { Loader, CheckCircle, XCircle } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -6,8 +6,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useState, useEffect } from 'react'
-import { CourseDetailsResponse, LessonType } from '@/types/course'
+import { CourseDetailsResponse, LessonType, LessonStatus } from '@/types/course'
 import { VideoStatus } from '@/types/video'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { moderateLessons } from '@/services/lessonService'
+import { useToast } from '@/hooks/use-toast'
 
 // Course details preview dialog component
 const CourseDetailsPreview = ({
@@ -15,6 +19,7 @@ const CourseDetailsPreview = ({
   isOpen,
   onClose,
   onLessonClick,
+  onLessonApprove,
 }: {
   courseDetails: CourseDetailsResponse | null
   isOpen: boolean
@@ -26,9 +31,104 @@ const CourseDetailsPreview = ({
     readingContent?: string,
     attachments?: any[],
     updatedDate?: string | number[],
+    lessonStatus?: LessonStatus,
   ) => void
+  onLessonApprove?: () => void
 }) => {
   const [loading, setLoading] = useState<boolean>(false)
+  const { toast } = useToast()
+
+  const getStatusColor = (status?: string) => {
+    switch (status?.toLowerCase()) {
+      case 'draft':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      case 'published':
+        return 'bg-green-100 text-green-800 border-green-200'
+      case 'pending':
+        return 'bg-blue-100 text-blue-800 border-blue-200'
+      case 'rejected':
+        return 'bg-red-100 text-red-800 border-red-200'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200'
+    }
+  }
+
+  const getStatusText = (status?: string) => {
+    switch (status?.toLowerCase()) {
+      case 'draft':
+        return 'Bản nháp'
+      case 'published':
+        return 'Đã xuất bản'
+      case 'pending':
+        return 'Chờ duyệt'
+      case 'rejected':
+        return 'Bị từ chối'
+      default:
+        return 'Không xác định'
+    }
+  }
+
+  const handleApproveLesson = async (e: React.MouseEvent, lessonId: string) => {
+    e.stopPropagation()
+    try {
+      const success = await moderateLessons({
+        lessonIds: [lessonId],
+        status: 'PUBLISHED',
+      })
+      if (success) {
+        toast({
+          title: 'Thành công',
+          description: 'Đã phê duyệt bài học',
+          variant: 'default',
+          className: 'bg-green-500 text-white border-none',
+        })
+        onLessonApprove?.()
+      } else {
+        toast({
+          title: 'Lỗi',
+          description: 'Không thể phê duyệt bài học',
+          variant: 'destructive',
+        })
+      }
+    } catch (error) {
+      toast({
+        title: 'Lỗi',
+        description: 'Đã xảy ra lỗi',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleRejectLesson = async (e: React.MouseEvent, lessonId: string) => {
+    e.stopPropagation()
+    try {
+      const success = await moderateLessons({
+        lessonIds: [lessonId],
+        status: 'REJECTED',
+      })
+      if (success) {
+        toast({
+          title: 'Thành công',
+          description: 'Đã từ chối bài học',
+          variant: 'default',
+          className: 'bg-green-500 text-white border-none',
+        })
+        onLessonApprove?.()
+      } else {
+        toast({
+          title: 'Lỗi',
+          description: 'Không thể từ chối bài học',
+          variant: 'destructive',
+        })
+      }
+    } catch (error) {
+      toast({
+        title: 'Lỗi',
+        description: 'Đã xảy ra lỗi',
+        variant: 'destructive',
+      })
+    }
+  }
 
   if (!isOpen) return null
   return (
@@ -106,6 +206,7 @@ const CourseDetailsPreview = ({
                                 lesson.content,
                                 lesson.attachments,
                                 lesson.updatedDate,
+                                lesson.lessonStatus,
                               )
                             }
                           >
@@ -166,7 +267,7 @@ const CourseDetailsPreview = ({
                                   </svg>
                                 )}
                                 <div className="flex-1">
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-2 flex-wrap">
                                     <span>
                                       {lesson.orderIndex}. {lesson.title}
                                     </span>
@@ -175,6 +276,14 @@ const CourseDetailsPreview = ({
                                         Free
                                       </span>
                                     )}
+                                    <Badge
+                                      variant="outline"
+                                      className={getStatusColor(
+                                        lesson.lessonStatus,
+                                      )}
+                                    >
+                                      {getStatusText(lesson.lessonStatus)}
+                                    </Badge>
                                   </div>
                                   {lesson.updatedDate && (
                                     <div className="text-xs text-gray-500 mt-1">
@@ -185,6 +294,32 @@ const CourseDetailsPreview = ({
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 ml-2">
+                                {lesson.lessonStatus === 'PENDING' && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-8 bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:text-red-700"
+                                      onClick={(e) =>
+                                        handleRejectLesson(e, lesson.id)
+                                      }
+                                    >
+                                      <XCircle className="h-4 w-4 mr-1" />
+                                      Từ chối
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-8 bg-green-50 text-green-600 border-green-200 hover:bg-green-100 hover:text-green-700"
+                                      onClick={(e) =>
+                                        handleApproveLesson(e, lesson.id)
+                                      }
+                                    >
+                                      <CheckCircle className="h-4 w-4 mr-1" />
+                                      Duyệt
+                                    </Button>
+                                  </>
+                                )}
                                 {lesson.type === 'VIDEO' &&
                                   lesson.videoDuration && (
                                     <span className="text-sm text-gray-500 whitespace-nowrap">

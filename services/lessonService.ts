@@ -9,7 +9,25 @@ import {
   TTSRequestDto,
   TTSResponseDto,
 } from '@/types/lesson'
-import { CourseDto, LessonType } from '@/types/course'
+import { CourseDto, LessonStatus, LessonType } from '@/types/course'
+
+export interface LessonReviewRequest {
+  lessonIds: string[]
+  status: LessonStatus
+}
+
+// 🔍 POST /lessons/moderate
+export const moderateLessons = async (
+  request: LessonReviewRequest,
+): Promise<boolean> => {
+  try {
+    await apiClient.post('/lessons/moderate', request)
+    return true
+  } catch (error) {
+    console.error('moderateLessons error:', error)
+    return false
+  }
+}
 
 // 🔍 GET /lessons/{id}
 export const getLessonById = async (id: string): Promise<LessonDto | null> => {

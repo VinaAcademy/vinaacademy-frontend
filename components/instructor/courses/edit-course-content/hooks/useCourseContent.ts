@@ -1,22 +1,22 @@
 // components/instructor/courses/edit-course-content/hooks/useCourseContent.ts
 import { useState } from 'react'
 import { toast } from 'react-toastify'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { LessonDto, SectionDto, LessonType } from '@/types/course'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { LessonType, SectionDto } from '@/types/course'
 import { MediaFileDto } from '@/types/lesson'
 import {
-  getLessonsBySectionId,
   createLesson,
-  updateLesson,
   deleteLesson,
+  getLessonsBySectionId,
   reorderLessons,
+  updateLesson,
 } from '@/services/lessonService'
 import {
-  getSectionsByCourse,
   createSection,
-  updateSection,
   deleteSection as deleteSectionApi,
+  getSectionsByCourse,
   reorderSections,
+  updateSection,
 } from '@/services/sectionService'
 import { submitCourseForReview } from '@/services/courseService'
 import { arrayMove } from '@dnd-kit/sortable'
@@ -42,29 +42,8 @@ export interface LectureDisplay {
   free?: boolean
   description?: string
   attachments?: MediaFileDto[]
+  lessonStatus?: string
 }
-
-// Type mapping từ backend sang frontend
-const mapLessonToLectureDisplay = (lesson: LessonDto): LectureDisplay => ({
-  id: lesson.id,
-  title: lesson.title,
-  type: lesson.type.toLowerCase(),
-  duration: lesson.type === 'VIDEO' ? lesson.videoDuration : lesson.duration,
-  content: lesson.content || '',
-  order: lesson.orderIndex,
-  attachments: (lesson as any).attachments || [],
-})
-
-// Map SectionDto sang SectionDisplay
-const mapSectionToDisplay = (
-  section: SectionDto,
-  lessons: LessonDto[] = [],
-): SectionDisplay => ({
-  id: section.id,
-  title: section.title,
-  order: section.orderIndex,
-  lectures: lessons.map(mapLessonToLectureDisplay),
-})
 
 export const useCourseContent = (courseId?: string) => {
   const queryClient = useQueryClient()
@@ -101,13 +80,19 @@ export const useCourseContent = (courseId?: string) => {
         fetchedSections.map(async (section: SectionDto) => {
           try {
             const lessons = await getLessonsBySectionId(section.id)
-            return mapSectionToDisplay(section, lessons)
+            return {
+              ...section,
+              lessons: lessons || [],
+            }
           } catch (error) {
             console.error(
               `Lỗi khi tải bài giảng cho section ${section.id}:`,
               error,
             )
-            return mapSectionToDisplay(section, [])
+            return {
+              ...section,
+              lessons: [],
+            }
           }
         }),
       )
@@ -186,7 +171,7 @@ export const useCourseContent = (courseId?: string) => {
       const updatedSectionData = {
         title: newTitle,
         courseId: courseId,
-        orderIndex: section.order,
+        orderIndex: section.orderIndex,
       }
 
       return await updateSection(sectionId, updatedSectionData)
@@ -285,9 +270,6 @@ export const useCourseContent = (courseId?: string) => {
         return
       }
 
-      const newLecture: LectureDisplay =
-        mapLessonToLectureDisplay(createdLesson)
-
       queryClient.setQueryData(
         sectionsQueryKey,
         (oldData: SectionDisplay[] | undefined) => {
@@ -296,7 +278,7 @@ export const useCourseContent = (courseId?: string) => {
                 if (section.id === sectionId) {
                   return {
                     ...section,
-                    lectures: [...section.lectures, newLecture],
+                    lectures: [...section.lectures, createdLesson],
                   }
                 }
                 return section
@@ -324,7 +306,7 @@ export const useCourseContent = (courseId?: string) => {
       lectureData: Partial<LectureDisplay>
     }) => {
       const section = sections.find((s) => s.id === sectionId)
-      const lecture = section?.lectures.find((l) => l.id === lectureId)
+      const lecture = section?.lessons.find((l) => l.id === lectureId)
 
       if (!section || !lecture) {
         throw new Error('Không tìm thấy bài giảng')
@@ -340,7 +322,9 @@ export const useCourseContent = (courseId?: string) => {
             : lecture.content || '',
         sectionId: sectionId,
         orderIndex:
-          lectureData.order !== undefined ? lectureData.order : lecture.order,
+          lectureData.order !== undefined
+            ? lectureData.order
+            : lecture.orderIndex,
         duration:
           lectureData.duration !== undefined
             ? lectureData.duration
@@ -507,7 +491,7 @@ export const useCourseContent = (courseId?: string) => {
       }
 
       // Use provided lectureIds or get from current lectures
-      const ids = lectureIds || section.lectures.map((lecture) => lecture.id)
+      const ids = lectureIds || section.lessons.map((lecture) => lecture.id)
       return {
         success: await reorderLessons(sectionId, ids),
         sectionId,
@@ -664,19 +648,15 @@ export const useCourseContent = (courseId?: string) => {
             const activeLectureId = activeParts[2]
             const overLectureId = overParts[2]
 
-            const oldIndex = section.lectures.findIndex(
+            const oldIndex = section.lessons.findIndex(
               (lecture) => lecture.id === activeLectureId,
             )
-            const newIndex = section.lectures.findIndex(
+            const newIndex = section.lessons.findIndex(
               (lecture) => lecture.id === overLectureId,
             )
 
             if (oldIndex !== -1 && newIndex !== -1) {
-              const newLectures = arrayMove(
-                section.lectures,
-                oldIndex,
-                newIndex,
-              )
+              const newLectures = arrayMove(section.lessons, oldIndex, newIndex)
               const lectureIds = newLectures.map((lecture) => lecture.id)
 
               // Update UI optimistically

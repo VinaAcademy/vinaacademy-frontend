@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Disclosure } from '@headlessui/react'
-import { ChevronDown, Play, FileText, Clock } from 'lucide-react'
+import { ChevronDown, Clock, FileText, Play } from 'lucide-react'
 import { CourseDetailsResponse, LessonType } from '@/types/course'
 import Image from 'next/image'
 import SafeHtml from '@/components/common/safe-html'
@@ -124,33 +124,38 @@ export default function CourseDetails({ course }: CourseDetailsProps) {
                     </Disclosure.Button>
                     <Disclosure.Panel className="px-4 pt-2 pb-4">
                       <div className="space-y-2">
-                        {section.lessons?.map((lesson) => (
-                          <div
-                            key={lesson.id}
-                            className="flex justify-between items-center p-3 border-b"
-                          >
-                            <div className="flex items-center gap-3">
-                              {lesson.type === 'VIDEO' ? (
-                                <Play className="w-4 h-4 text-gray-500" />
-                              ) : lesson.type === 'READING' ? (
-                                <FileText className="w-4 h-4 text-gray-500" />
-                              ) : (
-                                <Clock className="w-4 h-4 text-gray-500" />
-                              )}
-                              <span>
-                                <div className="text-sm">{lesson.title}</div>
-                                <div className="text-xs text-gray-500">
-                                  {formatLessonType(lesson.type)}
-                                </div>
-                              </span>
-                            </div>
-                            {lesson.videoDuration && (
-                              <div className="text-xs text-gray-500">
-                                {formatLessonDuration(lesson.videoDuration)}
+                        {section.lessons
+                          ?.filter((l) => l.lessonStatus !== 'REJECTED')
+                          .map((lesson) => (
+                            <div
+                              key={lesson.id}
+                              className="flex justify-between items-center p-3 border-b"
+                            >
+                              <div className="flex items-center gap-3">
+                                {lesson.type === 'VIDEO' ? (
+                                  <Play className="w-4 h-4 text-gray-500" />
+                                ) : lesson.type === 'READING' ? (
+                                  <FileText className="w-4 h-4 text-gray-500" />
+                                ) : (
+                                  <Clock className="w-4 h-4 text-gray-500" />
+                                )}
+                                <span>
+                                  <div className="text-sm">{lesson.title}</div>
+                                  <div className="text-xs text-gray-500">
+                                    {lesson.lessonStatus === 'PENDING'
+                                      ? 'Đang cập nhật...'
+                                      : formatLessonType(lesson.type)}
+                                  </div>
+                                </span>
                               </div>
-                            )}
-                          </div>
-                        ))}
+                              {lesson.lessonStatus !== 'PENDING' &&
+                                lesson.videoDuration && (
+                                  <div className="text-xs text-gray-500">
+                                    {formatLessonDuration(lesson.videoDuration)}
+                                  </div>
+                                )}
+                            </div>
+                          ))}
                       </div>
                     </Disclosure.Panel>
                   </div>

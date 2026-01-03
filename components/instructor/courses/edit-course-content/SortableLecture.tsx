@@ -1,22 +1,28 @@
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { LectureItem } from './LectureItem';
-import { LectureDisplay } from './hooks/useCourseContent';
-import { motion } from 'framer-motion';
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { LectureItem } from './LectureItem'
+import { motion } from 'framer-motion'
+import { LessonDto } from '@/types/course'
 
 interface SortableLectureProps {
-  lecture: LectureDisplay;
-  courseId: string;
-  sectionId: string;
-  onDelete: (sectionId: string, lectureId: string) => void;
-  onEdit: () => void;
-  isFirst?: boolean;
-  isLast?: boolean;
-  onDragStart?: () => void; // Thêm prop này
-  onDragEnd?: () => void;   // Thêm prop này
+  lecture: LessonDto
+  courseId: string
+  sectionId: string
+  onDelete: (sectionId: string, lectureId: string) => void
+  onEdit: () => void
+  isFirst?: boolean
+  isLast?: boolean
+  onDragStart?: () => void // Thêm prop này
+  onDragEnd?: () => void // Thêm prop này
 }
 
-export function SortableLecture({ lecture, sectionId, onDragStart, onDragEnd, ...props }: SortableLectureProps) {
+export function SortableLecture({
+  lecture,
+  sectionId,
+  onDragStart,
+  onDragEnd,
+  ...props
+}: SortableLectureProps) {
   const {
     attributes,
     listeners,
@@ -24,15 +30,15 @@ export function SortableLecture({ lecture, sectionId, onDragStart, onDragEnd, ..
     transform,
     transition,
     isDragging,
-    isOver
+    isOver,
   } = useSortable({
     id: `lecture:${sectionId}:${lecture.id}`,
-    data: { 
-      type: 'lecture', 
+    data: {
+      type: 'lecture',
       id: lecture.id,
-      parentId: sectionId
-    }
-  });
+      parentId: sectionId,
+    },
+  })
 
   // Apply different styles based on drag state
   const style: React.CSSProperties = {
@@ -42,18 +48,18 @@ export function SortableLecture({ lecture, sectionId, onDragStart, onDragEnd, ..
     position: 'relative' as const,
     zIndex: isDragging ? 1000 : 0,
     pointerEvents: isDragging ? 'none' : 'auto',
-  };
+  }
 
   return (
-    <motion.div 
-      ref={setNodeRef} 
+    <motion.div
+      ref={setNodeRef}
       style={style}
       initial={{ opacity: 0, y: -5 }}
-      animate={{ 
-        opacity: 1, 
+      animate={{
+        opacity: 1,
         y: 0,
         scale: isDragging ? 1.02 : 1,
-        boxShadow: isDragging ? '0 5px 10px rgba(0,0,0,0.15)' : 'none'
+        boxShadow: isDragging ? '0 5px 10px rgba(0,0,0,0.15)' : 'none',
       }}
       exit={{ opacity: 0, y: 5 }}
       transition={{ duration: 0.2 }}
@@ -62,29 +68,29 @@ export function SortableLecture({ lecture, sectionId, onDragStart, onDragEnd, ..
         ${isOver ? 'drop-area-over' : ''}
       `}
     >
-      <LectureItem 
+      <LectureItem
         lecture={lecture}
         sectionId={sectionId}
         {...props}
         onDragStart={() => {
-          document.body.classList.add('dragging-lecture');
+          document.body.classList.add('dragging-lecture')
           if (onDragStart) {
-            onDragStart();
+            onDragStart()
           }
         }}
         onDragEnd={() => {
-          document.body.classList.remove('dragging-lecture');
+          document.body.classList.remove('dragging-lecture')
           if (onDragEnd) {
-            onDragEnd();
+            onDragEnd()
           }
         }}
         dragHandleProps={{
           ...attributes,
           ...listeners,
           'data-draggable': 'true',
-          className: 'drag-handle'
+          className: 'drag-handle',
         }}
       />
     </motion.div>
-  );
+  )
 }
