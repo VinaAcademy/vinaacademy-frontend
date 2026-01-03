@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { CartItem } from '@/types/navbar'
 import HomeLink from '../HomeLink'
 import DesktopNav from './desktop/DesktopNav'
@@ -14,6 +15,8 @@ import { Search, Menu, X } from 'lucide-react'
 import ExploreDropdown from './explore-dropdown/ExploreDropdown'
 import MobileNav from './mobile/MobileNav'
 const Navbar = () => {
+  const pathname = usePathname()
+  const isHomePage = pathname === '/'
   const { categories, isLoading } = useCategories()
   const { isAuthenticated, user, logout } = useAuth()
   const { cartItems, removeFromCart, totalPrice } = useCart()
@@ -86,19 +89,23 @@ const Navbar = () => {
 
   // Handle scroll effect for transparent header
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0)
-    }
+    if (!isHomePage) return
+
+    const handleScroll = () => setIsScrolled(window.scrollY > 0)
+
+    handleScroll()
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [isHomePage])
+
+  const resolvedIsScrolled = isHomePage ? isScrolled : true
 
   return (
     <div className="sticky top-0 z-50 bg-transparent">
       <nav
         className={`text-black backdrop-blur-md border-b border-gray-200 py-3 px-4 lg:py-4 transition-all duration-300 ${
-          isScrolled
-            ? 'bg-white/90 shadow-md border-opacity-100'
+          resolvedIsScrolled
+            ? 'bg-white/95 shadow-md border-opacity-100'
             : 'bg-transparent shadow-none border-opacity-0'
         }`}
       >
