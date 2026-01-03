@@ -177,11 +177,15 @@ export async function createCourse(
 export async function updateCourse(
   id: string,
   course: CourseRequest,
+  statusSubmitForReview = false,
 ): Promise<CourseDto | null> {
   try {
     const response: AxiosResponse = await apiClient.put(
       `/courses/by-id/${id}`,
       course,
+      {
+        params: { statusSubmitForReview: statusSubmitForReview },
+      },
     )
     return response.data.data
   } catch (error) {
