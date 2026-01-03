@@ -14,6 +14,7 @@ import { CourseDto, LessonStatus, LessonType } from '@/types/course'
 export interface LessonReviewRequest {
   lessonIds: string[]
   status: LessonStatus
+  content?: string
 }
 
 // 🔍 POST /lessons/moderate
