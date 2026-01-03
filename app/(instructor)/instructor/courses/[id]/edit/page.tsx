@@ -328,12 +328,20 @@ export default function EditCoursePage() {
       }
 
       // Update the course
-      const updatedCourse = await updateCourse(courseId, courseRequest)
+      const updatedCourse = await updateCourse(
+        courseId,
+        courseRequest,
+        course?.status === 'PUBLISHED',
+      )
 
       if (updatedCourse) {
         toast({
           title: 'Cập nhật thành công',
-          description: 'Thông tin khóa học đã được cập nhật',
+          description:
+            'Khóa học đã được cập nhật thành công' +
+            (updatedCourse.status === 'DRAFT'
+              ? ' và lưu dưới dạng nháp.'
+              : ' và đang chờ phê duyệt.'),
           variant: 'default',
         })
 
