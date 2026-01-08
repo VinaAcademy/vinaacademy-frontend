@@ -30,7 +30,7 @@ const COURSE_KEYS = {
     status?: string
     page?: number
     size?: number
-    sortBy?: string
+    sortBy?: string | string[]
     sortDirection?: string
   }) =>
     [

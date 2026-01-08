@@ -83,16 +83,26 @@ export async function searchCourses(
   search: CourseSearchRequest,
   page = 0,
   size = 10,
-  sortBy = 'name',
+  sortBy: string | string[] = 'name',
   sortDirection: 'asc' | 'desc' = 'asc',
 ): Promise<PaginatedResponse<CourseDto> | null> {
   try {
+    const params: any = {
+      ...search,
+      page,
+      size,
+    }
+
+    if (Array.isArray(sortBy)) {
+      params.sort = sortBy
+    } else {
+      params.sort = buildSort(sortBy, sortDirection)
+    }
+
     const response: AxiosResponse = await apiClient.get('/courses', {
-      params: {
-        ...search,
-        page,
-        size,
-        sort: buildSort(sortBy, sortDirection),
+      params,
+      paramsSerializer: {
+        indexes: null,
       },
     })
     return response.data.data
