@@ -82,7 +82,11 @@ export default function Sidebar({
     },
     { name: 'Quản lý doanh thu', href: '/admin/revenue', icon: TrendingUp },
     // { name: 'Báo cáo', href: '/admin/reports', icon: BarChart3 },
-    { name: 'Quản lý đánh giá', href: '/admin/moderation', icon: Shield },
+    {
+      name: 'Kiểm duyệt thảo luận',
+      href: '/admin/discussion-moderation',
+      icon: Shield,
+    },
     // { name: 'Danh mục', href: '/admin/category', icon: ChartBarStacked },
     // {
     //   name: 'Cài đặt',
@@ -146,7 +150,12 @@ export default function Sidebar({
       {/* Logo */}
       <div className="flex items-center flex-shrink-0 px-4 mb-5">
         {!isCollapsed ? (
-          <h1 className="text-xl font-bold text-gray-900 hover:cursor-pointer" onClick={() => router.push('/')}>VinAcademy</h1>
+          <h1
+            className="text-xl font-bold text-gray-900 hover:cursor-pointer"
+            onClick={() => router.push('/')}
+          >
+            VinAcademy
+          </h1>
         ) : (
           <div className="w-full flex justify-center">
             <span className="text-xl font-bold text-gray-900">VA</span>

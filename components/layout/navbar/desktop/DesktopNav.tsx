@@ -78,7 +78,7 @@ const DesktopNav = ({
                     />
                   </svg>
                 </button>
-                <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="absolute top-full left-0 mt-2 w-52 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <Link
                     href="/requests"
                     className="block px-4 py-3 hover:bg-gray-50 transition-colors first:rounded-t-lg"
@@ -90,6 +90,12 @@ const DesktopNav = ({
                     className="block px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-100 last:rounded-b-lg"
                   >
                     Quản lý đánh giá
+                  </Link>
+                  <Link
+                    href="/discussion-moderation"
+                    className="block px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-100 last:rounded-b-lg"
+                  >
+                    Kiểm duyệt thảo luận
                   </Link>
                 </div>
               </div>

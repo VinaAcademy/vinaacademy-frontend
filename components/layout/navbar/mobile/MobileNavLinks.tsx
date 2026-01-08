@@ -1,23 +1,28 @@
-import Link from "next/link";
+import Link from 'next/link'
 
 interface MobileNavLinksProps {
-  isAuthenticated: boolean;
-  roleStaff: any;
-  roleAdmin: boolean;
-  onClose: () => void;
+  isAuthenticated: boolean
+  roleStaff: any
+  roleAdmin: boolean
+  onClose: () => void
 }
 
-const MobileNavLinks = ({ isAuthenticated, roleStaff, roleAdmin, onClose }: MobileNavLinksProps) => {
+const MobileNavLinks = ({
+  isAuthenticated,
+  roleStaff,
+  roleAdmin,
+  onClose,
+}: MobileNavLinksProps) => {
   return (
     <div className="pb-4 border-b border-gray-200">
-      <Link 
+      <Link
         href="/courses"
         className="block py-3 font-medium hover:text-gray-800"
         onClick={onClose}
       >
         Khóa học
       </Link>
-      <Link 
+      <Link
         href="/instructors"
         className="block py-3 font-medium hover:text-gray-800"
         onClick={onClose}
@@ -25,7 +30,7 @@ const MobileNavLinks = ({ isAuthenticated, roleStaff, roleAdmin, onClose }: Mobi
         Giảng viên
       </Link>
       {isAuthenticated && (
-        <Link 
+        <Link
           href="/conversations"
           className="block py-3 font-medium hover:text-gray-800"
           onClick={onClose}
@@ -34,13 +39,29 @@ const MobileNavLinks = ({ isAuthenticated, roleStaff, roleAdmin, onClose }: Mobi
         </Link>
       )}
       {isAuthenticated && roleStaff && !roleAdmin && (
-        <Link 
-          href="/requests"
-          className="block py-3 font-medium hover:text-gray-800"
-          onClick={onClose}
-        >
-          Duyệt khóa học
-        </Link>
+        <>
+          <Link
+            href="/requests"
+            className="block py-3 font-medium hover:text-gray-800"
+            onClick={onClose}
+          >
+            Duyệt khóa học
+          </Link>
+          <Link
+            href="/moderation"
+            className="block py-3 font-medium hover:text-gray-800"
+            onClick={onClose}
+          >
+            Quản lý đánh giá
+          </Link>
+          <Link
+            href="/discussion-moderation"
+            className="block py-3 font-medium hover:text-gray-800"
+            onClick={onClose}
+          >
+            Kiểm duyệt thảo luận
+          </Link>
+        </>
       )}
       {isAuthenticated && roleAdmin && (
         <Link
@@ -48,11 +69,11 @@ const MobileNavLinks = ({ isAuthenticated, roleStaff, roleAdmin, onClose }: Mobi
           className="block py-3 font-medium hover:text-gray-800"
           onClick={onClose}
         >
-          Duyệt khóa học
+          Quản trị
         </Link>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default MobileNavLinks;
+export default MobileNavLinks
