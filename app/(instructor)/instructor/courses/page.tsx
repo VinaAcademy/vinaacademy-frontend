@@ -10,12 +10,16 @@ import { CoursesPagination } from '@/components/courses/all-courses/CoursesPagin
 import { useRouter } from 'next/navigation'
 import { createSuccessToast } from '@/components/ui/toast-cus'
 import { useInstructorCourses } from '@/hooks/useInstructorCourses'
+import { useDebounce } from '@/hooks/useDebounce'
 
 export default function InstructorCoursesPage() {
   const { isAuthenticated, user } = useAuth()
   const router = useRouter()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [searchTerm, setSearchTerm] = useState('')
+
+  // Debounce search term
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
   const {
     courses,
@@ -54,14 +58,14 @@ export default function InstructorCoursesPage() {
     }
   }, [refreshCourses])
 
-  // Update search term in backend when user types
+  // Update search keyword when debounced search term changes
+  useEffect(() => {
+    handleKeywordChange(debouncedSearchTerm)
+  }, [debouncedSearchTerm, handleKeywordChange])
+
+  // Simple search handler - just update local state
   const handleSearchChange = (term: string) => {
     setSearchTerm(term)
-    // Debounce search - only search after user stops typing for 500ms
-    const timeoutId = setTimeout(() => {
-      handleKeywordChange(term)
-    }, 500)
-    return () => clearTimeout(timeoutId)
   }
 
   if (!isAuthenticated) {
