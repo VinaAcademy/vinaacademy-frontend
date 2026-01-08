@@ -156,8 +156,6 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
             // Don't add flagged comment to the list
             return true
           }
-          console.log('Created comment:', result)
-
           const isInstructor = await resolveInstructorStatus(result.userId)
           const enrichedResult = { ...result, isInstructor }
           if (parentId) {
@@ -296,7 +294,7 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
       case 'TOXIC':
         return 'Bình luận của bạn có chứa ngôn từ độc hại hoặc xúc phạm. Nội dung này sẽ được kiểm duyệt trước khi hiển thị công khai.'
       case 'EXTREME_NEGATIVE':
-        return 'Bình luận của bạn có nội dung tiêu cực. Nội dung này sẽ được kiểm duyệt trước khi hiển thị công khai.'
+        return 'Bình luận của bạn có nội dung tiêu cực rất cao. Nội dung này sẽ được kiểm duyệt trước khi hiển thị công khai.'
       case 'SPAM':
         return 'Bình luận của bạn có dấu hiệu spam. Nội dung này sẽ được kiểm duyệt trước khi hiển thị công khai.'
       default:
@@ -307,9 +305,9 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
   const getModerationColor = (flagType: string | null) => {
     switch (flagType) {
       case 'TOXIC':
-        return 'text-red-600'
-      case 'EXTREME_NEGATIVE':
         return 'text-orange-600'
+      case 'EXTREME_NEGATIVE':
+        return 'text-red-600'
       case 'SPAM':
         return 'text-gray-600'
       default:
