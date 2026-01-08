@@ -156,6 +156,7 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
             // Don't add flagged comment to the list
             return true
           }
+          console.log('Created comment:', result)
 
           const isInstructor = await resolveInstructorStatus(result.userId)
           const enrichedResult = { ...result, isInstructor }
