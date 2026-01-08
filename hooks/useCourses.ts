@@ -16,7 +16,7 @@ interface UseCoursesProps {
   status?: 'PUBLISHED' | 'PENDING' | 'DRAFT' | 'REJECTED'
   page?: number
   size?: number
-  sortBy?: string
+  sortBy?: string | string[]
   sortDirection?: 'asc' | 'desc'
   aiSearchEnabled?: boolean
 }
