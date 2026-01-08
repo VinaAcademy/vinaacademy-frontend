@@ -12,6 +12,10 @@ export interface DiscussionDto {
   createdDate: string
   updatedAt?: string
   isInstructor?: boolean
+  // Moderation fields
+  flagType?: 'TOXIC' | 'EXTREME_NEGATIVE' | 'SPAM' | null
+  moderationStatus?: 'PENDING' | 'APPROVED' | 'REJECTED' | null
+  flagSeverity?: number | null
 }
 
 export interface DiscussionRequest {

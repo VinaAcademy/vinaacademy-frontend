@@ -1,7 +1,7 @@
 'use client'
 
 import { FC, useState, useEffect, useCallback, useRef } from 'react'
-import { MessageSquare, Loader } from 'lucide-react'
+import { MessageSquare, Loader, AlertTriangle } from 'lucide-react'
 import {
   getRootCommentsPaginated,
   createDiscussion,
@@ -14,6 +14,14 @@ import CommentInput from './CommentInput'
 import { createSuccessToast } from '@/components/ui/toast-cus'
 import { useAuth } from '@/providers'
 import { isInstructorOfCourse } from '@/services/courseService'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 // Helpers to avoid duplicate keys when merging pages or switching sort
 const uniqueById = (items: DiscussionDto[]): DiscussionDto[] => {
@@ -51,6 +59,11 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
   const [submitting, setSubmitting] = useState(false)
   const { user } = useAuth()
   const instructorCacheRef = useRef<Record<string, boolean>>({})
+  const [moderationDialog, setModerationDialog] = useState<{
+    open: boolean
+    flagType: string | null
+    flagSeverity: number | null
+  }>({ open: false, flagType: null, flagSeverity: null })
 
   const resolveInstructorStatus = useCallback(
     async (userId: string): Promise<boolean> => {
@@ -133,6 +146,17 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
         const result = await createDiscussion(request)
 
         if (result) {
+          // Check for moderation flags
+          if (result.flagType && result.moderationStatus === 'PENDING') {
+            setModerationDialog({
+              open: true,
+              flagType: result.flagType,
+              flagSeverity: result.flagSeverity || null,
+            })
+            // Don't add flagged comment to the list
+            return true
+          }
+
           const isInstructor = await resolveInstructorStatus(result.userId)
           const enrichedResult = { ...result, isInstructor }
           if (parentId) {
@@ -156,7 +180,7 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
       }
       return false
     },
-    [lectureId, resolveInstructorStatus],
+    [lectureId, courseId, resolveInstructorStatus],
   )
 
   // Toggle like/unlike
@@ -262,96 +286,191 @@ const DiscussionArea: FC<DiscussionAreaProps> = ({ courseId, lectureId }) => {
     }
   }, [page, loadComments])
 
+  // Get moderation flag message
+  const getModerationMessage = (
+    flagType: string | null,
+    severity: number | null,
+  ) => {
+    switch (flagType) {
+      case 'TOXIC':
+        return 'Bình luận của bạn có chứa ngôn từ độc hại hoặc xúc phạm. Nội dung này sẽ được kiểm duyệt trước khi hiển thị công khai.'
+      case 'EXTREME_NEGATIVE':
+        return 'Bình luận của bạn có nội dung tiêu cực. Nội dung này sẽ được kiểm duyệt trước khi hiển thị công khai.'
+      case 'SPAM':
+        return 'Bình luận của bạn có dấu hiệu spam. Nội dung này sẽ được kiểm duyệt trước khi hiển thị công khai.'
+      default:
+        return 'Bình luận của bạn sẽ được kiểm duyệt trước khi hiển thị công khai.'
+    }
+  }
+
+  const getModerationColor = (flagType: string | null) => {
+    switch (flagType) {
+      case 'TOXIC':
+        return 'text-red-600'
+      case 'EXTREME_NEGATIVE':
+        return 'text-orange-600'
+      case 'SPAM':
+        return 'text-gray-600'
+      default:
+        return 'text-yellow-600'
+    }
+  }
+
   return (
-    <div className="flex flex-col h-full px-2 sm:px-4 md:px-6 py-4 md:py-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 md:mb-6 gap-3 sm:gap-0">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-800">
-          Thảo luận
-        </h2>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => setFilter('newest')}
-            className={`px-2 sm:px-3 py-1 rounded text-sm ${
-              filter === 'newest'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            Mới nhất
-          </button>
-          <button
-            onClick={() => setFilter('popular')}
-            className={`px-2 sm:px-3 py-1 rounded text-sm ${
-              filter === 'popular'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            Phổ biến nhất
-          </button>
+    <>
+      <div className="flex flex-col h-full px-2 sm:px-4 md:px-6 py-4 md:py-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 md:mb-6 gap-3 sm:gap-0">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-800">
+            Thảo luận
+          </h2>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setFilter('newest')}
+              className={`px-2 sm:px-3 py-1 rounded text-sm ${
+                filter === 'newest'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Mới nhất
+            </button>
+            <button
+              onClick={() => setFilter('popular')}
+              className={`px-2 sm:px-3 py-1 rounded text-sm ${
+                filter === 'popular'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Phổ biến nhất
+            </button>
+          </div>
+        </div>
+
+        {/* Comment input */}
+        <CommentInput onSubmit={submitComment} />
+
+        {/* Comments list */}
+        <div className="flex-1 overflow-y-auto">
+          {loading && comments.length === 0 ? (
+            <div className="flex justify-center py-8">
+              <Loader className="animate-spin w-8 h-8 text-blue-600" />
+            </div>
+          ) : comments.length === 0 ? (
+            <div className="text-center py-8 sm:py-12 bg-gray-50 rounded-lg">
+              <MessageSquare className="mx-auto h-8 sm:h-12 w-8 sm:w-12 text-gray-400" />
+              <h3 className="mt-2 text-base sm:text-lg font-medium text-gray-900">
+                Chưa có thảo luận nào
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Hãy là người đầu tiên bắt đầu cuộc thảo luận về bài học này!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4 sm:space-y-6">
+              {comments.map((comment) => (
+                <CommentItem
+                  key={comment.id}
+                  comment={comment}
+                  onToggleLike={handleToggleLike}
+                  onDelete={handleDeleteComment}
+                  onReply={setReplyingTo}
+                  onCreateReply={createNewComment}
+                  formatRelativeTime={formatRelativeTime}
+                  replyingTo={replyingTo}
+                  setReplyingTo={setReplyingTo}
+                  newReply={newReply}
+                  setNewReply={setNewReply}
+                  submitting={submitting}
+                  userId={user?.id || ''}
+                  resolveInstructorStatus={resolveInstructorStatus}
+                />
+              ))}
+
+              {/* Load more comments button */}
+              {page + 1 < totalPages && (
+                <div className="flex justify-center py-4">
+                  <button
+                    onClick={loadMore}
+                    disabled={loading}
+                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? (
+                      <Loader className="animate-spin w-4 h-4" />
+                    ) : (
+                      'Tải thêm bình luận'
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Comment input */}
-      <CommentInput onSubmit={submitComment} />
-
-      {/* Comments list */}
-      <div className="flex-1 overflow-y-auto">
-        {loading && comments.length === 0 ? (
-          <div className="flex justify-center py-8">
-            <Loader className="animate-spin w-8 h-8 text-blue-600" />
-          </div>
-        ) : comments.length === 0 ? (
-          <div className="text-center py-8 sm:py-12 bg-gray-50 rounded-lg">
-            <MessageSquare className="mx-auto h-8 sm:h-12 w-8 sm:w-12 text-gray-400" />
-            <h3 className="mt-2 text-base sm:text-lg font-medium text-gray-900">
-              Chưa có thảo luận nào
-            </h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Hãy là người đầu tiên bắt đầu cuộc thảo luận về bài học này!
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4 sm:space-y-6">
-            {comments.map((comment) => (
-              <CommentItem
-                key={comment.id}
-                comment={comment}
-                onToggleLike={handleToggleLike}
-                onDelete={handleDeleteComment}
-                onReply={setReplyingTo}
-                onCreateReply={createNewComment}
-                formatRelativeTime={formatRelativeTime}
-                replyingTo={replyingTo}
-                setReplyingTo={setReplyingTo}
-                newReply={newReply}
-                setNewReply={setNewReply}
-                submitting={submitting}
-                userId={user?.id || ''}
-                resolveInstructorStatus={resolveInstructorStatus}
+      {/* Moderation Dialog */}
+      <AlertDialog
+        open={moderationDialog.open}
+        onOpenChange={(open) =>
+          setModerationDialog({ open, flagType: null, flagSeverity: null })
+        }
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center space-x-2">
+              <AlertTriangle
+                className={`h-6 w-6 ${getModerationColor(moderationDialog.flagType)}`}
               />
-            ))}
-
-            {/* Load more comments button */}
-            {page + 1 < totalPages && (
-              <div className="flex justify-center py-4">
-                <button
-                  onClick={loadMore}
-                  disabled={loading}
-                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <Loader className="animate-spin w-4 h-4" />
-                  ) : (
-                    'Tải thêm bình luận'
-                  )}
-                </button>
+              <AlertDialogTitle>Bình luận cần kiểm duyệt</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="pt-2">
+              {getModerationMessage(
+                moderationDialog.flagType,
+                moderationDialog.flagSeverity,
+              )}
+            </AlertDialogDescription>
+            {moderationDialog.flagType && (
+              <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                <p className="text-sm text-gray-700">
+                  <strong>Loại vi phạm:</strong>{' '}
+                  <span
+                    className={`font-medium ${getModerationColor(moderationDialog.flagType)}`}
+                  >
+                    {moderationDialog.flagType === 'TOXIC'
+                      ? 'Nội dung độc hại'
+                      : moderationDialog.flagType === 'EXTREME_NEGATIVE'
+                        ? 'Nội dung tiêu cực'
+                        : 'Spam'}
+                  </span>
+                </p>
+                {moderationDialog.flagSeverity && (
+                  <p className="text-sm text-gray-700 mt-1">
+                    <strong>Mức độ:</strong> {moderationDialog.flagSeverity}/10
+                  </p>
+                )}
               </div>
             )}
+            <p className="text-sm text-gray-600 mt-3">
+              Bình luận của bạn sẽ được xem xét bởi đội ngũ quản trị. Nếu được
+              phê duyệt, nó sẽ hiển thị công khai.
+            </p>
+          </AlertDialogHeader>
+          <div className="flex justify-end">
+            <AlertDialogAction
+              onClick={() =>
+                setModerationDialog({
+                  open: false,
+                  flagType: null,
+                  flagSeverity: null,
+                })
+              }
+            >
+              Đã hiểu
+            </AlertDialogAction>
           </div>
-        )}
-      </div>
-    </div>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
 
