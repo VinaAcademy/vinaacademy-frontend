@@ -229,13 +229,13 @@ export default function DiscussionModerationComponent() {
         color: 'text-orange-600',
         bgColor: 'bg-orange-50',
       },
-      {
-        title: 'Quan trọng',
-        value: statistics.criticalPendingFlags,
-        icon: AlertTriangle,
-        color: 'text-red-600',
-        bgColor: 'bg-red-50',
-      },
+      //   {
+      //     title: 'Quan trọng',
+      //     value: statistics.criticalPendingFlags,
+      //     icon: AlertTriangle,
+      //     color: 'text-red-600',
+      //     bgColor: 'bg-red-50',
+      //   },
       {
         title: 'Đã xác nhận',
         value: statistics.totalApprovedFlags,
@@ -253,7 +253,7 @@ export default function DiscussionModerationComponent() {
     ]
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {stats.map((stat) => {
           const Icon = stat.icon
           return (
@@ -490,17 +490,15 @@ export default function DiscussionModerationComponent() {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="pending">
-                Chờ xử lý ({statistics?.pendingCount || 0})
+                Chờ xử lý ({statistics?.totalPendingFlags || 0})
               </TabsTrigger>
-              <TabsTrigger value="all">
-                Tất cả ({statistics?.totalFlaggedCount || 0})
-              </TabsTrigger>
+
               <TabsTrigger value="history">
                 Lịch sử (
-                {(statistics?.approvedCount || 0) +
-                  (statistics?.rejectedCount || 0)}
+                {(statistics?.totalPendingFlags || 0) +
+                  (statistics?.totalRejectedFlags || 0)}
                 )
               </TabsTrigger>
             </TabsList>
@@ -527,7 +525,7 @@ export default function DiscussionModerationComponent() {
           if (!open) setDetailFlag(null)
         }}
       >
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Chi tiết bình luận bị gắn cờ</DialogTitle>
             <DialogDescription>
@@ -626,16 +624,21 @@ export default function DiscussionModerationComponent() {
               )}
 
               {/* Notes for action */}
-              <div className="space-y-2">
-                <p className="font-semibold">Ghi chú (tùy chọn)</p>
-                <Textarea
-                  id="notes"
-                  placeholder="Nhập ghi chú về quyết định của bạn..."
-                  value={moderationNotes}
-                  onChange={(e) => setModerationNotes(e.target.value)}
-                  rows={4}
-                />
-              </div>
+              {detailFlag &&
+                (detailFlag.moderationStatus ||
+                  (detailFlag as any).status ||
+                  'PENDING') === 'PENDING' && (
+                  <div className="space-y-2">
+                    <p className="font-semibold">Ghi chú (tùy chọn)</p>
+                    <Textarea
+                      id="notes"
+                      placeholder="Nhập ghi chú về quyết định của bạn..."
+                      value={moderationNotes}
+                      onChange={(e) => setModerationNotes(e.target.value)}
+                      rows={4}
+                    />
+                  </div>
+                )}
             </div>
           )}
           <DialogFooter>
