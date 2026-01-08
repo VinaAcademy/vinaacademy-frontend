@@ -305,6 +305,16 @@ export const API_ENDPOINTS = {
     HISTORY: '/chatbot/history',
   },
 
+  // ==================== DISCUSSION MODERATION ====================
+  DISCUSSION_MODERATION: {
+    FLAGGED: '/discussions/moderation/flagged',
+    HISTORY: '/discussions/moderation/flagged/history',
+    MODERATE: (flagId: number) =>
+      `/discussions/moderation/flags/${flagId}/moderate`,
+    STATISTICS: '/discussions/moderation/statistics',
+    CRITICAL: '/discussions/moderation/flagged/critical',
+  },
+
   // ==================== ADMIN ====================
   ADMIN: {
     USERS: {
