@@ -8,6 +8,7 @@ import {
   Reply,
   ThumbsUp,
   Trash2,
+  AlertTriangle,
 } from 'lucide-react'
 import { FC, memo, useCallback, useState } from 'react'
 import ReplyItem from './ReplyItem'
