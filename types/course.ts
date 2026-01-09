@@ -114,6 +114,12 @@ export interface CourseReviewDto {
   userFullName: string
   createdDate: string | number[] // Support both ISO string and Spring Boot array format
   updatedDate: string | number[] // Support both ISO string and Spring Boot array format
+
+  // Moderation fields
+  isHidden?: boolean
+  flagType?: string | null
+  moderationStatus?: string | null
+  flagSeverity?: number | null
 }
 
 /**

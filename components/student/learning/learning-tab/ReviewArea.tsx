@@ -45,6 +45,28 @@ const BeautifulSpinner = dynamic(() => import('@/components/ui/spinner'), {
   loading: () => <div className="flex justify-center p-8">Loading...</div>,
 })
 
+// Lazy load AlertDialog for violation warning
+const AlertDialog = dynamic(() =>
+  import('@/components/ui/alert-dialog').then((mod) => mod.AlertDialog),
+)
+const AlertDialogAction = dynamic(() =>
+  import('@/components/ui/alert-dialog').then((mod) => mod.AlertDialogAction),
+)
+const AlertDialogContent = dynamic(() =>
+  import('@/components/ui/alert-dialog').then((mod) => mod.AlertDialogContent),
+)
+const AlertDialogDescription = dynamic(() =>
+  import('@/components/ui/alert-dialog').then(
+    (mod) => mod.AlertDialogDescription,
+  ),
+)
+const AlertDialogHeader = dynamic(() =>
+  import('@/components/ui/alert-dialog').then((mod) => mod.AlertDialogHeader),
+)
+const AlertDialogTitle = dynamic(() =>
+  import('@/components/ui/alert-dialog').then((mod) => mod.AlertDialogTitle),
+)
+
 interface ReviewsAreaProps {
   courseId: string
   currentUserId?: string
@@ -89,7 +111,30 @@ const ReviewsArea: React.FC<ReviewsAreaProps> = ({
   const [hasMoreReviews, setHasMoreReviews] = useState(false)
   const [totalPages, setTotalPages] = useState(1)
 
+  // Violation warning dialog state
+  const [violationDialogOpen, setViolationDialogOpen] = useState(false)
+  const [flaggedReview, setFlaggedReview] = useState<CourseReviewDto | null>(
+    null,
+  )
+
   const { isAuthenticated } = useAuth()
+
+  // Helper function to check if review is flagged
+  const isFlaggedReview = (review: CourseReviewDto): boolean => {
+    return (
+      review.isHidden === true ||
+      (review.flagType !== null && review.flagType !== undefined)
+    )
+  }
+
+  // Helper function to get flag severity text
+  const getFlagSeverityText = (severity?: number | null): string => {
+    if (!severity) return 'Cao'
+    if (severity >= 8) return 'Rất cao'
+    if (severity >= 5) return 'Cao'
+    if (severity >= 3) return 'Trung bình'
+    return 'Thấp'
+  }
 
   // Kiểm tra khả năng đánh giá của người dùng
   // Thêm vào useEffect kiểm tra canReview
@@ -264,30 +309,59 @@ const ReviewsArea: React.FC<ReviewsAreaProps> = ({
       // Gọi API để tạo/cập nhật đánh giá
       const savedReview = await createOrUpdateReview(reviewData)
 
+      // Kiểm tra nếu review bị flag
+      if (isFlaggedReview(savedReview)) {
+        setFlaggedReview(savedReview)
+        setViolationDialogOpen(true)
+      }
+
       // Cập nhật UI dựa trên kết quả
       if (editingReview) {
-        // Cập nhật đánh giá trong danh sách
-        setAllReviews((prev) =>
-          prev.map((review) =>
-            review.id === editingReview.id ? savedReview : review,
-          ),
-        )
-        setDisplayedReviews((prev) =>
-          prev.map((review) =>
-            review.id === editingReview.id ? savedReview : review,
-          ),
-        )
-        // Cập nhật userOwnReview
-        setUserOwnReview(savedReview)
-        toast.success('Đánh giá đã được cập nhật')
+        // Khi update review
+        if (savedReview.isHidden) {
+          // Nếu review bị ẩn sau khi update, xóa nó khỏi danh sách
+          setAllReviews((prev) =>
+            prev.filter((review) => review.id !== editingReview.id),
+          )
+          setDisplayedReviews((prev) =>
+            prev.filter((review) => review.id !== editingReview.id),
+          )
+          setUserOwnReview(null)
+        } else {
+          // Nếu không bị ẩn, cập nhật bình thường
+          setAllReviews((prev) =>
+            prev.map((review) =>
+              review.id === editingReview.id ? savedReview : review,
+            ),
+          )
+          setDisplayedReviews((prev) =>
+            prev.map((review) =>
+              review.id === editingReview.id ? savedReview : review,
+            ),
+          )
+          setUserOwnReview(savedReview)
+        }
+
+        // Nếu có flag, không hiển thị toast thành công, chỉ cảnh báo
+        if (!isFlaggedReview(savedReview)) {
+          toast.success('Đánh giá đã được cập nhật')
+        }
       } else {
-        // Thêm đánh giá mới vào đầu danh sách
-        setAllReviews((prev) => [savedReview, ...prev])
-        setDisplayedReviews((prev) => [savedReview, ...prev])
-        // Lưu lại review của user
+        // Khi tạo review mới
+        if (!savedReview.isHidden) {
+          // Chỉ thêm vào danh sách nếu không bị ẩn
+          setAllReviews((prev) => [savedReview, ...prev])
+          setDisplayedReviews((prev) => [savedReview, ...prev])
+        }
+
+        // Luôn lưu userOwnReview dù bị ẩn hay không
         setUserOwnReview(savedReview)
         setCanReview(false)
-        toast.success('Đánh giá đã được đăng')
+
+        // Nếu không có flag, hiển thị toast thành công
+        if (!isFlaggedReview(savedReview)) {
+          toast.success('Đánh giá đã được đăng')
+        }
       }
 
       // Cập nhật thống kê sau khi đánh giá
@@ -672,6 +746,64 @@ const ReviewsArea: React.FC<ReviewsAreaProps> = ({
 
       {/* Only render dialog when open */}
       {isAuthenticated && renderDialog}
+
+      {/* Violation Warning Dialog */}
+      {violationDialogOpen && flaggedReview && (
+        <AlertDialog
+          open={violationDialogOpen}
+          onOpenChange={setViolationDialogOpen}
+        >
+          <AlertDialogContent className="sm:max-w-md">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-lg font-bold text-red-600">
+                ⚠️ Đánh giá bị gắn cờ vi phạm
+              </AlertDialogTitle>
+            </AlertDialogHeader>
+
+            <div className="space-y-4 py-4">
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-1">Lý do:</h4>
+                <p className="text-sm text-gray-700">
+                  {flaggedReview.flagType || 'Không rõ'}
+                </p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-1">
+                  Mức độ vi phạm:
+                </h4>
+                <p className="text-sm text-gray-700">
+                  {getFlagSeverityText(flaggedReview.flagSeverity)}
+                </p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-1">
+                  Trạng thái:
+                </h4>
+                <p className="text-sm text-gray-700">
+                  {flaggedReview.isHidden
+                    ? 'Đánh giá đã bị ẩn'
+                    : 'Đang chờ xử lý'}
+                </p>
+              </div>
+              <div className="pt-2 border-t border-gray-200">
+                <p className="text-sm text-gray-600">
+                  Đánh giá của bạn đã được gắn cờ do không tuân thủ tiêu chuẩn
+                  cộng đồng. Vui lòng chờ đợi kiểm duyệt.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <AlertDialogAction
+                onClick={() => setViolationDialogOpen(false)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Tôi đã hiểu
+              </AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   )
 }
