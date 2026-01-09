@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -74,45 +74,70 @@ export default function RevenueChart({ period = 'MONTH' }: RevenueChartProps) {
       <CardContent className="pt-4">
         {data && data.data && data.data.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart
+            <AreaChart
               data={data.data}
               margin={{
-                top: 5,
+                top: 20,
                 right: 30,
                 left: 20,
                 bottom: 5,
               }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="name" tick={{ fill: '#6b7280' }} />
+              <defs>
+                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="#f0f0f0"
+              />
+              <XAxis
+                dataKey="name"
+                tick={{ fill: '#6b7280', fontSize: 12 }}
+                tickLine={false}
+                axisLine={false}
+                dy={10}
+              />
               <YAxis
                 tickFormatter={(value) => {
-                  if (value >= 1000000) {
+                  if (value >= 1000000000) {
+                    return `${(value / 1000000000).toFixed(1)} tỷ`
+                  } else if (value >= 1000000) {
                     return `${(value / 1000000).toFixed(0)}tr`
                   } else if (value >= 1000) {
                     return `${(value / 1000).toFixed(0)}k`
                   }
                   return value.toString()
                 }}
-                tick={{ fill: '#6b7280' }}
+                tick={{ fill: '#6b7280', fontSize: 12 }}
+                tickLine={false}
+                axisLine={false}
+                dx={-10}
               />
               <Tooltip
                 contentStyle={{
                   backgroundColor: 'white',
                   borderColor: '#e5e7eb',
+                  borderRadius: '0.5rem',
+                  boxShadow:
+                    '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
                 }}
                 formatter={(value: any) => [formatCurrency(value), 'Doanh thu']}
+                cursor={{ stroke: '#8884d8', strokeWidth: 1 }}
               />
-              <Line
+              <Area
                 type="monotone"
                 dataKey="revenue"
-                stroke="#000000"
+                stroke="#8884d8"
                 strokeWidth={2}
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-                name="Doanh thu"
+                fillOpacity={1}
+                fill="url(#colorRevenue)"
+                activeDot={{ r: 6, strokeWidth: 0, fill: '#8884d8' }}
               />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         ) : (
           <div className="h-[300px] flex items-center justify-center text-gray-500">
