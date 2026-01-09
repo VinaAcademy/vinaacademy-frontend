@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -25,6 +25,16 @@ interface RevenueChartProps {
 export default function RevenueChart({ period = 'MONTH' }: RevenueChartProps) {
   const [data, setData] = useState<RevenueChartDto | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const marginTop = useMemo(() => {
+    if (!data?.data || data.data.length === 0) return 10
+    const maxRevenue = Math.max(
+      ...data.data.map((item: any) => Number(item.revenue)),
+    )
+    if (maxRevenue >= 1000000) return 110
+    if (maxRevenue >= 1000) return 50
+    return 30
+  }, [data])
 
   useEffect(() => {
     loadRevenueChart()
@@ -77,9 +87,9 @@ export default function RevenueChart({ period = 'MONTH' }: RevenueChartProps) {
             <AreaChart
               data={data.data}
               margin={{
-                top: 20,
-                right: 30,
-                left: 20,
+                top: marginTop,
+                right: 10,
+                left: -30,
                 bottom: 5,
               }}
             >
@@ -102,20 +112,24 @@ export default function RevenueChart({ period = 'MONTH' }: RevenueChartProps) {
                 dy={10}
               />
               <YAxis
+                padding={{ top: 30 }}
+                width={80} // Giảm width nếu không cần hiển thị số quá dài
+                domain={[0, 'auto']}
                 tickFormatter={(value) => {
-                  if (value >= 1000000000) {
-                    return `${(value / 1000000000).toFixed(1)} tỷ`
-                  } else if (value >= 1000000) {
-                    return `${(value / 1000000).toFixed(0)}tr`
-                  } else if (value >= 1000) {
-                    return `${(value / 1000).toFixed(0)}k`
+                  if (value >= 1_000_000_000) {
+                    return `${(value / 1_000_000_000).toFixed(1)} tỷ`
+                  }
+                  if (value >= 1_000_000) {
+                    return `${(value / 1_000_000).toFixed(0)}tr`
+                  }
+                  if (value >= 1_000) {
+                    return `${(value / 1_000).toFixed(0)}k`
                   }
                   return value.toString()
                 }}
                 tick={{ fill: '#6b7280', fontSize: 12 }}
                 tickLine={false}
                 axisLine={false}
-                dx={-10}
               />
               <Tooltip
                 contentStyle={{
