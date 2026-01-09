@@ -171,7 +171,7 @@ export default function SentimentFilter({
         {review.sentiment.isToxic && (
           <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 p-2 rounded">
             <AlertCircle className="h-4 w-4" />
-            <span>Đánh giá này đã được đánh dấu để kiểm duyệt</span>
+            <span>Đánh giá này đã được gắn cờ</span>
           </div>
         )}
       </div>
