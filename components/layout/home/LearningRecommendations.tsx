@@ -15,7 +15,7 @@ const LearningRecommendations = () => {
   // Fetch courses from API
   const { courses, loading, error } = useCourses({
     minRating: 3.5,
-    sortBy: isAuthenticated ? 'rating' : ['totalStudent,asc', 'rating,desc'],
+    sortBy: ['totalStudent,asc', 'rating,desc'],
     sortDirection: 'desc',
     size: 8,
   })
