@@ -17,6 +17,12 @@ export interface CourseReviewResponse {
   userFullName: string
   createdDate: string
   updatedDate: string
+
+  // Moderation fields
+  isHidden?: boolean
+  flagType?: string | null
+  moderationStatus?: string | null
+  flagSeverity?: number | null
 }
 
 export interface ReviewStatistics {
