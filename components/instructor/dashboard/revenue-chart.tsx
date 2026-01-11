@@ -31,12 +31,7 @@ export default function RevenueChart({ period = 'MONTH' }: RevenueChartProps) {
     const maxRevenue = Math.max(
       ...data.data.map((item: any) => Number(item.revenue)),
     )
-    if (maxRevenue >= 1000000000) return 300
-    if (maxRevenue >= 200000000) return 200
-    if (maxRevenue >= 15000000) return 160
-    if (maxRevenue >= 1000000) return 110
-    if (maxRevenue >= 1000) return 50
-    return 30
+    return Math.max(30, Math.max(10, (5 * maxRevenue) / 1e6 + 35))
   }, [data])
 
   useEffect(() => {
