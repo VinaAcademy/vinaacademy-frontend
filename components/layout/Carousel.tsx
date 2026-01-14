@@ -1,7 +1,13 @@
 'use client'
 
 import React, { useState } from 'react'
-import { ChevronLeft, ChevronRight, Star, Eye } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Star,
+  Eye,
+  GraduationCap,
+} from 'lucide-react'
 import {
   Card,
   CardContent,
@@ -140,6 +146,14 @@ const Carousel = ({ title, customCourses }: CarouselProps) => {
                       <p className="text-gray-600 text-sm mb-2">
                         {course.categoryName}
                       </p>
+                      {course.nameInstructorOwner && (
+                        <div className="flex items-center gap-1 text-gray-700 text-sm mb-2">
+                          <GraduationCap size={14} className="flex-shrink-0" />
+                          <span className="font-medium truncate">
+                            {course.nameInstructorOwner}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-1 mb-2">
                         <Star
                           size={16}
