@@ -39,6 +39,7 @@ export interface CourseDto extends BaseDto {
   totalLesson: number
   sections?: SectionDto[] // only in some contexts
   progress?: EnrollmentProgressDto // only for current user
+  nameInstructorOwner?: string // only in some contexts
 }
 
 export interface Role {
