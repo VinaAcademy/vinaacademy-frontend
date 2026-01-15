@@ -1,6 +1,6 @@
-"use client";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+'use client'
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
 import {
   Eye,
   BookOpen,
@@ -12,19 +12,20 @@ import {
   Layers,
   FileText,
   Globe,
-} from "lucide-react";
-import { format } from "date-fns";
-import { CourseDetailsResponse } from "@/types/course";
-import Image from "next/image";
-import { getImageUrl } from "@/utils/imageUtils";
-import SafeHtml from "@/components/common/safe-html";
+  Clock,
+} from 'lucide-react'
+import { format } from 'date-fns'
+import { CourseDetailsResponse } from '@/types/course'
+import Image from 'next/image'
+import { getImageUrl } from '@/utils/imageUtils'
+import SafeHtml from '@/components/common/safe-html'
 
 interface CourseDetailProps {
-  selectedCourseId: string | null;
-  courseRequests: CourseDetailsResponse[];
-  onPreview: (id: string) => void;
-  onApprove: (slug: string) => void;
-  onReject: (slug: string, nameg: string, id: string, recipid: string) => void;
+  selectedCourseId: string | null
+  courseRequests: CourseDetailsResponse[]
+  onPreview: (id: string) => void
+  onApprove: (slug: string) => void
+  onReject: (slug: string, nameg: string, id: string, recipid: string) => void
 }
 
 const RightCourseDetail = ({
@@ -35,8 +36,8 @@ const RightCourseDetail = ({
   onReject,
 }: CourseDetailProps) => {
   const selectedCourse = courseRequests.find(
-    (item) => item.id === selectedCourseId
-  );
+    (item) => item.id === selectedCourseId,
+  )
 
   if (!selectedCourseId || !selectedCourse) {
     return (
@@ -49,42 +50,42 @@ const RightCourseDetail = ({
           Chọn một yêu cầu khóa học từ danh sách để xem chi tiết
         </p>
       </div>
-    );
+    )
   }
 
-  const courseDto = selectedCourse;
-  const instructor = courseDto.ownerInstructor?.fullName || "Không xác định";
-  const category = courseDto.categoryName;
+  const courseDto = selectedCourse
+  const instructor = courseDto.ownerInstructor?.fullName || 'Không xác định'
+  const category = courseDto.categoryName
   const statusColor: Record<string, string> = {
-    DRAFT: "bg-gray-100 text-gray-800 border-gray-200",
-    PENDING: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    PUBLISHED: "bg-green-100 text-green-800 border-green-200",
-    REJECTED: "bg-red-100 text-red-800 border-red-200",
-  };
+    DRAFT: 'bg-gray-100 text-gray-800 border-gray-200',
+    PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    PUBLISHED: 'bg-green-100 text-green-800 border-green-200',
+    REJECTED: 'bg-red-100 text-red-800 border-red-200',
+  }
   const statusText: Record<string, string> = {
-    DRAFT: "Bản nháp",
-    PENDING: "Đang chờ",
-    PUBLISHED: "Đã duyệt",
-    REJECTED: "Từ chối",
-  };
+    DRAFT: 'Bản nháp',
+    PENDING: 'Đang chờ',
+    PUBLISHED: 'Đã duyệt',
+    REJECTED: 'Từ chối',
+  }
   const levelText: Record<string, string> = {
-    BEGINNER: "Mới bắt đầu",
-    INTERMEDIATE: "Trung cấp",
-    ADVANCED: "Cao cấp",
-  };
+    BEGINNER: 'Mới bắt đầu',
+    INTERMEDIATE: 'Trung cấp',
+    ADVANCED: 'Cao cấp',
+  }
 
-  const formattedPrice = new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(courseDto.price);
-  const reformatImageUrl = getImageUrl(courseDto.image);
+  const formattedPrice = new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(courseDto.price)
+  const reformatImageUrl = getImageUrl(courseDto.image)
 
   return (
     <div className="flex flex-col h-full overflow-auto">
       <div className="flex-1 overflow-auto p-6 border rounded-lg bg-accent/5">
         <div className="flex justify-between items-start mb-4">
           <h3 className="font-medium text-xl">Chi tiết khóa học</h3>
-          {courseDto.status === "PENDING" && (
+          {courseDto.status === 'PENDING' && (
             <div className="flex items-center gap-2">
               <Button
                 className="bg-green-600 hover:bg-green-700 text-white w-fit"
@@ -95,7 +96,14 @@ const RightCourseDetail = ({
               <Button
                 variant="outline"
                 className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 w-fit"
-                onClick={() => onReject(courseDto.slug, courseDto.name, courseDto.id, courseDto.ownerInstructor?.id || "")}
+                onClick={() =>
+                  onReject(
+                    courseDto.slug,
+                    courseDto.name,
+                    courseDto.id,
+                    courseDto.ownerInstructor?.id || '',
+                  )
+                }
               >
                 Từ chối
               </Button>
@@ -126,8 +134,9 @@ const RightCourseDetail = ({
               />
               <div className="absolute top-3 right-3">
                 <span
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor[courseDto.status] || "bg-gray-100 text-gray-800"
-                    }`}
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                    statusColor[courseDto.status] || 'bg-gray-100 text-gray-800'
+                  }`}
                 >
                   {statusText[courseDto.status] || courseDto.status}
                 </span>
@@ -140,7 +149,7 @@ const RightCourseDetail = ({
             <div className="flex items-center text-muted-foreground text-sm gap-2 mb-4">
               <Calendar className="h-4 w-4" />
               <span>
-                Đã tạo: {format(new Date(courseDto.createdDate), "dd/MM/yyyy")}
+                Đã tạo: {format(new Date(courseDto.createdDate), 'dd/MM/yyyy')}
               </span>
             </div>
           </div>
@@ -219,6 +228,16 @@ const RightCourseDetail = ({
                   <p className="text-muted-foreground">{courseDto.language}</p>
                 </div>
               </div>
+
+              <div className="flex items-start gap-3">
+                <Clock className="h-5 w-5 text-rose-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">Tổng thời lượng</p>
+                  <p className="text-muted-foreground">
+                    {courseDto.estimatedTime || 0} giờ
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -232,7 +251,7 @@ const RightCourseDetail = ({
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default RightCourseDetail;
+export default RightCourseDetail

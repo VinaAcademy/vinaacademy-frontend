@@ -12,6 +12,7 @@ import {
 import { CourseDto } from '@/types/course'
 import { getImageUrl } from '@/utils/imageUtils'
 import { formatCurrency } from '@/services/revenueService'
+import { GraduationCap } from 'lucide-react'
 
 interface CourseCardProps {
   course: CourseDto
@@ -64,6 +65,15 @@ const CourseCard = ({ course }: CourseCardProps) => {
           <h3 className="text-lg font-semibold mb-2 line-clamp-2 min-h-[48px]">
             {course.name}
           </h3>
+
+          {course.nameInstructorOwner && (
+            <div className="flex items-center gap-1 text-gray-700 text-sm mb-2">
+              <GraduationCap size={14} className="flex-shrink-0" />
+              <span className="font-medium truncate">
+                {course.nameInstructorOwner}
+              </span>
+            </div>
+          )}
 
           <div className="flex items-center text-sm text-gray-600 mb-2">
             <FaSignal className="mr-1" />

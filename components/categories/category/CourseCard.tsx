@@ -1,7 +1,7 @@
 // components/CourseCard.tsx
 import Image from 'next/image'
 import Link from 'next/link'
-import { Star } from 'lucide-react'
+import { GraduationCap, Star } from 'lucide-react'
 import { CourseDto } from '@/types/course'
 
 interface CourseCardProps {
@@ -25,6 +25,14 @@ export function CourseCard({ course }: CourseCardProps) {
             {course.name}
           </h3>
           <p className="text-sm text-gray-600 mb-1">{course.categoryName}</p>
+          {course.nameInstructorOwner && (
+            <div className="flex items-center gap-1 text-gray-700 text-sm mb-2">
+              <GraduationCap size={14} className="flex-shrink-0" />
+              <span className="font-medium truncate">
+                {course.nameInstructorOwner}
+              </span>
+            </div>
+          )}
           <div className="flex items-center gap-1 mb-1">
             <span className="text-amber-700 font-bold">
               {course.rating.toFixed(1)}

@@ -39,6 +39,7 @@ export interface CourseDto extends BaseDto {
   totalLesson: number
   sections?: SectionDto[] // only in some contexts
   progress?: EnrollmentProgressDto // only for current user
+  nameInstructorOwner?: string // only in some contexts
 }
 
 export interface Role {
@@ -143,6 +144,7 @@ export interface CourseDetailsResponse extends BaseDto {
   totalStudent: number
   totalSection: number
   totalLesson: number
+  estimatedTime: number
 
   instructors: UserDto[]
   ownerInstructor: UserDto
@@ -165,6 +167,7 @@ export interface CreateCourseRequest {
   categorySlug: string // required
   image?: string
   status?: CourseStatus // admin/staff only
+  estimatedTime: number // required
 }
 
 export interface UpdateCourseRequest {
@@ -177,6 +180,7 @@ export interface UpdateCourseRequest {
   categorySlug?: string
   image?: string
   status?: CourseStatus // admin/staff only
+  estimatedTime?: number
 }
 
 /**
