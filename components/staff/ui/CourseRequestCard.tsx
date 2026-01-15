@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { CourseDetailsResponse, CourseDto } from '@/types/course'
-import { Check, Eye, X } from 'lucide-react'
+import { Check, Eye, X, Clock } from 'lucide-react'
 
 type CourseRequestProps = {
   onApprove?: (slug: string) => void
@@ -111,6 +111,10 @@ const CourseRequestCard = ({
             <p className="text-sm">
               <span className="text-muted-foreground">Danh mục:</span>{' '}
               {category}
+            </p>
+            <p className="text-sm">
+              <span className="text-muted-foreground">Tổng thời lượng:</span>{' '}
+              {courseDto.estimatedTime || 0} giờ
             </p>
             <div className="flex justify-between items-center">
               <p className="text-sm">

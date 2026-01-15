@@ -11,6 +11,7 @@ import {
   ShoppingCart,
   CheckCircle,
   Check,
+  FileText,
 } from 'lucide-react'
 import Image from 'next/image'
 import { useAuth } from '@/context/AuthContext'
@@ -350,6 +351,15 @@ export default function PurchaseCard({
             <Globe className="w-4 h-4 text-gray-600" />
             <span>Truy cập vĩnh viễn</span>
           </div>
+          <button
+            onClick={() => router.push('/terms')}
+            className="flex items-center gap-2 hover:opacity-75 transition-opacity cursor-pointer"
+          >
+            <FileText className="w-4 h-4 text-gray-600" />
+            <span className="text-blue-600 hover:underline">
+              Điều khoản và chính sách
+            </span>
+          </button>
         </div>
 
         {/* Share and gift buttons */}
