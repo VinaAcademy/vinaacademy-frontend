@@ -627,6 +627,8 @@ export const useCourseContent = (courseId?: string) => {
 
         // Call API to persist changes
         await updateSectionOrdersMutation.mutateAsync(sectionIds)
+        // refresh course sections to ensure data consistency
+        await fetchSections()
         toast.success('Thứ tự phần học đã được cập nhật')
       }
     }
@@ -685,6 +687,9 @@ export const useCourseContent = (courseId?: string) => {
                 sectionId: activeSectionId,
                 lectureIds,
               })
+
+              // refresh sections to ensure data consistency
+              await fetchSections()
 
               toast.success('Thứ tự bài giảng đã được cập nhật')
             }
