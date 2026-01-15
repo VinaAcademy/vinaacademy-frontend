@@ -19,6 +19,7 @@ import {
   Shield,
 } from 'lucide-react'
 import { getStatusCourse } from '@/services/courseService'
+import { StarFilledIcon } from '@radix-ui/react-icons'
 
 interface SidebarProps {
   mobile?: boolean
@@ -86,6 +87,11 @@ export default function Sidebar({
       name: 'Kiểm duyệt thảo luận',
       href: '/admin/discussion-moderation',
       icon: Shield,
+    },
+    {
+      name: 'Kiểm duyệt đánh giá',
+      href: '/admin/moderation',
+      icon: StarFilledIcon,
     },
     // { name: 'Danh mục', href: '/admin/category', icon: ChartBarStacked },
     // {

@@ -45,6 +45,7 @@ export default function EditCoursePage() {
     slug: '',
     price: 0,
     thumbnail: null,
+    estimatedTime: 0,
   })
 
   const [course, setCourse] = useState<CourseDetailsResponse | null>(null)
@@ -53,6 +54,7 @@ export default function EditCoursePage() {
   const [progress, setProgress] = useState(33)
   const [previewThumbnail, setPreviewThumbnail] = useState<string | null>(null)
   const [formSaving, setFormSaving] = useState(false)
+  const [basicErrors, setBasicErrors] = useState({})
 
   // Fetch course data
   useEffect(() => {
@@ -95,6 +97,7 @@ export default function EditCoursePage() {
           slug: courseDetails.slug || '',
           price: courseDetails.price || 0,
           thumbnail: null,
+          estimatedTime: courseDetails.estimatedTime || 0,
         })
 
         // Set thumbnail preview if available
@@ -195,7 +198,9 @@ export default function EditCoursePage() {
       courseData.title !== '' &&
       courseData.description !== '' &&
       courseData.category !== '' &&
-      courseData.level !== ''
+      courseData.level !== '' &&
+      courseData.estimatedTime > 0 &&
+      Object.keys(basicErrors).length === 0
     )
   }
 
@@ -229,7 +234,7 @@ export default function EditCoursePage() {
         updateSection('media')
       } else {
         toast({
-          title: 'Thông tin chưa đầy đủ',
+          title: 'Thông tin chưa đầy đủ hoặc không đúng',
           description:
             'Vui lòng điền đầy đủ thông tin trong phần thông tin cơ bản',
           variant: 'destructive',
@@ -263,7 +268,7 @@ export default function EditCoursePage() {
     if (!isBasicSectionComplete()) {
       updateSection('basic')
       toast({
-        title: 'Thông tin chưa đầy đủ',
+        title: 'Thông tin chưa đầy đủ hoặc không đúng',
         description:
           'Vui lòng điền đầy đủ thông tin trong phần thông tin cơ bản',
         variant: 'destructive',
@@ -317,6 +322,7 @@ export default function EditCoursePage() {
         categorySlug: courseData.category,
         image: previewThumbnail ? previewThumbnail : undefined,
         slug: courseData.slug,
+        estimatedTime: courseData.estimatedTime,
       }
 
       // Upload new thumbnail if changed
@@ -493,6 +499,7 @@ export default function EditCoursePage() {
                     courseData={courseData}
                     onChange={handleInputChange}
                     onEditorChange={onEditorChange}
+                    onErrorsChange={setBasicErrors}
                   />
                 )}
 

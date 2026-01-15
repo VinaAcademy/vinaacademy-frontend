@@ -100,7 +100,8 @@ export default function CourseDetails({ course }: CourseDetailsProps) {
             <div className="text-sm text-gray-500 flex flex-wrap gap-4">
               <span>{totalSections} phần •</span>
               <span>{totalLessons} bài học •</span>
-              <span>Thời lượng {formatDuration(totalDuration)}</span>
+              <span>Thời lượng video {formatDuration(totalDuration)} •</span>
+              <span>Tổng thời lượng {course.estimatedTime} giờ</span>
             </div>
           </div>
 

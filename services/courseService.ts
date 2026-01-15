@@ -392,6 +392,7 @@ export const uploadImageAndCreateCourse = async (
     categorySlug: courseData.category,
     image: uploadedImage.id,
     status: CourseStatus.DRAFT,
+    estimatedTime: courseData.estimatedTime,
   }
 
   const createdCourse = await createCourse(courseRequest)
